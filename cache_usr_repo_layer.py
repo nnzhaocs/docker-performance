@@ -74,6 +74,7 @@ def run_sim(requests, type, portion):
                   }
     t = time.time()
        
+    print portion
     # we are considering an individual layer size to be 1 unit.
     size1 = int(num_layers[portion] * 0.05)
     size2 = int(num_layers[portion] * 0.1)

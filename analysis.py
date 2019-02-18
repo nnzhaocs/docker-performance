@@ -739,9 +739,9 @@ def main():
 #         if '.py' in pi:
 #             pi = pi[:-3]
         portion_files = {'10': 'total_trace_10_percent.json',
-                         '25': 'total_trace_10_percent.json',
-                         '50': 'total_trace_10_percent.json',
-                         '75': 'total_trace_10_percent.json',
+                         '25': 'total_trace_25_percent.json',
+                         '50': 'total_trace_50_percent.json',
+                         '75': 'total_trace_75_percent.json',
                          }
         if args.portion in portion_files.keys():
             with open(os.path.join(input_dir, portion_files[args.portion]), 'r') as fp:
@@ -753,7 +753,7 @@ def main():
         else:
             print("you chose poorly")
             exit()
-        pi = 'cache_usr_repo_layer' #'prefetch_old'
+        pi = 'prefetch_layersize1' #'cache_usr_repo_layer' #'prefetch_old'
         try:
             plugin = importlib.import_module(pi)
         except Exception as inst:
