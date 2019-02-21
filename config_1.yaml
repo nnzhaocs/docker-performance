@@ -2,9 +2,9 @@
 client_info: # Required for run command
     client_list:
         - localhost:8096
-        - 192.168.0.152:8081
-        - 192.168.0.153:8081
-        - 192.168.0.154:8081
+        # - 192.168.0.152:8081
+        # - 192.168.0.153:8081
+        # - 192.168.0.154:8081
         # - client instance and port
     port: 8080 # master's server port needed for clients to send inforamtion back
     threads: 100 # number of threads per client node, each thread is a process that sends requests
@@ -92,29 +92,29 @@ trace: # mandatory field
         - prod-dal09-logstash-2017.07.07-1.json
         - prod-dal09-logstash-2017.07.07-2.json
         - prod-dal09-logstash-2017.07.07-3.json
-        # - prod-dal09-logstash-2017.07.08-0.json
-        # - prod-dal09-logstash-2017.07.08-1.json
-        # - prod-dal09-logstash-2017.07.08-2.json
-        # - prod-dal09-logstash-2017.07.08-3.json
-        # - prod-dal09-logstash-2017.07.09-0.json
-        # - prod-dal09-logstash-2017.07.09-1.json
-        # - prod-dal09-logstash-2017.07.09-2.json
-        # - prod-dal09-logstash-2017.07.09-3.json
-        # - prod-dal09-logstash-2017.07.10-0.json
-        # - prod-dal09-logstash-2017.07.10-1.json
-        # - prod-dal09-logstash-2017.07.10-2.json
-        # - prod-dal09-logstash-2017.07.11-0.json
-        # - prod-dal09-logstash-2017.07.11-1.json
-        # - prod-dal09-logstash-2017.07.11-2.json
-        # - prod-dal09-logstash-2017.07.11-3.json
-        # - prod-dal09-logstash-2017.07.12-0.json
-        # - prod-dal09-logstash-2017.07.12-1.json
-        # - prod-dal09-logstash-2017.07.12-2.json
-        # - prod-dal09-logstash-2017.07.12-3.json
-        # - prod-dal09-logstash-2017.07.13-0.json
-        # - prod-dal09-logstash-2017.07.13-1.json
-        # - prod-dal09-logstash-2017.07.13-2.json
-        # - prod-dal09-logstash-2017.07.13-3.json
+        - prod-dal09-logstash-2017.07.08-0.json
+        - prod-dal09-logstash-2017.07.08-1.json
+        - prod-dal09-logstash-2017.07.08-2.json
+        - prod-dal09-logstash-2017.07.08-3.json
+        - prod-dal09-logstash-2017.07.09-0.json
+        - prod-dal09-logstash-2017.07.09-1.json
+        - prod-dal09-logstash-2017.07.09-2.json
+        - prod-dal09-logstash-2017.07.09-3.json
+        - prod-dal09-logstash-2017.07.10-0.json
+        - prod-dal09-logstash-2017.07.10-1.json
+        - prod-dal09-logstash-2017.07.10-2.json
+        - prod-dal09-logstash-2017.07.11-0.json
+        - prod-dal09-logstash-2017.07.11-1.json
+        - prod-dal09-logstash-2017.07.11-2.json
+        - prod-dal09-logstash-2017.07.11-3.json
+        - prod-dal09-logstash-2017.07.12-0.json
+        - prod-dal09-logstash-2017.07.12-1.json
+        - prod-dal09-logstash-2017.07.12-2.json
+        - prod-dal09-logstash-2017.07.12-3.json
+        - prod-dal09-logstash-2017.07.13-0.json
+        - prod-dal09-logstash-2017.07.13-1.json
+        - prod-dal09-logstash-2017.07.13-2.json
+        - prod-dal09-logstash-2017.07.13-3.json
         # - prod-dal09-logstash-2017.07.14-0.json
         # - prod-dal09-logstash-2017.07.14-1.json
         # - prod-dal09-logstash-2017.07.14-2.json
