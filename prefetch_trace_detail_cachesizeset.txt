@@ -10,6 +10,15 @@
 ## lookup table threshold: 10 minutes ; cache threshold: 24 hours
 {'hits': 1724915, 'bad prefetch': 8604, 'max size': 560092966963, 'misses': 449448, 'cache capacity': 560093001798, 'good prefetch': 28437}
 
+# 10% of the trace, cache size is 20% of total layer size for the 10% of the trace 
+## lookup table threshold: 10 minutes ; cache threshold: 24 hours
+{'hits': 1733159, 'bad prefetch': 9650, 'max size': 676097417329, 'misses': 448175, 'cache capacity': 746790669064, 'good prefetch': 31747}
+
+# 10% of the trace, cache size is 30% of total layer size for the 10% of the trace 
+## lookup table threshold: 10 minutes ; cache threshold: 24 hours
+{'hits': 1733159, 'bad prefetch': 9650, 'max size': 676097417329, 'misses': 448175, 'cache capacity': 1120186003597, 'good prefetch': 31747}
+
+
 # 25% of the trace, cache size is 5% of total layer size for the 25% of the trace 
 ## lookup table threshold: 10 minutes ; cache threshold: 24 hours
 {'hits': 3288302, 'bad prefetch': 3376, 'max size': 246601453983, 'misses': 1293449, 'cache capacity': 246601455733, 'good prefetch': 16847}

@@ -227,9 +227,9 @@ def init(data, portion=100):
     # prefetch1010 = prefetch_cache(rtimeout=600, mtimeout=600, cache_size = )
     # prefetch10hour = prefetch_cache(rtimeout=600, mtimeout=3600)
     # prefetch10half = prefetch_cache(rtimeout=600, mtimeout=43200)
-    prefetch10day_cache5p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size1)
-    prefetch10day_cache10p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size2)
-    prefetch10day_cache15p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size3)
+    # prefetch10day_cache5p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size1)
+    # prefetch10day_cache10p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size2)
+    # prefetch10day_cache15p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size3)
     prefetch10day_cache20p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size4)
     prefetch10day_cache30p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size5)
     # prefetchhour10 = prefetch_cache(rtimeout=3600, mtimeout=600)
@@ -261,11 +261,11 @@ def init(data, portion=100):
         # prefetch1010.put(request)
         # prefetch10hour.put(request)
         # prefetch10half.put(request)
-        prefetch10day_cache5p.put(request)
+        # prefetch10day_cache5p.put(request)
         # prefetch10day_cache10p.put(request)
-        prefetch10day_cache15p.put(request)
-        # prefetch10day_cache20p.put(request)
-        # prefetch10day_cache30p.put(request)
+        # prefetch10day_cache15p.put(request)
+        prefetch10day_cache20p.put(request)
+        prefetch10day_cache30p.put(request)
         # prefetchhour10.put(request)
         # prefetchhourhour.put(request)
         # prefetchhourhalf.put(request)
@@ -281,11 +281,11 @@ def init(data, portion=100):
     # prefetch1010.flush()
     # prefetch10hour.flush()
     # prefetch10half.flush()
-    prefetch10day_cache5p.flush()
+    # prefetch10day_cache5p.flush()
     # prefetch10day_cache10p.flush()
-    prefetch10day_cache15p.flush()
-    # prefetch10day_cache20p.flush()
-    # prefetch10day_cache30p.flush()
+    # prefetch10day_cache15p.flush()
+    prefetch10day_cache20p.flush()
+    prefetch10day_cache30p.flush()
     # prefetchhour10.flush()
     # prefetchhourhour.flush()
     # prefetchhourhalf.flush()
@@ -304,11 +304,11 @@ def init(data, portion=100):
         # prefetch1010.get_info(),
         # prefetch10hour.get_info(),
         # prefetch10half.get_info(),
-        prefetch10day_cache5p.get_info(),
+        # prefetch10day_cache5p.get_info(),
         # prefetch10day_cache10p.get_info(),
-        prefetch10day_cache15p.get_info(),
-        # prefetch10day_cache20p.get_info(),
-        # prefetch10day_cache30p.get_info(),
+        # prefetch10day_cache15p.get_info(),
+        prefetch10day_cache20p.get_info(),
+        prefetch10day_cache30p.get_info(),
         # prefetchhour10.get_info(),
         # prefetchhourhour.get_info(),
         # prefetchhourhalf.get_info(),
