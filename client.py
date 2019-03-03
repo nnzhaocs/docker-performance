@@ -94,6 +94,8 @@ def send_requests(wait, requests, startTime, q):
         registries = []
         start = startTime + r['delay']
         onTime = 'no'
+        dgst = r['blob']
+        
         if r['method'] == 'GET':
             registries.extend(get_request_registries(r)) 
             
@@ -102,6 +104,9 @@ def send_requests(wait, requests, startTime, q):
                 print 'destination registries for this blob is zero! ERROR!'            
 
             onTime_q = Queue()
+            registry_q = Queue()
+            [registry_q.put(i) for i in registries]
+            
             now = time.time()
             if start > now and wait is True:
                 onTime = 'yes'
