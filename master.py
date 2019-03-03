@@ -22,35 +22,24 @@ def send_request_get(client, payload):
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     s.post("http://" + str(client) + "/up", data=json.dumps(payload), headers=headers, timeout=100)
 
-def send_warmup_thread(requests, q, registry, generate_random):
-    trace = {}
-    dxf = DXF(registry, 'test_repo', insecure=True)
-#     f = open(str(os.getpid()), 'wb')
-#     f.write('\0')
-#     f.close()
-    for request in requests:
-        if request['size'] < 0:
-            trace[request['uri']] = 'bad'
-#         elif not (request['uri'] in trace):
-#             with open(str(os.getpid()), 'wb') as f:
-#                 if generate_random is True:
-#                     f.seek(request['size'] - 9)
-#                     f.write(str(random.getrandbits(64)))
-#                     f.write('\0')
-#                 else:
-#                     f.seek(request['size'] - 1)
-#                     f.write('\0')
+def send_warmup_thread(requests, q, registries, generate_random):
+    for registry in registries:
+        trace = {}
+        dxf = DXF(registry, 'test_repo', insecure=True)
+        for request in requests:
+            if request['size'] < 0:
+                trace[request['uri']] = 'bad'
 
-        try:
-            dgst = dxf.push_blob(request['data'])
-        except:
-            dgst = 'bad'
-        print request['uri'], dgst
-        trace[request['uri']] = dgst
-#     os.remove(str(os.getpid()))
+            try:
+                dgst = dxf.push_blob(request['data'])
+            except:
+                dgst = 'bad'
+            print request['uri'], dgst
+            trace[request['uri']] = dgst
     q.put(trace)
 
-def warmup(data, out_trace, registry, threads, generate_random):
+# process data = [ [], [], [].... <numberofthreads>]
+def warmup(data, out_trace, registries, threads, generate_random):
     trace = {}
     processes = []
     q = Queue()
@@ -63,7 +52,7 @@ def warmup(data, out_trace, registry, threads, generate_random):
             process_data[i % threads].append(request)
             i += 1
     for i in range(threads):
-        p = Process(target=send_warmup_thread, args=(process_data[i], q, registry, generate_random))
+        p = Process(target=send_warmup_thread, args=(process_data[i], q, registries, generate_random))
         processes.append(p)
 
     for p in processes:
@@ -481,7 +470,7 @@ def main():
             threads = 1
         if verbose:
             print 'warmup threads: ' + str(threads)
-        warmup(json_data, interm, registries[0], threads, generate_random)
+        warmup(json_data, interm, registries, threads, generate_random)
 
     elif args.command == 'run':
         if verbose:
