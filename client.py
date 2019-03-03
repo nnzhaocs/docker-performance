@@ -93,6 +93,7 @@ def send_requests(wait, requests, startTime, q):
         t = 0
         registries = []
         start = startTime + r['delay']
+        print r
         onTime = 'no'
         if r['method'] == 'GET':
             registries.extend(get_request_registries(r)) 

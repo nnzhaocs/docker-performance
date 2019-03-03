@@ -548,7 +548,7 @@ def main():
             if inputs['client_info']['route'] is True:
                 round_robin = False
 
-        data = organize(json_data, interm, len(client_list), client_threads, port, wait, registries, round_robin, generate_random)
+        data = organize(json_data, interm, len(client_list), client_threads, port, wait, registries, round_robin, generate_random, 0)
         ## Perform GET
         get_blobs(data, client_list, port, out_file)
 

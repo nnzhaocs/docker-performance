@@ -1,12 +1,12 @@
 # excample configuration file for trace player
 client_info: # Required for run command
     client_list: # the list of clients read by master
-        - localhost:8096
+        - 192.168.0.152:8081
         - 192.168.0.153:8081
         # - 192.168.0.153:8081
         # - 192.168.0.154:8081
         # - client instance and port
-    port: 8096 # the client's port when using this config file with the client
+    port: 8082 # the client's/master's port when using this config file with the client/master
     threads: 100 # number of threads per client node, each thread is a process that sends requests
     wait: true # Determines if clients should wait the relative amount of time in trace before sending request
     route: true # Tells the master to forward based on hashing on client urls rather than round robin
