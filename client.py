@@ -127,7 +127,7 @@ def send_requests(wait, requests, startTime, q):
             onTime_l = list(onTime_q.queue)
                 
             results.append({'time': now, 'duration': t, 'onTime': onTime_l})   #, 'size': size
-            pull_rsp_q.put(results)   
+#             pull_rsp_q.put(results)   
         
             print 'processes joined, send requests continuing'
         else:                  
@@ -151,7 +151,7 @@ def send_requests(wait, requests, startTime, q):
                 t = time.time() - now
  
                 results.append({'time': now, 'duration': t, 'onTime': onTime, 'size': size})
-    q.put(results)
+        q.put(results)
 
 ################################
 # NANNAN: forward to registries according to cht
