@@ -10,6 +10,7 @@ from optparse import OptionParser
 import time
 import socket
 import random
+import pdb
 from multiprocessing import Process, Queue
 from dxf import *
 
@@ -77,12 +78,12 @@ def get_request_registries(r):
     if r['method'] == 'PUT':
         registry_tmp = ring.get_node(dgst) # which registry should store this layer/manifest?
         print "layer: "+req['blob']+"goest to registry: "+registry_tmp
-        return registry_tmp
+        return [registry_tmp]
     else:
         serverIps = redis_stat_bfrecipe_serverips(dgst)
         if not serverIps:
             registry_tmp = ring.get_node(dgst)
-            return registry_tmp
+            return [registry_tmp]
         return serverIps        
 
 
@@ -101,6 +102,7 @@ def send_requests(wait, requests, startTime, q):
             registries.extend(get_request_registries(r)) 
             
             threads = len(registries)
+            print('registries list', registries)
             if not threads:
                 print 'destination registries for this blob is zero! ERROR!'            
 
