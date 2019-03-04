@@ -30,34 +30,33 @@ dbNoBFRecipe = 2
 ##
 # NANNAN: fetch the serverips from redis by using layer digest
 ##
-def pull_from_registry(wait, dgst, registry_q, startTime, onTime_q):
-    while True:
-        registry_tmp = registry_q.get()
-        
-        results = []
-        size = 0
-        t = 0
-        t = time.time()
-             
-        if ":5000" not in registry_tmp:
-            registry_tmp = registry_tmp+":5000"
-        print "layer/manifest: "+dgst+"goest to registry: "+registry_tmp
-        onTime = 'yes'
-        dxf = DXF(registry_tmp, 'test_repo', insecure=True)
-        try:
-            for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
-                size += len(chunk)
-        except Exception as e:
-            if "expected digest sha256:" in str(e):
-                onTime = 'yes: wrong digest'
-            else:
-                onTime = 'failed: '+str(e)
-                
-        t = time.time() - t
-        
-        results.append({'size': size, 'onTime': onTime, 'duration': t})
-        
-        onTime_q.put(results)
+def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
+#     while True:
+#         registry_tmp = registry_q.get()        
+    results = []
+    size = 0
+    t = 0
+    t = time.time()
+         
+    if ":5000" not in registry_tmp:
+        registry_tmp = registry_tmp+":5000"
+    print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
+    onTime = 'yes'
+    dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    try:
+        for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
+            size += len(chunk)
+    except Exception as e:
+        if "expected digest sha256:" in str(e):
+            onTime = 'yes: wrong digest'
+        else:
+            onTime = 'failed: '+str(e)
+            
+    t = time.time() - t
+    
+    results.append({'size': size, 'onTime': onTime, 'duration': t})
+    
+    onTime_q.put(results)
 
 
 def redis_stat_bfrecipe_serverips(dgst):
@@ -93,6 +92,7 @@ def send_requests(wait, requests, startTime, q):
         size = 0
         t = 0
         registries = []
+        processes = []
         start = startTime + r['delay']
         print("request:", r)
         onTime = 'no'
@@ -108,8 +108,8 @@ def send_requests(wait, requests, startTime, q):
                 print 'destination registries for this blob is zero! ERROR!'            
 
             onTime_q = Queue()
-            registry_q = Queue()
-            [registry_q.put(i) for i in registries]
+#             registry_q = Queue()
+#             [registry_q.put(i) for i in registries]
             
             now = time.time()
             if start > now and wait is True:
@@ -118,7 +118,7 @@ def send_requests(wait, requests, startTime, q):
             t = time.time()
 
             for i in range(threads):
-                p = Process(target=pull_from_registry, args=(wait, dgst, registry_q, startTime, onTime_q))
+                p = Process(target=pull_from_registry, args=(wait, dgst, registries[i], startTime, onTime_q))
                 p.start()
                 processes.append(p)
                 
