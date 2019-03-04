@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 import requests
 import time
 import datetime
+import pdb
 import random
 import threading
 import multiprocessing
@@ -14,6 +15,7 @@ from dxf import *
 from multiprocessing import Process, Queue
 import importlib
 import hash_ring
+from mimify import repl
 
 ## get requests
 def send_request_get(client, payload):
@@ -22,49 +24,56 @@ def send_request_get(client, payload):
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     s.post("http://" + str(client) + "/up", data=json.dumps(payload), headers=headers, timeout=100)
 
-def send_warmup_thread(requests, q, registry, generate_random):
+def send_warmup_thread(requests, q, registry):
     trace = {}
     dxf = DXF(registry, 'test_repo', insecure=True)
-#     f = open(str(os.getpid()), 'wb')
-#     f.write('\0')
-#     f.close()
     for request in requests:
         if request['size'] < 0:
             trace[request['uri']] = 'bad'
-#         elif not (request['uri'] in trace):
-#             with open(str(os.getpid()), 'wb') as f:
-#                 if generate_random is True:
-#                     f.seek(request['size'] - 9)
-#                     f.write(str(random.getrandbits(64)))
-#                     f.write('\0')
-#                 else:
-#                     f.seek(request['size'] - 1)
-#                     f.write('\0')
-
         try:
             dgst = dxf.push_blob(request['data'])
         except:
             dgst = 'bad'
         print request['uri'], dgst
         trace[request['uri']] = dgst
-#     os.remove(str(os.getpid()))
     q.put(trace)
 
-def warmup(data, out_trace, registry, threads, generate_random):
+#######################
+# send to registries according to cht 
+# warmup output file is <uri to dgst > map table
+# only consider 'get' requests
+# let set threads = n* len(registries)
+#######################
+
+def warmup(data, out_trace, registries, threads, numclients):
     trace = {}
     processes = []
     q = Queue()
     process_data = []
+    # nannan
+    # requests distribution based cht, where digest is blob digest.
+    # process_data = [[] [] [] [] [] [] [] ... []threads]
+    #                 r1 r2 r3 r1 r2 r3
+    
+    ring = hash_ring.HashRing(registries)
+    
     for i in range(threads):
         process_data.append([])
     i = 0
     for request in data:
         if request['method'] == 'GET':
-            process_data[i % threads].append(request)
+            uri = request['uri']
+            layer_id = uri.split('/')[-1]
+            registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
+            idx = registries.index(registry_tmp) 
+            process_data[(idx+(len(registries)*i))%threads].append(request)
+            print "layer: "+layer_id+"goest to registry: "+registry_tmp+", idx:"+str(idx)
             i += 1
-    for i in range(threads):
-        p = Process(target=send_warmup_thread, args=(process_data[i], q, registry, generate_random))
-        processes.append(p)
+
+    for regidx in range(len(registries)):
+        for i in range(0, threads, len(registries)):
+            p = Process(target=send_warmup_thread, args=(process_data[regidx+i], q, registries[regidx]))
+            processes.append(p)
 
     for p in processes:
         p.start()
@@ -83,6 +92,12 @@ def warmup(data, out_trace, registry, threads, generate_random):
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
+
+
+#############
+# NANNAN: change `onTime` for distributed dedup response
+# 
+##############
  
 def stats(responses):
     responses.sort(key = lambda x: x['time'])
@@ -250,6 +265,7 @@ def absoluteFilePaths(directory):
 
 ####
 # Random match
+# the output file is the last trace filename-realblob.json, which is total trace file.
 ####
 
 def match(realblob_locations, trace_files):
@@ -284,14 +300,8 @@ def match(realblob_locations, trace_files):
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
                 size = request['http.response.written']
                 if size > 0:
-#                     timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-#                     duration = request['http.request.duration']
-#                     client = request['http.request.remoteaddr']
-            
-#                     for blob in blob_locations:
                     if i < len(blob_locations):
                         blob = blob_locations[i]
-                        #uri = request['http.request.uri']
                         if layer_id in tTOblobdic.keys():
                             continue
                         if blob in blobTOtdic.keys():
@@ -322,8 +332,21 @@ def match(realblob_locations, trace_files):
         with open(trace_file+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
         
+##############
+# NANNAN: round_robin is false!
+# "http.request.duration": 1.005269323, 
+# "http.request.uri": "v2/4715bf52/437c49db/blobs/93054319", 
+# "host": "dc118836", 
+# "http.request.useragent": "docker/17.03.1-ce go/go1.7.5 git-commit/c6d412e kernel/4.4.0-78-generic os/linux arch/amd64 UpstreamClient(Docker-Client/17.03.1-ce \\(linux\\))", 
+# "timestamp": "2017-06-20T02:41:18.399Z", 
+# "id": "ed29d65dbd", 
+# "http.response.written": 9576, 
+# "http.response.status": 200, 
+# "http.request.method": "GET", 
+# "http.request.remoteaddr": "0ee76ffa"
+##############
 
-def organize(requests, out_trace, numclients, client_threads, port, wait, registries, round_robin, push_rand):
+def organize(requests, out_trace, numclients, client_threads, port, wait, registries, round_robin, push_rand, replay_limits):
     organized = []
 
     if round_robin is False:
@@ -335,8 +358,13 @@ def organize(requests, out_trace, numclients, client_threads, port, wait, regist
         organized.append([{'port': port, 'id': random.getrandbits(32), 'threads': client_threads, 'wait': wait, 'registry': registries, 'random': push_rand}])
         print organized[-1][0]['id']
     i = 0
-
+    cnt = 0
+    
     for r in requests:
+        cnt += 1
+        if replay_limits > 0:
+            if cnt > replay_limits:
+                break
         request = {
             'delay': r['delay'],
             'duration': r['duration'],
@@ -345,7 +373,7 @@ def organize(requests, out_trace, numclients, client_threads, port, wait, regist
         if r['uri'] in blob:
             b = blob[r['uri']]
             if b != 'bad':
-                request['blob'] = b
+                request['blob'] = b # dgest
                 request['method'] = 'GET'
                 if round_robin is True:
                     organized[i % numclients].append(request)
@@ -446,16 +474,17 @@ def main():
     #NANNAN
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
-            #if inputs['client_info']['realblobs'] is True:
             realblob_locations = inputs['client_info']['realblobs']
             match(realblob_locations, trace_files)
             return
-	    #else:
-		#print "please put realblobs!"
-		#return
 	else:
 	    print "please write realblobs in the config files"
 	    return
+
+#     replay_limits = 0
+#     if 'debugging' in inputs['client_info']:
+#         if inputs['client_info']['debugging'] is True:
+#             replay_limits = inputs['client_info']['debugging']['limits']
 
     json_data = get_requests(trace_files, limit_type, limit)
 
@@ -468,7 +497,8 @@ def main():
             threads = 1
         if verbose:
             print 'warmup threads: ' + str(threads)
-        warmup(json_data, interm, registries[0], threads, generate_random)
+            # NANNAN: not sure why only warmup a single registry, let's warmup all.
+        warmup(json_data, interm, registries, threads, generate_random)
 
     elif args.command == 'run':
         if verbose:
@@ -479,12 +509,12 @@ def main():
             print 'exiting'
             exit(1)
 
-        if 'port' not in inputs['client_info']:
+        if 'master_port' not in inputs['client_info']:
             if verbose:
                 print 'master server port not specified, assuming 8080'
                 port = 8080
         else:
-            port = inputs['client_info']['port']
+            port = inputs['client_info']['master_port']
             if verbose:
                 print 'master port: ' + str(port)
 
@@ -513,11 +543,12 @@ def main():
             wait = False
 
         round_robin = True
+        
         if 'route' in inputs['client_info']:
             if inputs['client_info']['route'] is True:
                 round_robin = False
 
-        data = organize(json_data, interm, len(client_list), client_threads, port, wait, registries, round_robin, generate_random)
+        data = organize(json_data, interm, len(client_list), client_threads, port, wait, registries, round_robin, generate_random, 0)
         ## Perform GET
         get_blobs(data, client_list, port, out_file)
 
