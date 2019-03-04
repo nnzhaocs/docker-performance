@@ -94,11 +94,12 @@ def send_requests(wait, requests, startTime, q):
         t = 0
         registries = []
         start = startTime + r['delay']
-        print r
+        print("request:", r)
         onTime = 'no'
-        dgst = r['blob']
         
         if r['method'] == 'GET':
+
+            dgst = r['blob']
             registries.extend(get_request_registries(r)) 
             
             threads = len(registries)
