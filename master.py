@@ -509,12 +509,12 @@ def main():
             print 'exiting'
             exit(1)
 
-        if 'port' not in inputs['client_info']:
+        if 'master_port' not in inputs['client_info']:
             if verbose:
                 print 'master server port not specified, assuming 8080'
                 port = 8080
         else:
-            port = inputs['client_info']['port']
+            port = inputs['client_info']['master_port']
             if verbose:
                 print 'master port: ' + str(port)
 

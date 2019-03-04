@@ -259,12 +259,12 @@ def main():
     if 'registry' in inputs:
         registries.extend(inputs['registry'])
 
-    if 'port' not in inputs['client_info']:
+    if 'client_port' not in inputs['client_info']:
         if verbose:
             print 'client port not specified, assuming 8082'
             port = 8082
     else:
-        port = inputs['client_info']['port']
+        port = inputs['client_info']['client_port']
         if verbose:
             print 'helper port: ' + str(port)     
             
