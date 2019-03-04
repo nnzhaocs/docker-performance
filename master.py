@@ -32,7 +32,8 @@ def send_warmup_thread(requests, q, registry):
             trace[request['uri']] = 'bad'
         try:
             dgst = dxf.push_blob(request['data'])
-        except:
+        except Exception as e:
+	    print(e)
             dgst = 'bad'
         print request['uri'], dgst
         trace[request['uri']] = dgst
@@ -59,7 +60,7 @@ def warmup(data, out_trace, registries, threads, numclients):
     
     for i in range(threads):
         process_data.append([])
-    i = 0
+    #i = 0
     for request in data:
         if request['method'] == 'GET':
             uri = request['uri']
@@ -69,6 +70,8 @@ def warmup(data, out_trace, registries, threads, numclients):
             process_data[(idx+(len(registries)*i))%threads].append(request)
             print "layer: "+layer_id+"goest to registry: "+registry_tmp+", idx:"+str(idx)
             i += 1
+	    #if i > 10:
+		#break;
 
     for regidx in range(len(registries)):
         for i in range(0, threads, len(registries)):
