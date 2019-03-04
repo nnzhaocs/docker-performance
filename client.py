@@ -126,8 +126,9 @@ def send_requests(wait, requests, startTime, q):
                 p.join()
                 
             t = time.time() - t
-            
-            onTime_l = list(onTime_q.queue)
+	    onTime_l = []
+            while not onTime_q.empty():
+            	onTime_l.append(onTime_q.get())
                 
             results.append({'time': now, 'duration': t, 'onTime': onTime_l})   #, 'size': size
 #             pull_rsp_q.put(results)   
@@ -266,7 +267,7 @@ def main():
     else:
         port = inputs['client_info']['client_port']
         if verbose:
-            print 'helper port: ' + str(port)     
+            print 'client port: ' + str(port)     
             
             
     global app
