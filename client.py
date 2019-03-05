@@ -38,8 +38,8 @@ def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
     t = 0
     t = time.time()
          
-    if ":5000" not in registry_tmp:
-        registry_tmp = registry_tmp+":5000"
+#    if ":5000" not in registry_tmp:
+#        registry_tmp = registry_tmp+":5000"
     print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
@@ -129,6 +129,7 @@ def send_requests(wait, requests, startTime, q):
 	    onTime_l = []
             while not onTime_q.empty():
             	onTime_l.extend(onTime_q.get())
+	    print onTime_l
 #<<<<<<< HEAD
                
 #            results.append({'time': now, 'duration': t, 'onTime': onTime_l})
