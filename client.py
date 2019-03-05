@@ -129,7 +129,7 @@ def send_requests(wait, requests, startTime, q):
 	    onTime_l = []
             while not onTime_q.empty():
             	onTime_l.extend(onTime_q.get())
-                
+               
             results.append({'time': now, 'duration': t, 'onTime': onTime_l})
 #             pull_rsp_q.put(results)   
         
@@ -155,6 +155,8 @@ def send_requests(wait, requests, startTime, q):
                 t = time.time() - now
  
                 results.append({'time': now, 'duration': t, 'onTime': onTime, 'size': size})
+	print 'time: '+str(now)+', duration: '+str(t)
+	print onTime
         q.put(results)
 
 ################################
