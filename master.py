@@ -99,7 +99,8 @@ def warmup(data, out_trace, registries, threads, numclients):
 
 #############
 # NANNAN: change `onTime` for distributed dedup response
-# 
+# {'size': size, 'onTime': onTime, 'duration': t}
+# {'time': now, 'duration': t, 'onTime': onTime_l}
 ##############
  
 def stats(responses):
@@ -115,28 +116,45 @@ def stats(responses):
     startTime = responses[0]['time']
     for r in responses:
 #         if r['onTime'] == 'failed':
-        if "failed" in r['onTime']:
-            total -= 1
-            failed += 1
-            continue
-        if r['time'] + r['duration'] > endtime:
-            endtime = r['time'] + r['duration']
-        latency += r['duration']
-        data += r['size']
-        if r['onTime'] == 'yes':
-            onTimes += 1
-        if r['onTime'] == 'yes: wrong digest':
-            wrongdigest += 1
+##nannan
+        if isinstance(r['onTime'], list):
+            for i in r['onTime']:
+                if "failed" in r['onTime']['onTime']:
+                    total -= 1
+                    failed += 1
+                    break # no need to care the rest partial layer.
+            
+            if r['time'] + r['duration'] > endtime:
+                endtime = r['time'] + r['duration']
+            latency += r['duration']
+            data += r['size']
+#             if r['onTime'] == 'yes':
+#                 onTimes += 1
+#             if r['onTime'] == 'yes: wrong digest':
+#                 wrongdigest += 1
+        else:
+            if "failed" in r['onTime']:
+                total -= 1
+                failed += 1
+                continue
+            if r['time'] + r['duration'] > endtime:
+                endtime = r['time'] + r['duration']
+            latency += r['duration']
+            data += r['size']
+#             if r['onTime'] == 'yes':
+#                 onTimes += 1
+#             if r['onTime'] == 'yes: wrong digest':
+#                 wrongdigest += 1
             
     duration = endtime - startTime
     print 'Statistics'
     print 'Successful Requests: ' + str(total)
     print 'Failed Requests: ' + str(failed)
-    print 'Wrong digest requests: '+str(wrongdigest)
+#     print 'Wrong digest requests: '+str(wrongdigest)
     print 'Duration: ' + str(duration)
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
-    print '% requests on time: ' + str(1.*onTimes / total)
+#     print '% requests on time: ' + str(1.*onTimes / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
 
            
