@@ -119,7 +119,7 @@ def stats(responses):
 ##nannan
         if isinstance(r['onTime'], list):
             for i in r['onTime']:
-                if "failed" in r['onTime']['onTime']:
+                if "failed" in i['onTime']:
                     total -= 1
                     failed += 1
                     break # no need to care the rest partial layer.
