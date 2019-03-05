@@ -118,23 +118,23 @@ def stats(responses):
 	print r
 #         if r['onTime'] == 'failed':
 ##nannan
-        if isinstance(r['onTime'], list):
-	    i = [json.loads(l) for l in r['onTime']]
-	    print i
-#            for i in r['onTime']:
-#                if "failed" in i['onTime']:
-#                    total -= 1
-#                    failed += 1
-#                    break # no need to care the rest partial layer.
-#            	data += i['size']
-#            if r['time'] + r['duration'] > endtime:
-#                endtime = r['time'] + r['duration']
-#            latency += r['duration']
-#            #data += r['size']
-##             if r['onTime'] == 'yes':
-##                 onTimes += 1
-##             if r['onTime'] == 'yes: wrong digest':
-##                 wrongdigest += 1
+        if isinstance(r['onTime_l'], list):
+	    #i = [json.loads(l) for l in r['onTime_l']]
+	    #print i
+            for i in r['onTime_l']:
+                if "failed" in i['onTime']:
+                    total -= 1
+                    failed += 1
+                    break # no need to care the rest partial layer.
+            	data += i['size']
+            if r['time'] + r['duration'] > endtime:
+                endtime = r['time'] + r['duration']
+            latency += r['duration']
+            #data += r['size']
+#             if r['onTime'] == 'yes':
+#                 onTimes += 1
+#             if r['onTime'] == 'yes: wrong digest':
+#                 wrongdigest += 1
         else:
             if "failed" in r['onTime']:
                 total -= 1
@@ -146,8 +146,8 @@ def stats(responses):
             data += r['size']
 #             if r['onTime'] == 'yes':
 #                 onTimes += 1
-#             if r['onTime'] == 'yes: wrong digest':
-#                 wrongdigest += 1
+##             if r['onTime'] == 'yes: wrong digest':
+##                 wrongdigest += 1
             
     duration = endtime - startTime
     print 'Statistics'
@@ -156,7 +156,7 @@ def stats(responses):
 #     print 'Wrong digest requests: '+str(wrongdigest)
     print 'Duration: ' + str(duration)
     print 'Data Transfered: ' + str(data) + ' bytes'
-    #print 'Average Latency: ' + str(latency / total)
+    print 'Average Latency: ' + str(latency / total)
 #     print '% requests on time: ' + str(1.*onTimes / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
 
