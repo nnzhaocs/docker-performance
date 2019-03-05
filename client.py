@@ -130,7 +130,7 @@ def send_requests(wait, requests, startTime, q):
             while not onTime_q.empty():
             	onTime_l.extend(onTime_q.get())
                 
-            results.append({'time': now, 'duration': t, 'onTime': onTime_l, 'size': r['size']})
+            results.append({'time': now, 'duration': t, 'onTime': onTime_l})
 #             pull_rsp_q.put(results)   
         
             print 'processes joined, send requests continuing'
