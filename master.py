@@ -60,23 +60,25 @@ def warmup(data, out_trace, registries, threads, numclients):
     
     for i in range(threads):
         process_data.append([])
-    #i = 0
+
+    count = 0
     for request in data:
         if request['method'] == 'GET':
             uri = request['uri']
             layer_id = uri.split('/')[-1]
             registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
             idx = registries.index(registry_tmp) 
-            process_data[(idx+(len(registries)*i))%threads].append(request)
+            process_data[(idx+(len(registries)*count))%threads].append(request)
             print "layer: "+layer_id+"goest to registry: "+registry_tmp+", idx:"+str(idx)
-            i += 1
+            count += 1
 	    #if i > 10:
 		#break;
-
+    threadcount = 0
     for regidx in range(len(registries)):
         for i in range(0, threads, len(registries)):
             p = Process(target=send_warmup_thread, args=(process_data[regidx+i], q, registries[regidx]))
             processes.append(p)
+            threadcount += 1
 
     for p in processes:
         p.start()
@@ -95,6 +97,7 @@ def warmup(data, out_trace, registries, threads, numclients):
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
+    print("total threads:", threadcount)
 
 
 #############
@@ -234,9 +237,10 @@ def get_blobs(data, clients_list, port, out_file):
 ######
 def get_requests(files, t, limit):
     ret = []
+    requests = []
     for filename in files:
         with open(filename+'-realblob.json', 'r') as f:
-            requests = json.load(f)
+            requests.extend(json.load(f))
     
         for request in requests:
             method = request['http.request.method']

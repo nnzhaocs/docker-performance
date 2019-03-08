@@ -43,6 +43,7 @@ def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
     print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    print "dxf object: ", dxf
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
@@ -83,6 +84,7 @@ def get_request_registries(r):
         if not serverIps:
             registry_tmp = ring.get_node(dgst)
             return [registry_tmp]
+        print("from the redis: ", serverIps)
         return serverIps        
 
 

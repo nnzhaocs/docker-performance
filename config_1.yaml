@@ -1,8 +1,7 @@
 # excample configuration file for trace player
 client_info: # Required for run command
     client_list: # the list of clients read by master
-        - 192.168.0.152:8095
-        - 192.168.0.153:8095
+        - 192.168.0.151:8095
         # - 192.168.0.153:8081
         # - 192.168.0.154:8081
         # - client instance and port
@@ -20,69 +19,69 @@ verbose: true # optional input
 
 trace: # mandatory field
     #location: /home/nannan/dockerimages/docker-traces/data_centers/  #/home/michaellittley/data_centers/dal09 # current directory assumed if field not present
-    location: /home/nannan/dockerimages/docker-traces/data_centers/dal09_realblobs # use a small trace for debugging
+    location: /home/nannan/dockerimages/docker-traces/data_centers/dal09_realblobs/ # use a small trace for debugging
     traces:
-        #- total_trace_dal09.json
-         - prod-dal09-logstash-2017.08.01-0.json # at least one trace required
-        # - prod-dal09-logstash-2017.06.20-1.json
-        # - prod-dal09-logstash-2017.06.20-2.json
-        # - prod-dal09-logstash-2017.06.20-3.json
-        # - prod-dal09-logstash-2017.06.21-0.json
-        # - prod-dal09-logstash-2017.06.21-1.json
-        # - prod-dal09-logstash-2017.06.21-2.json
-        # - prod-dal09-logstash-2017.06.21-3.json
-        # - prod-dal09-logstash-2017.06.22-0.json
-        # - prod-dal09-logstash-2017.06.22-1.json
-        # - prod-dal09-logstash-2017.06.22-2.json
-        # - prod-dal09-logstash-2017.06.22-3.json
-        # - prod-dal09-logstash-2017.06.23-0.json
-        # - prod-dal09-logstash-2017.06.23-1.json
-        # - prod-dal09-logstash-2017.06.23-2.json
-        # - prod-dal09-logstash-2017.06.23-3.json
-        # - prod-dal09-logstash-2017.06.24-0.json
-        # - prod-dal09-logstash-2017.06.24-1.json
-        # - prod-dal09-logstash-2017.06.24-2.json
-        # - prod-dal09-logstash-2017.06.24-3.json
-        # - prod-dal09-logstash-2017.06.25-0.json
-        # - prod-dal09-logstash-2017.06.25-1.json
-        # - prod-dal09-logstash-2017.06.25-2.json
-        # - prod-dal09-logstash-2017.06.25-3.json
-        # - prod-dal09-logstash-2017.06.26-0.json
-        # - prod-dal09-logstash-2017.06.26-1.json
-        # - prod-dal09-logstash-2017.06.26-2.json
-        # - prod-dal09-logstash-2017.06.26-3.json
-        # - prod-dal09-logstash-2017.06.27-0.json
-        # - prod-dal09-logstash-2017.06.27-1.json
-        # - prod-dal09-logstash-2017.06.27-2.json
-        # - prod-dal09-logstash-2017.06.27-3.json
-        # - prod-dal09-logstash-2017.06.28-0.json
-        # - prod-dal09-logstash-2017.06.28-1.json
-        # - prod-dal09-logstash-2017.06.28-2.json
-        # - prod-dal09-logstash-2017.06.28-3.json
-        # - prod-dal09-logstash-2017.06.29-0.json
-        # - prod-dal09-logstash-2017.06.29-1.json
-        # - prod-dal09-logstash-2017.06.29-2.json
-        # - prod-dal09-logstash-2017.06.29-3.json
-        # - prod-dal09-logstash-2017.06.30-0.json
-        # - prod-dal09-logstash-2017.06.30-1.json
-        # - prod-dal09-logstash-2017.06.30-2.json
-        # - prod-dal09-logstash-2017.06.30-3.json
-        # - prod-dal09-logstash-2017.07.01-0.json
-        # - prod-dal09-logstash-2017.07.01-1.json
-        # - prod-dal09-logstash-2017.07.01-2.json
-        # - prod-dal09-logstash-2017.07.01-3.json
-        # - prod-dal09-logstash-2017.07.02-0.json
-        # - prod-dal09-logstash-2017.07.02-1.json
-        # - prod-dal09-logstash-2017.07.02-2.json
-        # - prod-dal09-logstash-2017.07.02-3.json
-        # - prod-dal09-logstash-2017.07.03-0.json
-        # - prod-dal09-logstash-2017.07.03-1.json
-        # - prod-dal09-logstash-2017.07.03-2.json
-        # - prod-dal09-logstash-2017.07.03-3.json
-        # - prod-dal09-logstash-2017.07.04-0.json
-        # - prod-dal09-logstash-2017.07.04-1.json
-        # - prod-dal09-logstash-2017.07.04-2.json
-        # - prod-dal09-logstash-2017.07.04-3.json
+        # - total_trace_dal09.json
+        - prod-dal09-logstash-2017.08.01-0.json # at least one trace required
+        - prod-dal09-logstash-2017.06.20-1.json
+        - prod-dal09-logstash-2017.06.20-2.json
+        - prod-dal09-logstash-2017.06.20-3.json
+        - prod-dal09-logstash-2017.06.21-0.json
+        #- prod-dal09-logstash-2017.06.21-1.json
+        #- prod-dal09-logstash-2017.06.21-2.json
+        #- prod-dal09-logstash-2017.06.21-3.json
+        #- prod-dal09-logstash-2017.06.22-0.json
+        #- prod-dal09-logstash-2017.06.22-1.json
+        #- prod-dal09-logstash-2017.06.22-2.json
+        #- prod-dal09-logstash-2017.06.22-3.json
+        #- prod-dal09-logstash-2017.06.23-0.json
+        #- prod-dal09-logstash-2017.06.23-1.json
+        #- prod-dal09-logstash-2017.06.23-2.json
+        #- prod-dal09-logstash-2017.06.23-3.json
+        #- prod-dal09-logstash-2017.06.24-0.json
+        #- prod-dal09-logstash-2017.06.24-1.json
+        #- prod-dal09-logstash-2017.06.24-2.json
+        #- prod-dal09-logstash-2017.06.24-3.json
+        #- prod-dal09-logstash-2017.06.25-0.json
+        #- prod-dal09-logstash-2017.06.25-1.json
+        #- prod-dal09-logstash-2017.06.25-2.json
+        #- prod-dal09-logstash-2017.06.25-3.json
+        #- prod-dal09-logstash-2017.06.26-0.json
+        #- prod-dal09-logstash-2017.06.26-1.json
+        #- prod-dal09-logstash-2017.06.26-2.json
+        #- prod-dal09-logstash-2017.06.26-3.json
+        #- prod-dal09-logstash-2017.06.27-0.json
+        #- prod-dal09-logstash-2017.06.27-1.json
+        #- prod-dal09-logstash-2017.06.27-2.json
+        #- prod-dal09-logstash-2017.06.27-3.json
+        #- prod-dal09-logstash-2017.06.28-0.json
+        #- prod-dal09-logstash-2017.06.28-1.json
+        #- prod-dal09-logstash-2017.06.28-2.json
+        #- prod-dal09-logstash-2017.06.28-3.json
+        #- prod-dal09-logstash-2017.06.29-0.json
+        #- prod-dal09-logstash-2017.06.29-1.json
+        #- prod-dal09-logstash-2017.06.29-2.json
+        #- prod-dal09-logstash-2017.06.29-3.json
+        #- prod-dal09-logstash-2017.06.30-0.json
+        #- prod-dal09-logstash-2017.06.30-1.json
+        #- prod-dal09-logstash-2017.06.30-2.json
+        #- prod-dal09-logstash-2017.06.30-3.json
+        #- prod-dal09-logstash-2017.07.01-0.json
+        #- prod-dal09-logstash-2017.07.01-1.json
+        #- prod-dal09-logstash-2017.07.01-2.json
+        #- prod-dal09-logstash-2017.07.01-3.json
+        #- prod-dal09-logstash-2017.07.02-0.json
+        #- prod-dal09-logstash-2017.07.02-1.json
+        #- prod-dal09-logstash-2017.07.02-2.json
+        #- prod-dal09-logstash-2017.07.02-3.json
+        #- prod-dal09-logstash-2017.07.03-0.json
+        #- prod-dal09-logstash-2017.07.03-1.json
+        #- prod-dal09-logstash-2017.07.03-2.json
+        #- prod-dal09-logstash-2017.07.03-3.json
+        #- prod-dal09-logstash-2017.07.04-0.json
+        #- prod-dal09-logstash-2017.07.04-1.json
+        #- prod-dal09-logstash-2017.07.04-2.json
+        #- prod-dal09-logstash-2017.07.04-3.json
         # - prod-dal09-logstash-2017.07.05-0.json
         # - prod-dal09-logstash-2017.07.05-1.json
         # - prod-dal09-logstash-2017.07.05-2.json
@@ -113,10 +112,10 @@ trace: # mandatory field
         # - prod-dal09-logstash-2017.07.12-0.json
         # - prod-dal09-logstash-2017.07.12-1.json
         # - prod-dal09-logstash-2017.07.12-2.json
-        # - prod-dal09-logstash-2017.07.12-3.json
-        # - prod-dal09-logstash-2017.07.13-0.json
-        # - prod-dal09-logstash-2017.07.13-1.json
-        # - prod-dal09-logstash-2017.07.13-2.json
+        #- prod-dal09-logstash-2017.07.12-3.json
+        #- prod-dal09-logstash-2017.07.13-0.json
+        #- prod-dal09-logstash-2017.07.13-1.json
+        #- prod-dal09-logstash-2017.07.13-2.json
         # - prod-dal09-logstash-2017.07.13-3.json
         # - prod-dal09-logstash-2017.07.14-0.json
         # - prod-dal09-logstash-2017.07.14-1.json
@@ -180,7 +179,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 10
+        amount: 1000
 
     output: results.json # only used in run mode, produced output trace with latencies
 
@@ -188,14 +187,18 @@ registry-helpers:
     port: 8082
     
 redis:
-    host: 192.168.0.218 #thor18
+    host: 192.168.0.209 #thor18
     port: 6379
     
 registry:
   # thor13,14,15,16,17
-    - 192.168.0.213:5001 # at least one registry required for run and warmup mode
+    # - 192.168.0.200:5000 # at least one registry required for run and warmup mode
+    # - 192.168.0.202:5000 # at least one registry required for run and warmup mode
+    # - 192.168.0.203:5000 # at least one registry required for run and warmup mode
+    - 192.168.0.204:5000 # at least one registry required for run and warmup mode
+    - 192.168.0.205:5000 # at least one registry required for run and warmup mode
     #- 192.168.0.214:5000
-    - 192.168.0.215:5001 
+    # - 192.168.0.215:5001 
     # - 192.168.0.216:5000 
     # - 192.168.0.217:5000 
 
