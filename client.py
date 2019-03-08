@@ -85,7 +85,7 @@ def get_request_registries(r):
             registry_tmp = ring.get_node(dgst)
             return [registry_tmp]
         print("from the redis: ", serverIps)
-        return serverIps        
+        return list(set(serverIps))
 
 
 def send_requests(wait, requests, startTime, q):
@@ -252,6 +252,7 @@ def main():
                 
     parser = ArgumentParser(description='registry-helper, helping registry to do a global dedup or slimmer ops.')
     parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'Input YAML configuration file, should contain all the inputs requried for processing')
+    parser.add_argument('-p', '--port', dest='ppppp', type=str, required=False, help = 'identifier')
     parser.add_argument('-c', '--command', dest='command', type=str, required=False, help= 'registry-testing command. Possible commands: TestGloablDedup, etc,.')
 
     args = parser.parse_args()
