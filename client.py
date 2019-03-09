@@ -43,11 +43,12 @@ def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
     print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
-    print "dxf object: ", dxf
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
+            print("dxf object: ", dxf, "size: ", size, "hash: ", dgst)
     except Exception as e:
+        print("GET: dxf object: ", dxf, "hash: ", dgst, "dxf Exception:", e)
         if "expected digest sha256:" in str(e):
             onTime = 'yes: wrong digest'
         else:
@@ -56,6 +57,7 @@ def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
     t = time.time() - t
     
     results.append({'size': size, 'onTime': onTime, 'duration': t})
+    print("Putting results for: ", dgst)
     
     onTime_q.put(results)
 
@@ -68,7 +70,6 @@ def redis_stat_bfrecipe_serverips(dgst):
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('JSON.GET', key))
     serverIps = []
 #    print("bfrecipe: ", bfrecipe)
-    print "GET: redis blobfilerecipe serverips for blob "+dgst+": "+str(bfrecipe['ServerIps'])
     for serverip in bfrecipe['ServerIps']:
         serverIps.append(serverip)
     return serverIps
@@ -82,7 +83,7 @@ def get_request_registries(r):
     layer_id = uri.split('/')[-1]
 
     if r['method'] == 'PUT':
-        registry_tmp = ring.get_node(dgst) # which registry should store this layer/manifest?
+        registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
         print "layer: "+req['blob']+"goest to registry: "+registry_tmp
         return [registry_tmp]
     else:
@@ -91,7 +92,6 @@ def get_request_registries(r):
         if not serverIps:
             registry_tmp = ring.get_node(layer_id)
             return [registry_tmp]
-        print("from the redis: ", serverIps)
         return list(set(serverIps))
 
 
@@ -106,12 +106,12 @@ def send_requests(wait, requests, startTime, q):
         start = startTime + r['delay']
         print("request:", r)
         onTime = 'no'
-        
+
         if r['method'] == 'GET':
 
             dgst = r['blob']
-            registries.extend(get_request_registries(r)) 
             
+            registries.extend(get_request_registries(r)) 
             threads = len(registries)
             print('registries list', registries)
             if not threads:
@@ -163,6 +163,7 @@ def send_requests(wait, requests, startTime, q):
                 try:
                     dgst = dxf.push_blob(r['data'])#fname
                 except Exception as e:
+                    print("PUT: dxf object: ", dxf, "file: ", r['data'], "dxf Exception: Got", e.got, "Expected:", e.expected)
                     if "expected digest sha256:" in str(e):
                         onTime = 'yes: wrong digest'
                     else:
