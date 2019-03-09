@@ -38,8 +38,8 @@ def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
     t = 0
     t = time.time()
          
-#    if ":5000" not in registry_tmp:
-#        registry_tmp = registry_tmp+":5000"
+    if ":5000" not in registry_tmp:
+        registry_tmp = registry_tmp+":5000"
     print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
@@ -62,13 +62,14 @@ def pull_from_registry(wait, dgst, registry_tmp, startTime, onTime_q):
 
 def redis_stat_bfrecipe_serverips(dgst):
     global rj_dbNoBFRecipe
-    if not rj_dbNoBFRecipe.exists(dgst):
-        return None
     key = "Blob:File:Recipe::"+dgst
+    if not rj_dbNoBFRecipe.exists(key):
+        return None
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('JSON.GET', key))
     serverIps = []
-    print "GET: redis blobfilerecipe serverips for blob "+dgst+": "+str(bfrecipe.ServerIps)
-    for serverip in bfrecipe.ServerIps:
+#    print("bfrecipe: ", bfrecipe)
+    print "GET: redis blobfilerecipe serverips for blob "+dgst+": "+str(bfrecipe['ServerIps'])
+    for serverip in bfrecipe['ServerIps']:
         serverIps.append(serverip)
     return serverIps
 
@@ -77,7 +78,7 @@ def get_request_registries(r):
     global ring
 
     dgst = r['blob'] 
-    uri = request['uri']
+    uri = r['uri']
     layer_id = uri.split('/')[-1]
 
     if r['method'] == 'PUT':
@@ -97,6 +98,7 @@ def get_request_registries(r):
 def send_requests(wait, requests, startTime, q):
     results = []
     for r in requests:
+        print("request in send_requests: ", r)
         size = 0
         t = 0
         registries = []
