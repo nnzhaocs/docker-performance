@@ -1,22 +1,158 @@
 import datetime
 import pdb
+from lru import LRU
 
-class prefetch_cache:
+import rejson, redis, json
+from Carbon.Aliases import false
 
-    def __init__(self, rtimeout=600, mtimeout=600):
-        self.repos = {}
-        self.manifest = {}
-        self.rtimeout = rtimeout
-        self.mtimeout = mtimeout
+dbNoUsrecipe = 4
+dbNoReporecipe = 5 # repo with layer
+dbNoMefrecipe = 6  # repo with manifests
+dbNoLyrecipe = 7 # layers get client repo
+
+#
+# usr -> repoid 
+# repo -> layerid
+# layerid -> size
+
+#
+# repo we add a time.
+#
+#
+
+class redis_table:
+    def __init__(self, redis_host, redis_port):
+        self.rjpool_dbNoUsrecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoUsrecipe)
+        self.rj_dbNoUsrecipe = redis.Redis(connection_pool=rjpool_dbNoUsrecipe)
+        
+        self.rjpool_dbNoReporecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoReporecipe)
+        self.rj_dbNoReporecipe = redis.Redis(connection_pool=rjpool_dbNoReporecipe)
+        
+        self.rjpool_dbNoMefrecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoMefrecipe)
+        self.rj_dbNoMefrecipe = redis.Redis(connection_pool=rjpool_dbNoMefrecipe)
+        
+        self.rjpool_dbNoLyrecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoLyrecipe)
+        self.rj_dbNoLyrecipe = redis.Redis(connection_pool=rjpool_dbNoLyrecipe)
+        
+    def update_clients(self, repo, client, timestamp): 
+        if not rj_dbNoUsrecipe.exists(client):
+            reply = [(repo, timestamp, 1)]
+        else:
+            reply = json.loads(rj_dbNoUsrecipe.execute_command('JSON.GET', client))
+            print "get reply from client: " 
+            print reply
+            find = False
+            for tub in reply:
+                if repo == tub[0]:
+                    tub[1] = timestamp
+                    tub[2] += 1
+                    find = True
+            if find == False:
+                reply.append((repo, timestamp, 1))
+            rj_dbNoUsrecipe.execute_command('JSON.SET', client, '.', json.dumps(reply))
+        
+    def update_repos(self, repo, layer_id, size, timestamp,): # with layers
+        if not rj_dbNoReporecipe.exists(repo):
+            reply = [(layer_id, timestamp, cnt, size)]
+        else:
+            reply = json.loads(rj_dbNoReporecipe.execute_command('JSON.GET', repo))
+            print "get reply from client: " 
+            print reply
+            find = False
+            for tub in reply:
+                if layer_id == tub[0]:
+                    tub[1] = timestamp
+                    tub[2] += 1
+                    find = True
+            if find == False:
+                reply.append((layer_id, timestamp, 1, size))
+            rj_dbNoReporecipe.execute_command('JSON.SET', repo, '.', json.dumps(reply))
+        
+    def update_manifests(self, repo, manifest_id, timestamp):
+        if not rj_dbNoMefrecipe.exists(repo):
+            reply = [(manifest_id, timestamp, cnt)]
+        else:
+            reply = json.loads(rj_dbNoMefrecipe.execute_command('JSON.GET', repo))
+            print "get reply from client: " 
+            print reply
+            find = False
+            for tub in reply:
+                if manifest_id == tub[0]:
+                    tub[1] = timestamp
+                    tub[2] += 1
+            if find == False:
+                reply.append((manifest_id, timestamp, 1))
+            rj_dbNoMefrecipe.execute_command('JSON.SET', repo, '.', json.dumps(reply))     
+        
+    def update_layers(self, client, repo, layer_id):
+        if not rj_dbNoLyrecipe.exists(layer_id):
+            reply = [(client, repo)]
+        else:
+            reply = json.loads(rj_dbNoLyrecipe.execute_command('JSON.GET', repo))
+            print "get reply from client: " 
+            print reply
+            find = False
+            for tub in reply:
+                if client == tub[0] and repo == tub[1]:
+                    find = True
+            if find = False:
+                reply.append((client, repo))
+            rj_dbNoLyrecipe.execute_command('JSON.SET', repo, '.', json.dumps(reply))          
+        
+
+class siftcache:
+
+    def __init__(self, size, rtimeout=600, mtimeout=600):
+#         self.repos = {}
+#         self.manifest = {}
+#         self.rtimeout = rtimeout
+#         self.mtimeout = mtimeout
         self.hit = 0
         self.miss = 0
-        self.size = 0
-        self.size_list = []
-        self.goodprefetch = 0
-        self.badprefetch = 0
+#         self.size = 0
+#         self.usr_lru = []
+#         self.size_list = []
+#         self.goodprefetch = 0
+#         self.badprefetch = 0
+        
         self.putcount = 0
+        self.putmanifest_cnt = 0
+        self.putlayer_cnt = 0
+        
         self.getlayercount = 0
         self.getmanifestcount = 0
+        
+        self.size = size # actual size of the cache
+        
+        self.usr_lru = LRU(9997)
+        self.repo_lru = LRU(40264)
+        self.layer_lru = LRU(829202)
+
+        self.hits = 0.0
+        self.reqs = 0.0
+        
+        self.manifest_hit = 0
+        self.layer_hit = 0
+        
+        self.layerbuffer_hit = 0
+        self.filecache_hit = 0
+#         self.fetchonmiss_hit = 0
+#         self.superfetch = 0
+        
+#         self.putcache_size = 0
+#         self.prefetch_hit = 0
+        self.fetchonmiss_hit = 0
+#         self.superfetch = 0
+        
+        # (layer_id, cache_type)
+        # (manifest_id, cache_type)
+        
+        self.cache_stack_size = 0 # how much of the cache is occupied
+        
+    def update_usermaplru(self, usr, repo, layer_id, manifest_id):
+        if layer_id:
+            
+            
 
     def flush(self):
         for repo in self.manifest:
@@ -33,7 +169,7 @@ class prefetch_cache:
     def update_manifests(self, repo, client, timestamp):
         # you can't pull a manifest if the repo doesn't exist, hence why we don't have the else
         # condition
-        if repo in self.repos:
+        if self.repo_lru.has_key(repo): 
             for layer in self.repos[repo]:
                 if client not in layer[1]:
                     # layer: [timestamp, [client1, client2, ...], size]
@@ -120,8 +256,14 @@ class prefetch_cache:
         timestamp = request['timestamp']
         size = request['size']
         layer_or_manifest_id = request['id']
+        
+        # here is when eviction starts ======>
+        # select some repo to evict.
         self.manifest_time_out(timestamp)
-        # self.repo_time_out(timestamp) # this shouldn't run
+        self.repo_time_out(timestamp) # this shouldn't run
+        
+        # here 
+        
         if request['method'] == 'PUT' and request['type'] == 'm':
             return
         elif request['method'] == 'PUT': 

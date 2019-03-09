@@ -3,6 +3,7 @@ import pdb
 import datetime
 from lru import LRU
 import json
+from Tkconstants import LAST
 
 type = 'layer'
 num_usrs = 9997
@@ -15,26 +16,98 @@ class complex_cache:
     def __init__(self, size, type): # the number of items
         self.size = size # actual size of the cache
         self.lru = LRU(size)
+        self.layerlru = LRU(size)
 
         self.hits = 0.0
         self.reqs = 0.0
         self.cache_stack_size = 0 # how much of the cache is occupied
-
-
+        
+        self.layermap = {}
+        self.usrmap = {}
+        self.manifestmap = {}
+        
+#         self.getmanifestreqs = 0
+#         self.getlayerreqs = 0
+#         self.putlayerreqs = 0
+#         self.putmanifestreqs = 0
+        
+        self.manifestmiss = 0
+        self.layermiss = 0
+        
+    def eviction(self):
+#         if self.cache_stack_size + 1 > self.size: 
+#             print "evict an item: "+str(self.lru.peek_last_item())
+#             self.cache_stack_size -= 1
+        found = False
+        while self.cache_stack_size + 1 > self.size:    
+            last = self.lru.peek_last_item()
+            usrname = last[0]
+            for l in reversed(self.layerlru.items()):
+                if l[0] in self.usrmap[usrname]:
+                    if len(self.layermap[l[0]]) == 1:
+                        del self.layerlru[l[0]]
+                        self.cache_stack_size -= 1
+                        
+#             for l in self.layerlru.items():
+#                 if l[0] in self.usrmap[usrname]:
+#                     found = True
+#             if not found:
+            del self.lru[last[0]]    
+#         self.lru[request[2]] = 1
+        
+        
     def place(self, request):
-        # request is a tuple (timestamp, username)
+        # request is a tuple (timestamp, layer, usrname, category)
         self.reqs += 1 
-        if self.lru.has_key(request[-1]): 
-            self.lru[request[-1]] = self.lru[request[-1]] + 1
+        usrname = request[2]
+        layer = request[1]
+        category = request[3]
+#         if request['method'] == 'PUT':
+#             if t = 'l':
+#                 category = 'PUT layer'
+#             else:
+#                 category = 'PUT manifest'
+#                 
+#         elif request['method'] == 'GET':
+#             if t = 'l':
+#                 category = 'GET layer'
+#             else:
+#                 category = 'GET manifest'
+                                
+        if self.lru.has_key(usrname):             
+            self.lru[usrname] = self.lru[usrname] + 1
+        else:    
+            self.lru[usrname] = 1
             
-            self.hits += 1            
-        else:
-            if self.cache_stack_size + 1 > self.size: 
-                print "evict an item: "+str(self.lru.peek_last_item())
-                self.cache_stack_size -= 1
-                
-            self.lru[request[-1]] = 1
-            self.cache_stack_size += 1
+        if category == 'PUT manifest':
+            manifestmap[layer] = 1
+            
+        if category == 'PUT layer':
+            self.layerlru[layer] = 1
+            layermap[layer].append(usrname)
+            usrmap[usrname].append(layer)
+            checkEviction()
+        elif category == 'GET manifest':
+            if layer not in manifestmap.keys():
+                self.manifestmiss += 1
+            else:
+                self.manifesthit += 1
+                self.hits += 1 
+        elif category == 'GET layer':
+            if layer not in layermap.keys():
+#                 category = 'Fetch on miss'
+                if usrname not in layermap[layer]:
+                    layermap[layer].append(usrname)
+                if layer not in usrmap[usrname]:
+                    usrmap[usrname].append(layer)
+                self.layerlru[layer] = 1
+                checkEviction()
+                self.layermiss += 1
+            else:
+                                  
+                self.layerhit += 1
+                self.hits += 1
+                self.layerlru[layer] += 1            
             
 
 def reformat(indata, type):
@@ -47,11 +120,32 @@ def reformat(indata, type):
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
+        
+        if 'blobs' in uri:
+            t = 'l'
+        elif 'manifests' in uri:
+            t = 'm'
+        else:
+            continue
+        
+        method = request['http.request.method']
+        if request['method'] == 'PUT':
+            if t = 'l':
+                category = 'PUT layer'
+            else:
+                category = 'PUT manifest'
+                
+        elif request['method'] == 'GET':
+            if t = 'l':
+                category = 'GET layer'
+            else:
+                category = 'GET manifest'
+        
         if type == 'layer':
-            if 'manifests' in uri:
-                continue
+#             if 'manifests' in uri:
+#                 continue
             layer = uri.split('/')[-1]
-            ret.append((timestamp, layer)) # delay: datetime
+            ret.append((timestamp, layer, usrname, category)) # delay: datetime
             
         elif type == 'repo':
             ret.append((timestamp, repo_name)) # delay: datetime
