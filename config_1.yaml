@@ -1,12 +1,12 @@
 # excample configuration file for trace player
 client_info: # Required for run command
     client_list: # the list of clients read by master
-        - localhost:9095
+        - localhost:9096
         # - 192.168.0.153:8081
         # - 192.168.0.154:8081
         # - client instance and port
-    master_port: 9096 # the client's/master's port when using this config file with the client/master
-    client_port: 9095
+    master_port: 9095 # the client's/master's port when using this config file with the client/master
+    client_port: 9096
     threads: 100 # number of threads per client node, each thread is a process that sends requests
     wait: true # Determines if clients should wait the relative amount of time in trace before sending request
     route: true # Tells the master to forward based on hashing on client urls rather than round robin
@@ -178,7 +178,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 100
+        amount: 500
 
     output: results.json # only used in run mode, produced output trace with latencies
 
@@ -191,9 +191,9 @@ redis:
     
 registry:
   # thor13,14,15,16,17
-    #- 192.168.0.200:5000 # at least one registry required for run and warmup mode
-    #- 192.168.0.202:5000 # at least one registry required for run and warmup mode
-    #- 192.168.0.203:5000 # at least one registry required for run and warmup mode
+    - 192.168.0.200:5000 # at least one registry required for run and warmup mode
+    - 192.168.0.202:5000 # at least one registry required for run and warmup mode
+    - 192.168.0.203:5000 # at least one registry required for run and warmup mode
     - 192.168.0.204:5000 # at least one registry required for run and warmup mode
     - 192.168.0.205:5000 # at least one registry required for run and warmup mode
     #- 192.168.0.214:5000
