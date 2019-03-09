@@ -7,19 +7,19 @@ client_info: # Required for run command
         # - client instance and port
     master_port: 9095 # the client's/master's port when using this config file with the client/master
     client_port: 9096
-    threads: 100 # number of threads per client node, each thread is a process that sends requests
+    threads: 50 # number of threads per client node, each thread is a process that sends requests
     wait: true # Determines if clients should wait the relative amount of time in trace before sending request
     route: true # Tells the master to forward based on hashing on client urls rather than round robin
     realblobs: # NANNAN: add real blobs
         #location_list:
         #- /home/nannan/dockerimages/layers/layers_less_50m/hulk1_layers_less_50m
-        - /home/nannan/dockerimages/layers/hulk1_layers_less_50m
+        - /home/nannan/dockerimages/layers/layers_less_50m
 
 verbose: true # optional input
 
 trace: # mandatory field
     #location: /home/nannan/dockerimages/docker-traces/data_centers/  #/home/michaellittley/data_centers/dal09 # current directory assumed if field not present
-    location: /home/nannan/dockerimages/layers/dal09_50m/ # use a small trace for debugging
+    location: /home/nannan/dockerimages/layers/dal09/ # use a small trace for debugging
     traces:
         # - total_trace_dal09.json
         - prod-dal09-logstash-2017.06.20-1.json
@@ -31,7 +31,7 @@ trace: # mandatory field
         - prod-dal09-logstash-2017.06.21-3.json
         - prod-dal09-logstash-2017.06.22-0.json
         - prod-dal09-logstash-2017.06.22-1.json
-        #- prod-dal09-logstash-2017.06.22-2.json
+        - prod-dal09-logstash-2017.06.22-2.json
         #- prod-dal09-logstash-2017.06.22-3.json
         #- prod-dal09-logstash-2017.06.23-0.json
         #- prod-dal09-logstash-2017.06.23-1.json
@@ -204,7 +204,7 @@ registry:
 warmup: # required for run and warmup mode
     output: interm-3-5.json # name of file that holds mapping between trace uri's and hashes
 
-    threads: 100 # how many processes used to push blobs to registry
+    threads: 50 # how many processes used to push blobs to registry
 
     random: true # instructs the master to create a random file of the layer size rather than a string of 0's equal to the layer size in the trace
 

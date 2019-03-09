@@ -33,7 +33,7 @@ def send_warmup_thread(requests, q, registry):
         try:
             dgst = dxf.push_blob(request['data'])
         except Exception as e:
-	    print(e)
+	    print("dxf send exception: ", e, request['data'])
             dgst = 'bad'
         print request['uri'], dgst
         trace[request['uri']] = dgst
@@ -396,7 +396,8 @@ def organize(requests, out_trace, numclients, client_threads, port, wait, regist
         request = {
             'delay': r['delay'],
             'duration': r['duration'],
-            'data': r['data']
+            'data': r['data'],
+            'uri': r['uri']
         }
         if r['uri'] in blob:
             b = blob[r['uri']]
@@ -500,6 +501,7 @@ def main():
     if 'registry' in inputs:
         registries.extend(inputs['registry'])
      
+    print(registries)
     #NANNAN
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:

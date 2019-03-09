@@ -64,8 +64,10 @@ def redis_stat_bfrecipe_serverips(dgst):
     global rj_dbNoBFRecipe
     if not rj_dbNoBFRecipe.exists(dgst):
         return None
-    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('JSON.GET', dgst))
+    key = "Blob:File:Recipe::"+dgst
+    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('JSON.GET', key))
     serverIps = []
+    print "GET: redis blobfilerecipe serverips for blob "+dgst+": "+str(bfrecipe.ServerIps)
     for serverip in bfrecipe.ServerIps:
         serverIps.append(serverip)
     return serverIps
@@ -75,14 +77,18 @@ def get_request_registries(r):
     global ring
 
     dgst = r['blob'] 
+    uri = request['uri']
+    layer_id = uri.split('/')[-1]
+
     if r['method'] == 'PUT':
         registry_tmp = ring.get_node(dgst) # which registry should store this layer/manifest?
         print "layer: "+req['blob']+"goest to registry: "+registry_tmp
         return [registry_tmp]
     else:
         serverIps = redis_stat_bfrecipe_serverips(dgst)
+        print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
         if not serverIps:
-            registry_tmp = ring.get_node(dgst)
+            registry_tmp = ring.get_node(layer_id)
             return [registry_tmp]
         print("from the redis: ", serverIps)
         return list(set(serverIps))
@@ -131,7 +137,7 @@ def send_requests(wait, requests, startTime, q):
 	    onTime_l = []
             while not onTime_q.empty():
             	onTime_l.extend(onTime_q.get())
-	    print onTime_l
+	    print("onTime_l: ", onTime_l)
 #<<<<<<< HEAD
                
 #            results.append({'time': now, 'duration': t, 'onTime': onTime_l})
@@ -168,7 +174,7 @@ def send_requests(wait, requests, startTime, q):
                 results.append({'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'onTime_l': None})
 #>>>>>>> f1a800648585e2e253c7da7ed0becb44aa29f22e
 	print 'time: '+str(now)+', duration: '+str(t)
-	print onTime
+	print('onTime: ', onTime)
         q.put(results)
 
 ################################
@@ -229,7 +235,7 @@ def get_messages(q):
             sock.connect(master)
             sock.sendall(json.dumps(requests))
         except Exception as inst:
-            print inst
+            print("exception: ", inst)
             print "Error sending info, writing to file"
             err = True
         if err is True:
@@ -302,6 +308,7 @@ def main():
     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe)  
     
+    print(registries)
     ring = hash_ring.HashRing(registries)             
     
     if args.command == 'TestGlobalDedup':
