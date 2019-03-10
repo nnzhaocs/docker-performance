@@ -9,7 +9,7 @@ import datetime
 import random
 import threading
 import multiprocessing
-import json 
+import json
 import yaml
 from dxf import *
 from multiprocessing import Process, Queue
@@ -87,7 +87,7 @@ def warmup(data, out_trace, registry, threads, generate_random):
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
- 
+
 def stats(responses):
     responses.sort(key = lambda x: x['time'])
 
@@ -113,7 +113,7 @@ def stats(responses):
             onTimes += 1
         if r['onTime'] == 'yes: wrong digest':
             wrongdigest += 1
-            
+
     duration = endtime - startTime
     print 'Statistics'
     print 'Successful Requests: ' + str(total)
@@ -125,7 +125,7 @@ def stats(responses):
     print '% requests on time: ' + str(1.*onTimes / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
 
-           
+
 def serve(port, ids, q, out_file):
     server_address = ("0.0.0.0", port)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,7 +137,7 @@ def serve(port, ids, q, out_file):
         q.put('fail')
         quit()
     q.put('success')
- 
+
     i = 0
     response = []
     print "server waiting"
@@ -165,7 +165,7 @@ def serve(port, ids, q, out_file):
     print 'results written to ' + out_file
     stats(response)
 
-  
+
 ## Get blobs
 def get_blobs(data, clients_list, port, out_file):
     processess = []
@@ -202,7 +202,7 @@ def get_blobs(data, clients_list, port, out_file):
 #     for filename in files:
 #         with open(filename+'-realblob.json', 'r') as f:
 #             requests = json.load(f)
-#     
+#
 #         for request in requests:
 #             method = request['http.request.method']
 #             uri = request['http.request.uri']
@@ -214,10 +214,10 @@ def get_blobs(data, clients_list, port, out_file):
 #                     client = request['http.request.remoteaddr']
 #                     blob = request['data']
 #                     r = {
-#                         'delay': timestamp, 
-#                         'uri': uri, 
-#                         'size': size, 
-#                         'method': method, 
+#                         'delay': timestamp,
+#                         'uri': uri,
+#                         'size': size,
+#                         'method': method,
 #                         'duration': duration,
 #                         'client': client,
 #                         'data': blob
@@ -225,10 +225,10 @@ def get_blobs(data, clients_list, port, out_file):
 #                     ret.append(r)
 #     ret.sort(key= lambda x: x['delay'])
 #     begin = ret[0]['delay']
-# 
+#
 #     for r in ret:
 #         r['delay'] = (r['delay'] - begin).total_seconds()
-#    
+#
 #     if t == 'seconds':
 #         begin = ret[0]['delay']
 #         i = 0
@@ -236,7 +236,7 @@ def get_blobs(data, clients_list, port, out_file):
 #             if r['delay'] > limit:
 #                 break
 #             i += 1
-#         print i 
+#         print i
 #         return ret[:i]
 #     elif t == 'requests':
 #         return ret[:limit]
@@ -249,7 +249,7 @@ def absoluteFilePaths(directory):
     for dirpath,_,filenames in os.walk(directory):
         for f in filenames:
             absFNames.append(os.path.abspath(os.path.join(dirpath, f)))
-            
+
     return absFNames
 
 ####
@@ -265,19 +265,19 @@ def get_requests(trace_dir):
 #     blobTOtdic = {}
     ret = []
 #     i = 0
-    
+
 #     for location in realblob_locations:
 #         absFNames = absoluteFilePaths(location)
     print "Dir: "+trace_dir+" has the following files"
     print absFNames
     blob_locations.extend(absFNames)
-    
+
     for trace_file in blob_locations:
         with open(trace_file, 'r') as f:
             requests = json.load(f)
-            
+
         for request in requests:
-            
+
             method = request['http.request.method']
             uri = request['http.request.uri']
     	    if len(uri.split('/')) < 3:
@@ -289,7 +289,7 @@ def get_requests(trace_dir):
 #                     timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
 #                     duration = request['http.request.duration']
 #                     client = request['http.request.remoteaddr']
-            
+
 #                     for blob in blob_locations:
 #                     if i < len(blob_locations):
 #                         blob = blob_locations[i]
@@ -298,12 +298,12 @@ def get_requests(trace_dir):
 #                             continue
 #                         if blob in blobTOtdic.keys():
 #                             continue
-                        
+
 #                         tTOblobdic[layer_id] = blob
 #                         blobTOtdic[blob] = layer_id
 
 #                         size = os.stat(blob).st_size
-                
+
                         r = {
                             "host": request['host'],
                             "http.request.duration": request['http.request.duration'],
@@ -320,58 +320,58 @@ def get_requests(trace_dir):
                         print r
                         ret.append(r)
 #                         i += 1
-#     return ret 
-    ret.sort(key= lambda x: x['timestamp'])                          
+#     return ret
+    ret.sort(key= lambda x: x['timestamp'])
     with open(os.path.join(input_dir, 'total_trace.json'), 'w') as fp:
-        json.dump(ret, fp)      
-        
+        json.dump(ret, fp)
+
 
 def analyze_layerlifetime():
-    
+
     layerPUTGAcctimedic = defaultdict(list)
     layerNPUTGAcctimedic = defaultdict(list)
     layerNGETAcctimedic = {}
-    
+
     layer1stPUT = -1
 #     layer1stGET = -1
     layerNPUT = False
     layerNGET = False
 #     layecntGET = 0
-    
+
     with open(os.path.join(input_dir, 'layer_access.json')) as fp:
         layerTOtimedic = json.load(fp)
 
     for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reverse=True):
-         
+
         #lifetime = layerTOtimedic[k][len(layerTOtimedic[k][0])-1][1] - layerTOtimedic[k][0][1]
         #lifetime = lifetime.total_seconds()
-           
+
         lst = layerTOtimedic[k]
-        
+
         if 'PUT' == lst[0][0]:
             layer1stPUT = 0
             if len(lst) == 1:
                 layerNGET = True
         else:
             layerNPUT = True
-            
+
         if True == layerNGET:
             layerNGETAcctimedic[k] = True
             continue
-        
+
         starttime = lst[0][1]#datetime.datetime.strptime(lst[0][1], '%Y-%m-%dT%H:%M:%S.%fZ')
         interaccess = ((starttime),)
         #interaccess = interaccess + (k,)
         # (digest, next pull time)
-        
+
         for i in range(len(lst)-1):
             nowtime = datetime.datetime.strptime(lst[i][1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i][1]
             nexttime = datetime.datetime.strptime(lst[i+1][1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i+1][1]
             delta = nexttime - nowtime
             delta = delta.total_seconds()
-            
-            interaccess = interaccess + (delta,)                   
-                    
+
+            interaccess = interaccess + (delta,)
+
         if -1 == layer1stPUT:
             layerNPUTGAcctimedic[k] = interaccess
         else:
@@ -391,7 +391,7 @@ def analyze_layerlifetime():
 def analyze_requests(total_trace):
     organized = []
     layerTOtimedic = defaultdict(list)
-    
+
 #     start = ()
 
 #     if round_robin is False:
@@ -408,31 +408,31 @@ def analyze_requests(total_trace):
         uri = r['http.request.uri']
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
-        
+
         if 'blob' in uri:
             # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
-        
+
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
             print "usrname: "+usrname
-            
+
     #         if layer_id in layerTOtimedic.keys():
             layerTOtimedic[layer_id].append((method, timestamp))
-        
+
     with open(os.path.join(input_dir, 'layer_access.json'), 'w') as fp:
         json.dump(layerTOtimedic, fp)
-        
+
 
 def analyze_repo_reqs(total_trace):
 #     organized = []
     usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
     repoTOlayerdic = defaultdict(list)
     usrTOrepodic = defaultdict(list) # repoTOlayerdic
-    
+
 #     start = ()
 
 #     if round_robin is False:
@@ -452,24 +452,24 @@ def analyze_repo_reqs(total_trace):
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
-        
+
         if 'blob' in uri:
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
-        
+
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
             print "usrname: "+usrname
-            
+
             if repo_name in repoTOlayerdic.keys():
                 if layer_id not in repoTOlayerdic[repo_name]:
                     repoTOlayerdic[repo_name].append(layer_id)
             else:
                 repoTOlayerdic[repo_name].append(layer_id)
-                
-            
+
+
 #             try:
 #                 lst = repoTOlayerdic[repo_name]
 #                 if layer_id not in lst:
@@ -478,8 +478,8 @@ def analyze_repo_reqs(total_trace):
 #                 print "repo has not this layer before"
 #                 repoTOlayerdic[repo_name].append(layer_id)
 
-            #if 
-                
+            #if
+
             try:
                 lst = usrTOrepodic[usrname]
                 if repo_name not in lst:
@@ -488,7 +488,7 @@ def analyze_repo_reqs(total_trace):
                 print "usrname has not this repo before"
                 usrTOrepodic[usrname].append(repo_name)
 #             if layer_id
-            
+
     #         if layer_id in layerTOtimedic.keys():
             #layerTOtimedic[layer_id].append((method, timestamp))
 #             repoTOlayerdic[repo_name].append(layer_id)
@@ -501,29 +501,29 @@ def analyze_repo_reqs(total_trace):
     for usr in usrTOrepodic.keys():
         for repo in usrTOrepodic[usr]:
             usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
-            
+
     for usr in usrTOrepodic.keys():
         jsondata = {
             'usr': usr,
             'repos': usrTOrepoTOlayerdic[usr]
-            
+
         }
-        
+
     with open(os.path.join(input_dir, 'usr2repo2layer_map.json'), 'w') as fp:
         json.dump(usrTOrepoTOlayerdic, fp)
 
 
 def analyze_usr_repolifetime():
-#     layerPUTGAcctimedic = defaultdict(list)  # 
+#     layerPUTGAcctimedic = defaultdict(list)  #
 #     layerNPUTGAcctimedic = defaultdict(list) #
 #     layerNGETAcctimedic = {}
-    
+
 #     layer1stPUT = -1
 # #     layer1stGET = -1
 #     layerNPUT = False
 #     layerNGET = False
 #     layecntGET = 0
-    
+
     with open(os.path.join(input_dir, 'usr2repo2layer_map.json')) as fp:
         usrrepolayer_map = json.load(fp)
 
@@ -531,35 +531,35 @@ def analyze_usr_repolifetime():
 #         layerTOtimedic = json.load(fp)
 
 #     for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reversed=True):
-#          
+#
 #         lifetime = layerTOtimedic[k][len(layerTOtimedic[k][0])-1][1] - layerTOtimedic[k][0][1]
 #         lifetime = lifetime.total_seconds()
-#            
+#
 #         lst = layerTOtimedic[k]
-#         
+#
 #         if 'PUT' == lst[0][0]:
 #             layer1stPUT = 0
 #             if len(lst) == 1:
 #                 layerNGET = True
 #         else:
 #             layerNPUT = True
-#             
+#
 #         if False == layerNGET:
 #             layerNGETAcctimedic[k] = True
 #             continue
-#         
+#
 #         interaccess = ((),)
 #         #interaccess = interaccess + (k,)
 #         # (digest, next pull time)
-#         
+#
 #         for i in len(lst)-2:
 #             nowtime = lst[i][1]
 #             nexttime = lst[i+1][1]
 #             delta = nexttime - nowtime
 #             delta = delta.total_seconds()
-#             
-#             interaccess = interaccess + (delta,)                   
-#                     
+#
+#             interaccess = interaccess + (delta,)
+#
 #         if -1 == layer1stPUT:
 #             layerNPUTGAcctimedic[k] = interaccess
 #         else:
@@ -570,9 +570,9 @@ def analyze_usr_repolifetime():
     NlayerPUTGAcctimedic = 0
     NlayerNPUTGAcctimedic = 0
     NlayerNGETAcctimedic = 0
-    
+
     repoTOlayerdic = {} #defaultdict(list)
-    
+
 #     userTOlayerdic = defaultdict(list)
 
     with open(os.path.join(input_dir, 'layerNGETAcctime.json')) as fp1:
@@ -584,33 +584,33 @@ def analyze_usr_repolifetime():
     with open(os.path.join(input_dir, 'layerPUTGAcctime.json')) as fp3:
          layerPUTGAcctimedic = json.load(fp3)
     #cnt = 0
-    for usr in usrrepolayer_map.keys():   
+    for usr in usrrepolayer_map.keys():
         #cnt += 1
         #if cnt > 100:
-        #    break;     
+        #    break;
 #         usrTOrepodic = defaultdict(list) # repoTOlayerdic
 #         repoTONPUTAlayerdic = defaultdict(list)
 #         repoTONGETAlayerdic = defaultdict(list)
         print "process usr "+usr
-        for repo_item in usrrepolayer_map[usr]:  
-            for repo, layers in repo_item.items():                         
+        for repo_item in usrrepolayer_map[usr]:
+            for repo, layers in repo_item.items():
                 if repo in repoTOlayerdic.keys():
 			continue
                 print "process repo "+repo
                 #cnt += 1
 		#if cnt > 1000:
-		   
+
                 #repoTOPUTGAlayerdic = defaultdict(list) # repoTOlayerdic
                 #repoTONPUTAlayerdic = defaultdict(list)
                 #repoTONGETAlayerdic = defaultdict(list)
-                
+
 #                 repodic = defaultdict(list)
                 repodic = {
                         'layerPUTGAlayerdic': [],
                         'layerNPUTGAcctimedic': [],
                         'layerNGETAlayerdic': []
                     }
-            
+
                 for layer in layers:#repo.keys():
                     if layer in layerPUTGAcctimedic.keys():
                         NlayerPUTGAcctimedic = 1
@@ -622,16 +622,16 @@ def analyze_usr_repolifetime():
                         NlayerNGETAcctimedic = 1
                         lst = layerNGETAcctimedic[layer]
                     else:
-                        print "cannot find the layer: "+layer 
-                        continue                            
-                    
+                        print "cannot find the layer: "+layer
+                        continue
+
 #                     if NlayerPUTGAcctimedic and NlayerNPUTGAcctimedic and NlayerNGETAcctimedic:
 #                         print "this is not a legal layer"
 #                         continue
                     if NlayerPUTGAcctimedic == 1:
                         print "this is a layerPUTGAcctimedic "+layer
 #                         repoTOPUTGAlayerdic[layer].append(lst)
-                        repodic['layerPUTGAlayerdic'].append({layer: lst}) 
+                        repodic['layerPUTGAlayerdic'].append({layer: lst})
                     elif NlayerNPUTGAcctimedic == 1:
                         print "this is a layerNPUTGAcctimedic "+layer
 #                         repoTONPUTAlayerdic[layer].append(lst)
@@ -640,27 +640,27 @@ def analyze_usr_repolifetime():
                         print "this is a layerNGETAcctimedic "+layer
 #                         repoTONGETAlayerdic[layer].append(lst)
                         repodic['layerNGETAlayerdic'].append({layer: lst})
-                        
+
             repoTOlayerdic[repo] = repodic
-        
+
 #             repoTOlayerdic[repo]['repoTOPUTGAlayerdic'] =  repodic['repoTOPUTGAlayerdic']
 #             repoTOlayerdic[repo]['repoTONPUTAlayerdic'] =  repodic['repoTONPUTAlayerdic']
 #             repoTOlayerdic[repo]['repoTONGETAlayerdic'] =  repodic['repoTONGETAlayerdic']
-            
+
     with open(os.path.join(input_dir, 'repo2layersaccesstime.json'), 'w') as fp:
-        json.dump(repoTOlayerdic, fp)           
-                    
-         
-                              
-# tub = (k, lifetime)      
-            
+        json.dump(repoTOlayerdic, fp)
+
+
+
+# tub = (k, lifetime)
+
 #             else:
-#                 
-#                 
-#         
-#         
+#
+#
+#
+#
 #         else:
-            
+
 #                             continue
 #         request = {
 #             'delay': r['delay'],
@@ -668,7 +668,7 @@ def analyze_usr_repolifetime():
 #             'data': r['data']
 #         }
 
-    
+
 #         if r['uri'] in blob:
 #             b = blob[r['uri']]
 #             if b != 'bad':
@@ -699,13 +699,13 @@ def main():
     parser.add_argument('-p', '--portion', dest='portion', type=str, required=True, help= 'Portion of the trace on which to run the simulation. Choose one of: 10, 25, 50, 75, 100. Only to be used with the simulate commnand. If this flag is not passed, it will default to the whole 100% of the trace')
 
     args = parser.parse_args()
-    
+
     trace_dir = input_dir+args.input
-    
+
     print "input dir: "+trace_dir
 
     #NANNAN
-    if args.command == 'get':    
+    if args.command == 'get':
 #         if 'realblobs' in inputs['client_info']:
             #if inputs['client_info']['realblobs'] is True:
 #             realblob_locations = inputs['client_info']['realblobs']
@@ -717,7 +717,7 @@ def main():
     elif args.command == 'Alayer':
 #         print "wrong cmd!"
         analyze_requests(os.path.join(input_dir, 'total_trace.json'))
-        return 
+        return
     elif args.command == 'layerlifetime':
         analyze_layerlifetime()
         return
@@ -727,8 +727,8 @@ def main():
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
         return
-# 
-        
+#
+
     elif args.command == 'simulate':
 #         if verbose:
 #             print 'simulate mode'
@@ -742,6 +742,7 @@ def main():
                          '25': 'total_trace_25_percent.json',
                          '50': 'total_trace_50_percent.json',
                          '75': 'total_trace_75_percent.json',
+                         '5': 'total_trace_5_percent.json',
                          }
         if args.portion in portion_files.keys():
             with open(os.path.join(input_dir, portion_files[args.portion]), 'r') as fp:
@@ -753,7 +754,7 @@ def main():
         else:
             print("you chose poorly")
             exit()
-        pi = 'prefetch_layersize1' #'cache_usr_repo_layer' #'prefetch_old'
+        pi = 'siftcachenew' #'cache_usr_repo_layer' #'prefetch_old'
         try:
             plugin = importlib.import_module(pi)
         except Exception as inst:
@@ -769,7 +770,7 @@ def main():
             print 'Error running plugin init!'
             print inst
             print traceback.print_exc()
-            
+
 
 if __name__ == "__main__":
     main()

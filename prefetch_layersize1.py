@@ -3,7 +3,7 @@ same as anwar's prefetch, but now with limiting the cache size to a percentage o
 total number of layers (as calculated by counting the unique layers in all the GET
 requests
 
-If we need to prefetch a repo and place it in the cache, we must first check if 
+If we need to prefetch a repo and place it in the cache, we must first check if
 adding that repo will exceed cache capacity. If it does, we will evict a repo
 at random from the cache and then prefetch the current repo
 """
@@ -53,7 +53,7 @@ class prefetch_cache:
                         if (self.size + layer[2]) > self.capacity:
                             # evict random repo from cache if cache is expected to become overcapacity
                             while True:
-                               evict_repo = random.choice(self.manifest.keys()) 
+                               evict_repo = random.choice(self.manifest.keys())
                                if evict_repo != repo:
                                    evict_repo_size = sum([layer[2] for layer in self.manifest[evict_repo]])
                                    self.size -= evict_repo_size
@@ -76,7 +76,7 @@ class prefetch_cache:
                             if (self.size + layer[2]) > self.capacity:
                                 # evict random repo from cache if cache is expected to become overcapacity
                                 while True:
-                                    evict_repo = random.choice(self.manifest.keys()) 
+                                    evict_repo = random.choice(self.manifest.keys())
                                     if evict_repo != repo:
                                         evict_repo_size = sum([layer[2] for layer in self.manifest[evict_repo]])
                                         self.size -= evict_repo_size
@@ -143,7 +143,7 @@ class prefetch_cache:
                     layer[1] += 1
         else:
             self.miss += 1
-        
+
     def put(self, request):
         repo = request['repo']
         client = request['client']
@@ -176,7 +176,7 @@ class prefetch_cache:
         return self.size_list
 
 def extract(data):
-  
+
     requests = []
 
     for request in data:
@@ -193,10 +193,10 @@ def extract(data):
 
         parts = uri.split('/')
         repo = parts[1] + '/' + parts[2]
-        requests.append({'timestamp': timestamp, 
+        requests.append({'timestamp': timestamp,
                         'repo': repo,
-                        'client': request['http.request.remoteaddr'], 
-                        'method': request['http.request.method'], 
+                        'client': request['http.request.remoteaddr'],
+                        'method': request['http.request.method'],
                         'type': t,
                         'size':request['http.response.written']
                         })
@@ -228,7 +228,7 @@ def init(data, portion=100):
     # prefetch10hour = prefetch_cache(rtimeout=600, mtimeout=3600)
     # prefetch10half = prefetch_cache(rtimeout=600, mtimeout=43200)
     # prefetch10day_cache5p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size1)
-    # prefetch10day_cache10p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size2)
+    prefetch10day_cache10p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size2)
     # prefetch10day_cache15p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size3)
     prefetch10day_cache20p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size4)
     prefetch10day_cache30p = prefetch_cache(rtimeout=600, mtimeout=86400, cache_size = size5)
@@ -262,7 +262,7 @@ def init(data, portion=100):
         # prefetch10hour.put(request)
         # prefetch10half.put(request)
         # prefetch10day_cache5p.put(request)
-        # prefetch10day_cache10p.put(request)
+        prefetch10day_cache10p.put(request)
         # prefetch10day_cache15p.put(request)
         prefetch10day_cache20p.put(request)
         prefetch10day_cache30p.put(request)
@@ -282,7 +282,7 @@ def init(data, portion=100):
     # prefetch10hour.flush()
     # prefetch10half.flush()
     # prefetch10day_cache5p.flush()
-    # prefetch10day_cache10p.flush()
+    prefetch10day_cache10p.flush()
     # prefetch10day_cache15p.flush()
     prefetch10day_cache20p.flush()
     prefetch10day_cache30p.flush()
@@ -298,14 +298,14 @@ def init(data, portion=100):
     # prefetchdayhour.flush()
     # prefetchdayhalf.flush()
     # prefetchdayday.flush()
-    
+
 
     data = [
         # prefetch1010.get_info(),
         # prefetch10hour.get_info(),
         # prefetch10half.get_info(),
         # prefetch10day_cache5p.get_info(),
-        # prefetch10day_cache10p.get_info(),
+        prefetch10day_cache10p.get_info(),
         # prefetch10day_cache15p.get_info(),
         prefetch10day_cache20p.get_info(),
         prefetch10day_cache30p.get_info(),
@@ -322,12 +322,12 @@ def init(data, portion=100):
         # prefetchdayhalf.get_info(),
         # prefetchdayday.get_info()
     ]
-    
+
     outfile = "prefetch_trace_cachesizeset.txt"
     f1 = open(outfile, 'a')
     f2 = open("prefetch_trace_detail_cachesizeset.txt", 'a')
     for n in data:
-        f2.write(str(n) + '\n') 
+        f2.write(str(n) + '\n')
         size = n['max size']
         ratio = 1.*n['hits'] / (n['good prefetch'] + n['bad prefetch'])
         f1.write(str(ratio) + ',' + str(size) + '\n')
