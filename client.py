@@ -96,9 +96,9 @@ def get_request_registries(r):
 
 
 def send_requests(wait, requests, startTime, q):
+
     results = []
     for r in requests:
-        print("request in send_requests: ", r)
         size = 0
         t = 0
         registries = []
@@ -132,6 +132,7 @@ def send_requests(wait, requests, startTime, q):
                 p.start()
                 processes.append(p)
                 
+            # time.sleep(300)
             for p in processes:
                 p.join()
                 
@@ -229,6 +230,7 @@ def get_messages(q):
         for i in range(threads):
             requests.extend(rq.get())
  
+        #time.sleep(600)
         for p in processes:
             p.join()
         print 'processes joined, sending response'
