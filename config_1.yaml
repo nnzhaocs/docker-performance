@@ -7,7 +7,7 @@ client_info: # Required for run command
         # - client instance and port
     master_port: 9095 # the client's/master's port when using this config file with the client/master
     client_port: 9096
-    threads: 500 # number of threads per client node, each thread is a process that sends requests
+    threads: 5000 # number of threads per client node, each thread is a process that sends requests
     wait: true # Determines if clients should wait the relative amount of time in trace before sending request
     route: true # Tells the master to forward based on hashing on client urls rather than round robin
     realblobs: # NANNAN: add real blobs
@@ -178,7 +178,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 500
+        amount: 5000
 
     output: results.json # only used in run mode, produced output trace with latencies
 

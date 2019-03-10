@@ -78,15 +78,16 @@ def redis_stat_bfrecipe_serverips(dgst):
 def get_request_registries(r):
     global ring
 
-    dgst = r['blob'] 
     uri = r['uri']
     layer_id = uri.split('/')[-1]
 
     if r['method'] == 'PUT':
         registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
-        print "layer: "+req['blob']+"goest to registry: "+registry_tmp
+        print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
     else:
+
+        dgst = r['blob'] 
         serverIps = redis_stat_bfrecipe_serverips(dgst)
         print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
         if not serverIps:
