@@ -87,8 +87,8 @@ class siftcache:
                     del self.layer_size_map[layerid]
                 else:
                     self.layer_usr_map[layerid].discard(last_usr)
+                self.total_evictions += 1
             del self.usr_lru[last_usr]
-            self.total_evictions += 1
             self.eviction_times.append(self.free_buffer)
            
            
@@ -137,13 +137,9 @@ class siftcache:
         
         
     def put(self, request):
-        
-        
-        if request['method'] == 'PUT' and request['type'] == 'm':
-            return
-        elif request['method'] == 'PUT' and request['type'] == 'l': 
+        if request['method'] == 'PUT': 
             self.pushintocache(request)
-        elif request['method'] == 'GET' and request['type'] == 'l':
+        elif request['method'] == 'GET':
             self.pullfromcache(request)
 
     def get_info(self):
@@ -152,6 +148,7 @@ class siftcache:
             'misses': self.miss,
             'hit ratio': (self.hit*1.0)/(self.hit +self.miss),
             'cache size': self.size,
+            'evictions over lifetime': self.total_evictions,
             }
         return data
 
@@ -164,6 +161,7 @@ def extract(data):
 
     for request in data:
         method = request['http.request.method']
+        size = str(request['http.response.written'])
 
         uri = request['http.request.uri']
         timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -176,7 +174,7 @@ def extract(data):
 
         # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
         parts = uri.split('/')
-        layer_or_manifest_id = parts[2]+ '/' +uri.rsplit('/', 1)[1] # repo + layer id as layers unique identifier
+        layer_or_manifest_id = parts[1] + '/' + parts[2] + '/' + parts[3] + '/' + size # repo + layer id as layers unique identifier
         requests.append({'timestamp': timestamp, 
                         'client': request['http.request.remoteaddr'], 
                         'method': request['http.request.method'], 
