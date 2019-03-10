@@ -208,10 +208,14 @@ def init(data, portion):
     size1 = int(size_layers[portion] * 0.05)
     size2 = int(size_layers[portion] * 0.1)
     size3 = int(size_layers[portion] * 0.15)
-    size4 = int(size_layers[portion] * 0.2)
-    size5 = int(size_layers[portion] * 0.3)
+    # size4 = int(size_layers[portion] * 0.2)
+    # size5 = int(size_layers[portion] * 0.3)
 
-    siftsize1 = siftcache(size1, 10000000) 
+    siftsize1 = siftcache(size1, 1) 
+    siftsize2 = siftcache(size2, 1) 
+    siftsize3 = siftcache(size3, 1) 
+    # siftsize1 = siftcache(size1, 1) 
+    # siftsize1 = siftcache(size1, 1) 
     # prefetchhour10 = prefetch_cache(rtimeout=3600, mtimeout=600)
     # prefetchhourhour = prefetch_cache(rtimeout=3600, mtimeout=3600)
     # prefetchhourhalf = prefetch_cache(rtimeout=3600, mtimeout=43200)
@@ -236,9 +240,9 @@ def init(data, portion):
             print str(count) + '% done'
         i += 1
         j += 1
-        if count == 90 or count == 50:
-            pdb.set_trace()
         siftsize1.put(request)
+        siftsize2.put(request)
+        siftsize3.put(request)
         # prefetchhour10.put(request)
         # prefetchhourhour.put(request)
         # prefetchhourhalf.put(request)
@@ -265,7 +269,10 @@ def init(data, portion):
     # prefetchdayday.flush()
     
 
-    data = [siftsize1.get_info(),
+    data = [
+        siftsize1.get_info(),
+        siftsize2.get_info(),
+        siftsize3.get_info(),
             # prefetchhourhour.get_info(),
             # prefetchhourhalf.get_info(),
             # prefetchhourday.get_info(),
@@ -281,6 +288,8 @@ def init(data, portion):
     
     print data
     f2 = open("siftcache_trace_detail.txt", 'a')
+    msg = str(portion)+"% trace\n"
+    f2.write(msg)
     for n in data:
         f2.write(str(n) + '\n') 
     f2.close()
