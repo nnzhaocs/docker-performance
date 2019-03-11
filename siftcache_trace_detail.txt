@@ -7,3 +7,7 @@
 {'hits': 815782, 'cache size': 186697667266, 'misses': 377673, 'evictions over lifetime': 286033680, 'hit ratio': 0.683546509922871}
 {'hits': 841540, 'cache size': 373395334532, 'misses': 351915, 'evictions over lifetime': 336841099, 'hit ratio': 0.7051292256515747}
 {'hits': 850336, 'cache size': 560093001798, 'misses': 343119, 'evictions over lifetime': 415426770, 'hit ratio': 0.7124994239414137}
+25% trace
+{'hits': 2053941, 'cache size': 246601455733, 'misses': 975396, 'evictions over lifetime': 881899493, 'hit ratio': 0.6780166749358028}
+{'hits': 2102615, 'cache size': 493202911466, 'misses': 926722, 'evictions over lifetime': 1272049946, 'hit ratio': 0.6940842171075717}
+{'hits': 2135849, 'cache size': 739804367199, 'misses': 893488, 'evictions over lifetime': 1336602696, 'hit ratio': 0.7050549344625573}
