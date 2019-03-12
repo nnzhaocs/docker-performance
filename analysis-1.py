@@ -452,6 +452,7 @@ def analyze_repo_reqs(total_trace):
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
+	client = r['http.request.remoteaddr']
         
         if 'blob' in uri:
             layer_id = uri.rsplit('/', 1)[1]
@@ -461,6 +462,7 @@ def analyze_repo_reqs(total_trace):
         
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
+	    usrname = client
             print "usrname: "+usrname
             
             if repo_name in repoTOlayerdic.keys():
@@ -480,37 +482,37 @@ def analyze_repo_reqs(total_trace):
 
             #if 
                 
-            try:
-                lst = usrTOrepodic[usrname]
-                if repo_name not in lst:
-                    usrTOrepodic[usrname].append(repo_name)
-            except Exception as e:
-                print "usrname has not this repo before"
-                usrTOrepodic[usrname].append(repo_name)
-#             if layer_id
-            
-    #         if layer_id in layerTOtimedic.keys():
-            #layerTOtimedic[layer_id].append((method, timestamp))
-#             repoTOlayerdic[repo_name].append(layer_id)
-
-    for repo in repoTOlayerdic.keys():
-        jsondata = {
-            ''
-        }
-
-    for usr in usrTOrepodic.keys():
-        for repo in usrTOrepodic[usr]:
-            usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
-            
-    for usr in usrTOrepodic.keys():
-        jsondata = {
-            'usr': usr,
-            'repos': usrTOrepoTOlayerdic[usr]
-            
-        }
+#            try:
+#                lst = usrTOrepodic[usrname]
+#                if repo_name not in lst:
+#                    usrTOrepodic[usrname].append(repo_name)
+#            except Exception as e:
+#                print "usrname has not this repo before"
+#                usrTOrepodic[usrname].append(repo_name)
+##             if layer_id
+#            
+#    #         if layer_id in layerTOtimedic.keys():
+#            #layerTOtimedic[layer_id].append((method, timestamp))
+##             repoTOlayerdic[repo_name].append(layer_id)
+#
+#    for repo in repoTOlayerdic.keys():
+#        jsondata = {
+#            ''
+#        }
+#
+#    for usr in usrTOrepodic.keys():
+#        for repo in usrTOrepodic[usr]:
+#            usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
+#            
+#    for usr in usrTOrepodic.keys():
+#        jsondata = {
+#            'usr': usr,
+#            'repos': usrTOrepoTOlayerdic[usr]
+#            
+#        }
         
     with open(os.path.join(input_dir, 'usr2repo2layer_map.json'), 'w') as fp:
-        json.dump(usrTOrepoTOlayerdic, fp)
+        json.dump(repoTOlayerdic, fp)
 
 
 def analyze_usr_repolifetime():
@@ -647,7 +649,7 @@ def analyze_usr_repolifetime():
 #             repoTOlayerdic[repo]['repoTONPUTAlayerdic'] =  repodic['repoTONPUTAlayerdic']
 #             repoTOlayerdic[repo]['repoTONGETAlayerdic'] =  repodic['repoTONGETAlayerdic']
             
-    with open(os.path.join(input_dir, 'repo2layersaccesstime.json'), 'w') as fp:
+    with open(os.path.join(input_dir, 'repo2layersaccesstime_new1.json'), 'w') as fp:
         json.dump(repoTOlayerdic, fp)           
                     
          
@@ -790,7 +792,7 @@ def main():
         analyze_layerlifetime()
         return
     elif args.command == 'map':
-        analyze_repo_reqs(os.path.join(input_dir, 'total_trace.json'))
+        analyze_repo_reqs(os.path.join(input_dir, 'total_trace_2_percent.json'))
         return
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
