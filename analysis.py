@@ -16,6 +16,8 @@ from multiprocessing import Process, Queue
 import importlib
 import hash_ring
 from collections import defaultdict
+from OpenSSL.test.test_crypto import client_cert_pem
+from Finder.Finder_items import item
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
@@ -430,8 +432,8 @@ def analyze_requests(total_trace):
 def analyze_repo_reqs(total_trace):
 #     organized = []
     usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
-    repoTOlayerdic = defaultdict(list)
-    usrTOrepodic = defaultdict(list) # repoTOlayerdic
+#     repoTOlayerdic = defaultdict(list)
+#     usrTOrepodic = defaultdict(list) # repoTOlayerdic
     
 #     start = ()
 
@@ -452,64 +454,80 @@ def analyze_repo_reqs(total_trace):
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
+        client = r['http.request.remoteaddr']
         
         if 'blob' in uri:
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
+            if ('PUT' == method):
+                continue
         
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
             print "usrname: "+usrname
             
-            if repo_name in repoTOlayerdic.keys():
-                if layer_id not in repoTOlayerdic[repo_name]:
-                    repoTOlayerdic[repo_name].append(layer_id)
-            else:
-                repoTOlayerdic[repo_name].append(layer_id)
-                
-            
-#             try:
-#                 lst = repoTOlayerdic[repo_name]
-#                 if layer_id not in lst:
-#                     repoTOlayerdic[repo_name].append(layer_id)
-#             except Exception as e:
-#                 print "repo has not this layer before"
-#                 repoTOlayerdic[repo_name].append(layer_id)
-
-            #if 
-                
             try:
-                lst = usrTOrepodic[usrname]
-                if repo_name not in lst:
-                    usrTOrepodic[usrname].append(repo_name)
+                found = False
+                lst = usrTOrepodic[client]
+                for item in lst:
+                    print item
+                    if item['repo_name'] == repo_name:
+                        found = True
+                        if layer in item['layers']:
+                            print layer
+                            idx = item['layers'].index(layer)
+                            item['layers'][idx][1] += 1;
+                            print item['layers'][idx]
+                        else:
+                            item['layers'].append((layer, 1, 0))
+                            
+                if not found:
+                    repo_layers={}                    
+                    repo_layers['repo_name'] = repo_name
+                    repo_layers['layers'] = []
+                    repo_layers['layers'].append((layer, 1, 0))
+                    print repo_layers
+                    usrTOrepodic[usrname].append(repo_layers)
             except Exception as e:
-                print "usrname has not this repo before"
+                print "usrname is new"
+                repo_layers = {}
+                repo_layers['repo_name'] = repo_name
+                repo_layers['layers'] = []
+                repo_layers['layers'].append((layer, 1, 0))
+                print repo_layers
                 usrTOrepodic[usrname].append(repo_name)
-#             if layer_id
             
-    #         if layer_id in layerTOtimedic.keys():
-            #layerTOtimedic[layer_id].append((method, timestamp))
-#             repoTOlayerdic[repo_name].append(layer_id)
-
-    for repo in repoTOlayerdic.keys():
-        jsondata = {
-            ''
-        }
-
-    for usr in usrTOrepodic.keys():
-        for repo in usrTOrepodic[usr]:
-            usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
-            
-    for usr in usrTOrepodic.keys():
-        jsondata = {
-            'usr': usr,
-            'repos': usrTOrepoTOlayerdic[usr]
-            
-        }
+#             if repo_name in repoTOlayerdic.keys():
+#                 if layer_id not in repoTOlayerdic[repo_name]:
+#                     repoTOlayerdic[repo_name].append((layer_id, 1, 0))
+#                 else:
+#                     # it is in the repo
+#                     for layer_id in repoTOlayerdic[repo_name]:
+#                         layer_id[1] += 1 # get cnt++
+#                                                 
+#             else:
+#                 repoTOlayerdic[repo_name].append((layer_id, 1, 0)
+#                             
+# 
+#     for repo in repoTOlayerdic.keys():
+#         jsondata = {
+#             ''
+#         }
+# 
+#     for usr in usrTOrepodic.keys():
+#         for repo in usrTOrepodic[usr]:
+#             usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
+#             
+#     for usr in usrTOrepodic.keys():
+#         jsondata = {
+#             'usr': usr,
+#             'repos': usrTOrepoTOlayerdic[usr]
+#             
+#         }
         
-    with open(os.path.join(input_dir, 'usr2repo2layer_map.json'), 'w') as fp:
+    with open(os.path.join(input_dir, 'usr2repo2layer_map_.json'), 'w') as fp:
         json.dump(usrTOrepoTOlayerdic, fp)
 
 
