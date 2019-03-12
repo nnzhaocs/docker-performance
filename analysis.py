@@ -742,7 +742,7 @@ def main():
                          '25': 'total_trace_25_percent.json',
                          '50': 'total_trace_50_percent.json',
                          '75': 'total_trace_75_percent.json',
-                         '5': 'total_trace_5_percent.json',
+                         '2': 'total_trace_2_percent.json',
                          }
         if args.portion in portion_files.keys():
             with open(os.path.join(input_dir, portion_files[args.portion]), 'r') as fp:

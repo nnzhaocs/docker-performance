@@ -11,3 +11,5 @@
 {'hits': 2053941, 'cache size': 246601455733, 'misses': 975396, 'evictions over lifetime': 881899493, 'hit ratio': 0.6780166749358028}
 {'hits': 2102615, 'cache size': 493202911466, 'misses': 926722, 'evictions over lifetime': 1272049946, 'hit ratio': 0.6940842171075717}
 {'hits': 2135849, 'cache size': 739804367199, 'misses': 893488, 'evictions over lifetime': 1336602696, 'hit ratio': 0.7050549344625573}
+2% trace
+{'hits': 115357, 'prefetch layer hits': 107992, 'evictions over lifetime': 992119, 'hit ratio': 0.7324486491634655, 'threshold': 50, 'layer buffer hits': 7365, 'layer buffer misses': 42138, 'layer buffer hit ratio': 0.7193232531805769, 'misses': 42138, 'prefetch layer misss': 42138}
