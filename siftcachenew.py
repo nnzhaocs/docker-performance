@@ -173,12 +173,14 @@ class siftcache:
         elif request['method'] == 'GET' and request['type'] == 'l':
             if request['putid'] in self.layer_buffer:
                 self.layer_buffer_hit += 1
+                self.prefetch_layers_miss += 1
                 self.hit += 1
                 self.update_URLmap(request)
                 self.layer_buffer[request['putid']] = request['timestamp']
 
             elif request['getid'] in self.prefetched_layers_buffer: 
                 self.prefetch_layers_hit += 1
+                self.layer_buffer_miss += 1
                 self.hit += 1
                 self.update_URLmap(request)
                 self.prefetched_layers_buffer[request['getid']] = request['timestamp']
@@ -186,6 +188,7 @@ class siftcache:
             elif request['putid'] in self.prefetched_layers_buffer:
                 self.prefetch_layers_hit += 1
                 self.hit += 1
+                self.layer_buffer_miss += 1
                 self.update_URLmap(request)
                 self.prefetched_layers_buffer[request['putid']] = request['timestamp']
 
@@ -265,7 +268,11 @@ def init(data, portion):
     # size4 = int(size_layers[portion] * 0.2)
     # size5 = int(size_layers[portion] * 0.3)
 
-    siftsize1 = siftcache(600) # 10 minutes
+    siftsize1 = siftcache(60) # 1 minutes
+    siftsize2 = siftcache(300) # 5 minutes
+    siftsize3 = siftcache(600) # 10 minutes
+    siftsize4 = siftcache(900) # 15 minutes
+    siftsize5 = siftcache(1200) # 20 minutes
     
     # siftsize2 = siftcache( <threshold>) 
     # siftsize3 = siftcache( <threshold>) 
@@ -283,7 +290,6 @@ def init(data, portion):
     # prefetchdayhour = prefetch_cache(rtimeout=86400, mtimeout=3600)
     # prefetchdayhalf = prefetch_cache(rtimeout=86400, mtimeout=43200)
     # prefetchdayday = prefetch_cache(rtimeout=86400, mtimeout=86400)
-    pdb.set_trace()
     i = 0
     j = 0
     l = len(requests)
@@ -296,9 +302,11 @@ def init(data, portion):
             print str(count) + '% done'
         i += 1
         j += 1
-        if j == 600:
-            pdb.set_trace()
         siftsize1.put(request)
+        siftsize2.put(request)
+        siftsize3.put(request)
+        siftsize4.put(request)
+        siftsize5.put(request)
         # prefetchhour10.put(request)
         # prefetchhourhour.put(request)
         # prefetchhourhalf.put(request)
@@ -327,6 +335,10 @@ def init(data, portion):
 
     data = [
         siftsize1.get_info(),
+        siftsize2.get_info(),
+        siftsize3.get_info(),
+        siftsize4.get_info(),
+        siftsize5.get_info(),
             # prefetchhourhour.get_info(),
             # prefetchhourhalf.get_info(),
             # prefetchhourday.get_info(),

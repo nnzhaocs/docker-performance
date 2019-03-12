@@ -740,7 +740,7 @@ def main():
 #             pi = pi[:-3]
         portion_files = {'10': 'total_trace_10_percent.json',
                          '25': 'total_trace_25_percent.json',
-                         '50': 'total_trace_lon0250_percent.json',
+                         '50': 'total_trace_50_percent.json',
                          '75': 'total_trace_75_percent.json',
                          '2': 'total_trace_2_percent.json',
                          }
@@ -754,7 +754,7 @@ def main():
         else:
             print("you chose poorly")
             exit()
-        pi = 'prefetch_layersize1' #'cache_usr_repo_layer' #'prefetch_old'
+        pi = 'siftcachenew' #'cache_usr_repo_layer' #'prefetch_old'
         try:
             plugin = importlib.import_module(pi)
         except Exception as inst:
