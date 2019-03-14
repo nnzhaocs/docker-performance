@@ -8,7 +8,11 @@ import json
 
 
 
-rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map.json"
+rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map_with_size.json"
+
+
+def mean(items):
+    return sum(items)*1.0/len(items)
 
 class siftcache:
 
@@ -19,13 +23,22 @@ class siftcache:
         rlmapfp = open(rlmaplocation)
         self.RLmap = json.load(rlmapfp)
         rlmapfp.close()
+        for repo in self.RLmap.keys():
+            layerdict = {}
+            for layer,size in self.RLmap[repo]:
+                layerdict[layer] = size
+            self.RLmap[repo] = layerdict
 
         self.URLmap = defaultdict(lambda: defaultdict(set)) # map of {client: {repo1 : [layer1, layer2, layer3...]
-                                                            #                  repo2 : [..]
+                                                            #                  repo2 : [...]
                                                             #                 }
                                                             # updated during the request process
         self.layer_buffer = {}
+        self.layer_buffer_space_usage = []
+        self.layer_buffer_space = 0
         self.prefetched_layers_buffer = {}
+        self.prefetched_layers_buffer_space_usage = []
+        self.prefetched_layers_buffer_space = 0
         self.total_evictions = 0
         self.threshold = threshold
 
@@ -43,86 +56,32 @@ class siftcache:
 
 
 
-    # def cacheeviction(self):
-    #     self.usrs_in_cache_over_time.append(len(self.usr_lru.items()))
-    #     while self.free_buffer < self.size_threshold:
-    #         last_usr = self.usr_lru.peek_last_item()[0]
-    #         reverse_layerlru_list = self.layer_lru.items()[::-1]
-    #         for layerid, i_i in reverse_layerlru_list:
-    #             if 'manifest' not in layerid and len(list(self.layer_usr_map[layerid])) == 1 and list(self.layer_usr_map[layerid])[0] == last_usr:
-    #                 del self.layer_lru[layerid]
-    #                 del self.layer_usr_map[layerid]
-    #                 self.free_buffer += self.layer_size_map[layerid]
-    #                 del self.layer_size_map[layerid]
-    #             else:
-    #                 self.layer_usr_map[layerid].discard(last_usr)
-    #             self.total_evictions += 1
-    #         del self.usr_lru[last_usr]
-    #         self.eviction_times.append(self.free_buffer)
-           
-           
-
-    # def pushintocache(self, request):
-    #     # print "space left in user cache: "+str(9997-len(self.usr_lru.items()))
-    #     if self.layer_lru.has_key(request['id']):
-    #         self.layer_lru[request['id']] = self.layer_lru[request['id']] + 1
-    #         if self.usr_lru.has_key(request['client']):
-    #             self.usr_lru[request['client']] = self.usr_lru[request['client']] + 1
-    #         else:
-    #             self.usr_lru[request['client']] = 1
-    #         self.layer_usr_map[request['id']].add(request['client'])
-    #     else:
-    #         self.layer_lru[request['id']] = 1
-    #         self.layer_size_map[request['id']] = request['size']
-    #         self.layer_usr_map[request['id']].add(request['client'])
-    #         if self.usr_lru.has_key(request['client']):
-    #             self.usr_lru[request['client']] = self.usr_lru[request['client']] + 1
-    #         else:
-    #             self.usr_lru[request['client']] = 1
-    #         self.free_buffer -= self.layer_size_map[request['id']]
-    #     if self.free_buffer < self.size_threshold:
-    #         self.cacheeviction() 
-    # def pullfromcache(self, request):
-    #     # print "space left in user cache: "+str(9997-len(self.usr_lru.items())) #     if self.layer_lru.has_key(request['id']): #         self.layer_lru[request['id']] = self.layer_lru[request['id']] + 1
-    #         if self.usr_lru.has_key(request['client']):
-    #             self.usr_lru[request['client']] = self.usr_lru[request['client']] + 1
-    #         else:
-    #             self.usr_lru[request['client']] = 1
-    #         self.layer_usr_map[request['id']].add(request['client'])
-    #         self.hit += 1
-    #     else:
-    #         self.miss += 1
-    #         self.layer_lru[request['id']] = 1
-    #         self.layer_size_map[request['id']] = request['size']
-    #         self.layer_usr_map[request['id']].add(request['client'])
-    #         if self.usr_lru.has_key(request['client']):
-    #             self.usr_lru[request['client']] = self.usr_lru[request['client']] + 1la
-    #         else:
-    #             self.usr_lru[request['client']] = 1
-    #         self.free_buffer -= self.layer_size_map[request['id']]
-    #     if self.free_buffer < self.size_threshold:
-    #         self.cacheeviction()
-        
-        
-
     def prefetch_layers(self, request):
         client = request['client']
         repo = request['repo']
         client_layers = list(self.URLmap[client][repo])
         try:
-            repo_layers = self.RLmap[repo]
+            repo_layers = self.RLmap[repo].keys()
         except KeyError:
-            self.RLmap[repo] = []
-            repo_layers = self.RLmap[repo]
+            self.RLmap[repo] = {}
+            repo_layers = self.RLmap[repo].keys()
 
         prefetchable = set(repo_layers).difference(set(client_layers))
         to_prefetch = list(set(prefetchable).difference(set(self.prefetched_layers_buffer.keys())))
         for layer in to_prefetch:
-            self.prefetched_layers_buffer[layer] = request['timestamp']
+            self.prefetched_layers_buffer[layer] = {'timestamp': request['timestamp'],
+                                                    'size': self.RLmap[repo][layer],
+                                                    }
+
+            
+            
 
     def buffer_layer(self, request):
         layer = request['putid']
-        self.layer_buffer[layer] = request['timestamp']
+        self.layer_buffer[layer] = {'timestamp': request['timestamp'],
+                                    'size': request['size'],
+        }
+
     
     def update_URLmap(self, request):
         client = request['client']
@@ -141,23 +100,27 @@ class siftcache:
         else:
             layer = request['getid']
         try:
-            self.RLmap[repo].append(layer)
+            self.RLmap[repo][layer] = request['size']
         except KeyError:
-            self.RLmap[repo] = [layer]
+            self.RLmap[repo] = {layer: request['size']}
 
 
     def evictions(self, now_time):
+        self.layer_buffer_space_usage.append(sum([self.layer_buffer[layer]['size'] for layer in self.layer_buffer]))
+        self.prefetched_layers_buffer_space_usage.append(sum([self.prefetched_layers_buffer[layer]['size'] for layer in self.prefetched_layers_buffer]))
         for layer in self.layer_buffer.keys():
-            layer_time = self.layer_buffer[layer]
+            layer_time = self.layer_buffer[layer]['timestamp']
             timediff = now_time - layer_time
             if timediff.seconds > self.threshold:
+                self.layer_buffer_space -= self.layer_buffer[layer]['size']
                 del self.layer_buffer[layer]
                 self.total_evictions += 1
 
         for layer in self.prefetched_layers_buffer.keys():
-            layer_time = self.prefetched_layers_buffer[layer]
+            layer_time = self.prefetched_layers_buffer[layer]['timestamp']
             timediff = now_time - layer_time
             if timediff.seconds > self.threshold:
+                self.prefetched_layers_buffer_space -= self.prefetched_layers_buffer[layer]['size']
                 del self.prefetched_layers_buffer[layer]
                 self.total_evictions += 1
     
@@ -176,21 +139,21 @@ class siftcache:
                 self.prefetch_layers_miss += 1
                 self.hit += 1
                 self.update_URLmap(request)
-                self.layer_buffer[request['putid']] = request['timestamp']
+                self.layer_buffer[request['putid']]['timestamp'] = request['timestamp']
 
             elif request['getid'] in self.prefetched_layers_buffer: 
                 self.prefetch_layers_hit += 1
                 self.layer_buffer_miss += 1
                 self.hit += 1
                 self.update_URLmap(request)
-                self.prefetched_layers_buffer[request['getid']] = request['timestamp']
+                self.prefetched_layers_buffer[request['getid']]['timestamp'] = request['timestamp']
                 
             elif request['putid'] in self.prefetched_layers_buffer:
                 self.prefetch_layers_hit += 1
                 self.hit += 1
                 self.layer_buffer_miss += 1
                 self.update_URLmap(request)
-                self.prefetched_layers_buffer[request['putid']] = request['timestamp']
+                self.prefetched_layers_buffer[request['putid']]['timestamp'] = request['timestamp']
 
             else:
                 self.prefetch_layers_miss += 1
@@ -213,9 +176,13 @@ class siftcache:
             'layer buffer hits': self.layer_buffer_hit,
             'layer buffer misses': self.layer_buffer_miss,
             'layer buffer hit ratio': (self.layer_buffer_hit*1.0)/(self.layer_buffer_hit +self.layer_buffer_miss),
+            'layer buffer max usage': max(self.layer_buffer_space_usage),
+            'layer buffer average usage': mean(self.layer_buffer_space_usage),
             'prefetch layer hits': self.prefetch_layers_hit,
             'prefetch layer misses': self.prefetch_layers_miss,
             'prefetch layer hit ratio': (self.prefetch_layers_hit*1.0)/(self.prefetch_layers_hit +self.prefetch_layers_miss),
+            'prefetch layer buffer max usage': max(self.prefetched_layers_buffer_space_usage),
+            'prefetch layer buffer average usage': mean(self.prefetched_layers_buffer_space_usage),
             'threshold': self.threshold,
             'evictions over lifetime': self.total_evictions,
             }
