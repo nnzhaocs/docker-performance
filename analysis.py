@@ -651,44 +651,101 @@ def analyze_usr_repolifetime():
         json.dump(repoTOlayerdic, fp)           
                     
          
-                              
-# tub = (k, lifetime)      
-            
-#             else:
-#                 
-#                 
-#         
-#         
-#         else:
-            
-#                             continue
-#         request = {
-#             'delay': r['delay'],
-#             'duration': r['duration'],
-#             'data': r['data']
-#         }
-
-    
+def clusterUserreqs(total_trace):
+    organized = defaultdict(list)
+    with open(total_trace, 'r') as f:
+        blob = json.load(f)
+    for r in blob:
+#         cnt += 1
+#         if replay_limits > 0:
+#             if cnt > replay_limits:
+#                 break
+        request = {
+            'delay': r['delay'],
+            'duration': r['duration'],
+            'data': r['data'],
+            'uri': r['uri'],
+            'clientAddr': r['http.request.remoteaddr'],
+        }
 #         if r['uri'] in blob:
 #             b = blob[r['uri']]
 #             if b != 'bad':
-#                 request['blob'] = b
+#                 request['blob'] = b # dgest
 #                 request['method'] = 'GET'
-#                 if round_robin is True:
-#                     organized[i % numclients].append(request)
-#                     i += 1
-#                 else:
-#                     organized[ring.get_node(r['client'])].append(request)
 #         else:
 #             request['size'] = r['size']
 #             request['method'] = 'PUT'
-#             if round_robin is True:
-#                 organized[i % numclients].append(request)
-#                 i += 1
+ 
+        clientAddr = r['http.request.remoteaddr']
+        print request
+        organized[clientAddr].append(request)
+    return organized
+ 
+ 
+def clusterClientReqs(total_trace):
+    organized = defaultdict(list)
+ 
+#     if round_robin is False:
+#         ring = hash_ring.HashRing(range(numclients))
+#     with open(out_trace, 'r') as f:
+#         blob = json.load(f)
+ 
+#     for i in range(numclients):
+#         organized.append([{'port': port, 'id': random.getrandbits(32), 'threads': client_threads, 'wait': wait, 'registry': registries, 'random': push_rand}])
+#         print organized[-1][0]['id']
+ 
+    organized = clusterUserreqs(total_trace)     
+     
+    img_req_group = []
+    for cli, reqs in organized.items():
+        cli_img_req_group = []
+        prev = []
+        cur = []
+#         prev_push = []
+#         cur_push = []
+        for req in reqs:
+            uri = req['uri'] 
+            layer_or_manifest_id = uri.rsplit('/', 1)[1]
+            parts = uri.split('/')
+            repo = parts[1] + '/' + parts[2]
+            if req['method'] == 'GET':
+                print 'GET: '+'uri'
+                if 'blobs' in uri:
+                    print 'GET layer'
+                    prev.append(req)
+                else:
+                    print 'GET manifest'
+                    cur = []
+                    cur.append(req)
+                    cli_img_group.append(cur)
+                prev = cli_img_pull_group[-1]
 #             else:
-#                 organized[ring.get_node(r['client'])].append(request)
-
-#     return layerTOtimedic
+#                 print 'PUT: '+'uri'
+#                 if 'blobs' in uri:
+#                     print 'PUT layer'
+#                     prev_push.append(req)
+#                 elif 'manifests' in uri:
+#                     print 'PUT manifest'
+#                     prev_push.append(req)
+#                     cur_push = []
+#                     cli_img_push_group.append(cur_push)
+#                 prev_push = cli_img_push_group[-1]
+                 
+#         cli_img_req_group = cli_img_pull_group + cli_img_push_group
+        cli_img_req_group.sort(key= lambda x: x[0]['delay'])
+        img_req_group += cli_img_req_group
+    img_req_group.sort(key= lambda x: x[0]['delay'])
+#     return img_req_group
+    with open('sorted_reqs.lst', 'w') as fp:
+        json.dump(img_req_group, fp)    
+#     return organized
+ 
+ 
+# def distributeReqsClients(requests, out_trace, numclients, client_threads, port, wait, registries, round_robin, push_rand, replay_limits):
+#     img_req_group = clusterClientReqs(requests, out_trace, replay_limits)
+#     for img_req in img_req_group:
+#                               
+# def durationmanifestblobs():
 
 
 def main():
@@ -794,6 +851,8 @@ def main():
         return
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
+    elif args.command == 'clusteruserreqs':
+        clusterClientReqs(total_trace)
         return
 #     else:
 #         return
