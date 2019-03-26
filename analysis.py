@@ -16,8 +16,8 @@ from multiprocessing import Process, Queue
 import importlib
 import hash_ring
 from collections import defaultdict
-from OpenSSL.test.test_crypto import client_cert_pem
-from Finder.Finder_items import item
+#from OpenSSL.test.test_crypto import client_cert_pem
+#from Finder.Finder_items import item
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
@@ -431,9 +431,9 @@ def analyze_requests(total_trace):
 
 def analyze_repo_reqs(total_trace):
 #     organized = []
-    usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
+#    usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
 #     repoTOlayerdic = defaultdict(list)
-#     usrTOrepodic = defaultdict(list) # repoTOlayerdic
+    usrTOrepodic = defaultdict(list) # repoTOlayerdic
     
 #     start = ()
 
@@ -466,37 +466,37 @@ def analyze_repo_reqs(total_trace):
         
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
-            print "usrname: "+usrname
+            print "client: "+client
             
             try:
                 found = False
-                lst = usrTOrepodic[client]
+                lst = usrTOrepodic[usrname]
                 for item in lst:
-                    print item
+                    #print item
                     if item['repo_name'] == repo_name:
                         found = True
-                        if layer in item['layers']:
-                            print layer
-                            idx = item['layers'].index(layer)
+                        if layer_id in item['layers']:
+                            print layer_id
+                            idx = item['layers'].index(layer_id)
                             item['layers'][idx][1] += 1;
                             print item['layers'][idx]
                         else:
-                            item['layers'].append((layer, 1, 0))
+                            item['layers'].append((layer_id, 1, 0))
                             
                 if not found:
                     repo_layers={}                    
                     repo_layers['repo_name'] = repo_name
                     repo_layers['layers'] = []
-                    repo_layers['layers'].append((layer, 1, 0))
-                    print repo_layers
+                    repo_layers['layers'].append((layer_id, 1, 0))
+                    #print repo_layers
                     usrTOrepodic[usrname].append(repo_layers)
             except Exception as e:
                 print "usrname is new"
                 repo_layers = {}
                 repo_layers['repo_name'] = repo_name
                 repo_layers['layers'] = []
-                repo_layers['layers'].append((layer, 1, 0))
-                print repo_layers
+                repo_layers['layers'].append((layer_id, 1, 0))
+                #print repo_layers
                 usrTOrepodic[usrname].append(repo_name)
             
 #             if repo_name in repoTOlayerdic.keys():
@@ -527,8 +527,8 @@ def analyze_repo_reqs(total_trace):
 #             
 #         }
         
-    with open(os.path.join(input_dir, 'usr2repo2layer_map_.json'), 'w') as fp:
-        json.dump(usrTOrepoTOlayerdic, fp)
+    with open(os.path.join(input_dir, 'usr2repo2layer_map_10.json'), 'w') as fp:
+        json.dump(usrTOrepodic, fp)
 
 
 def analyze_usr_repolifetime():
@@ -808,7 +808,7 @@ def main():
         analyze_layerlifetime()
         return
     elif args.command == 'map':
-        analyze_repo_reqs(os.path.join(input_dir, 'total_trace.json'))
+        analyze_repo_reqs(os.path.join(input_dir, 'total_trace_2_percent.json'))
         return
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
