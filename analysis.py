@@ -656,25 +656,13 @@ def clusterUserreqs(total_trace):
     with open(total_trace, 'r') as f:
         blob = json.load(f)
     for r in blob:
-#         cnt += 1
-#         if replay_limits > 0:
-#             if cnt > replay_limits:
-#                 break
+        timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
         request = {
-            'delay': r['delay'],
-            'duration': r['duration'],
-            'data': r['data'],
-            'uri': r['uri'],
+            'delay': timestamp,
+            'duration': r['http.request.duration'],
+            'uri': r['http.request.uri'],
             'clientAddr': r['http.request.remoteaddr'],
         }
-#         if r['uri'] in blob:
-#             b = blob[r['uri']]
-#             if b != 'bad':
-#                 request['blob'] = b # dgest
-#                 request['method'] = 'GET'
-#         else:
-#             request['size'] = r['size']
-#             request['method'] = 'PUT'
  
         clientAddr = r['http.request.remoteaddr']
         print request
@@ -684,16 +672,7 @@ def clusterUserreqs(total_trace):
  
 def clusterClientReqs(total_trace):
     organized = defaultdict(list)
- 
-#     if round_robin is False:
-#         ring = hash_ring.HashRing(range(numclients))
-#     with open(out_trace, 'r') as f:
-#         blob = json.load(f)
- 
-#     for i in range(numclients):
-#         organized.append([{'port': port, 'id': random.getrandbits(32), 'threads': client_threads, 'wait': wait, 'registry': registries, 'random': push_rand}])
-#         print organized[-1][0]['id']
- 
+
     organized = clusterUserreqs(total_trace)     
      
     img_req_group = []
