@@ -662,6 +662,7 @@ def clusterUserreqs(total_trace):
             'duration': r['http.request.duration'],
             'uri': r['http.request.uri'],
             'clientAddr': r['http.request.remoteaddr'],
+            'method':r['http.request.method'],
         }
  
         clientAddr = r['http.request.remoteaddr']
