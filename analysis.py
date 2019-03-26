@@ -852,7 +852,7 @@ def main():
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
-        clusterClientReqs(total_trace)
+        clusterClientReqs(os.path.join(input_dir, 'total_trace.json'))
         return
 #     else:
 #         return
