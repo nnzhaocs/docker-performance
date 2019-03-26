@@ -697,8 +697,8 @@ def clusterClientReqs(total_trace):
                     print 'GET manifest'
                     cur = []
                     cur.append(req)
-                    cli_img_group.append(cur)
-                prev = cli_img_pull_group[-1]
+                    cli_img_req_group.append(cur)
+                prev = cli_img_req_group[-1]
 #             else:
 #                 print 'PUT: '+'uri'
 #                 if 'blobs' in uri:
