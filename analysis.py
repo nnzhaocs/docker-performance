@@ -656,7 +656,7 @@ def clusterUserreqs(total_trace):
     with open(total_trace, 'r') as f:
         blob = json.load(f)
     for r in blob:
-        timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
         request = {
             'delay': timestamp,
             'duration': r['http.request.duration'],
