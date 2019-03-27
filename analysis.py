@@ -16,6 +16,8 @@ from multiprocessing import Process, Queue
 import importlib
 import hash_ring
 from collections import defaultdict
+from audioop import avg
+import statistics
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
@@ -728,7 +730,40 @@ def clusterClientReqs(total_trace):
 #     img_req_group = clusterClientReqs(requests, out_trace, replay_limits)
 #     for img_req in img_req_group:
 #                               
-# def durationmanifestblobs():
+def durationmanifestblobs():
+    with open('sorted_reqs.lst', r) as fp:
+        blob = json.load(fp)
+        
+    intervals_GET_MLs = []
+    lst = []
+    for r in blob:
+        rintervals_GET_ML = []
+        delay_GET_Ls=[]
+        
+        if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
+            continue
+        if len(r) < 2:
+            continue
+        
+        delay_GET_M = datetime.datetime.strptime(r[0]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ')  
+         
+        for i in len(r)-2:
+            delay_GET_Ls.append(datetime.datetime.strptime(r[i+1]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ'))
+            
+        for j in delay_GET_Ls:
+            delta = j - delay_GET_M
+            delta = delta.total_seconds()
+            rintervals_GET_ML.append(delta)
+    
+        intervals_GET_MLs.append(rintervals_GET_ML)
+        lst.extend(rintervals_GET_ML)
+    print "avg interval between a get manifest and a get layer:" + str(sum(lst) / len(lst)) 
+    print "midian is:  "+ str(statistics.median(lst))  
+    
+    with open('intervals_client_GET_MLs.lst', 'w') as fp:
+        json.dump(intervals_GET_MLs, fp)
+    with open('intervals_GET_MLs.lst', 'w') as fp:
+        json.dump(lst, fp)  
 
 
 def main():
@@ -836,6 +871,8 @@ def main():
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
         clusterClientReqs(os.path.join(input_dir, 'total_trace.json'))
+    elif args.command == 'calintervalgetML':
+        durationmanifestblobs()
         return
 #     else:
 #         return
