@@ -656,9 +656,9 @@ def clusterUserreqs(total_trace):
     with open(total_trace, 'r') as f:
         blob = json.load(f)
     for r in blob:
-        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        #timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
         request = {
-            'delay': timestamp,
+            'delay': r['timestamp'],
             'duration': r['http.request.duration'],
             'uri': r['http.request.uri'],
             'clientAddr': r['http.request.remoteaddr'],
@@ -678,8 +678,8 @@ def clusterClientReqs(total_trace):
      
     img_req_group = []
     for cli, reqs in organized.items():
-        cli_img_req_group = []
-        prev = []
+        cli_img_req_group = [[]]
+        prev = cli_img_req_group[-1]
         cur = []
 #         prev_push = []
 #         cur_push = []
@@ -688,6 +688,7 @@ def clusterClientReqs(total_trace):
             layer_or_manifest_id = uri.rsplit('/', 1)[1]
             parts = uri.split('/')
             repo = parts[1] + '/' + parts[2]
+	    #prev = cli_img_req_group[-1]
             if req['method'] == 'GET':
                 print 'GET: '+'uri'
                 if 'blobs' in uri:
@@ -698,7 +699,7 @@ def clusterClientReqs(total_trace):
                     cur = []
                     cur.append(req)
                     cli_img_req_group.append(cur)
-                prev = cli_img_req_group[-1]
+                    prev = cli_img_req_group[-1]
 #             else:
 #                 print 'PUT: '+'uri'
 #                 if 'blobs' in uri:
@@ -712,8 +713,10 @@ def clusterClientReqs(total_trace):
 #                 prev_push = cli_img_push_group[-1]
                  
 #         cli_img_req_group = cli_img_pull_group + cli_img_push_group
-        cli_img_req_group.sort(key= lambda x: x[0]['delay'])
-        img_req_group += cli_img_req_group
+	cli_img_req_group_new = [x for x in cli_img_req_group if x]
+	print cli_img_req_group_new
+        #cli_img_req_group.sort(key= lambda x: x[0]['delay'])
+        img_req_group += cli_img_req_group_new
     img_req_group.sort(key= lambda x: x[0]['delay'])
 #     return img_req_group
     with open('sorted_reqs.lst', 'w') as fp:
@@ -832,7 +835,7 @@ def main():
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
-        clusterClientReqs(os.path.join(input_dir, 'total_trace_2_percent.json'))
+        clusterClientReqs(os.path.join(input_dir, 'total_trace.json'))
         return
 #     else:
 #         return
