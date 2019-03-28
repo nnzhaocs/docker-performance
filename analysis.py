@@ -731,7 +731,7 @@ def clusterClientReqs(total_trace):
 #     for img_req in img_req_group:
 #                               
 def durationmanifestblobs():
-    with open('sorted_reqs.lst', r) as fp:
+    with open('sorted_reqs.lst', 'r') as fp:
         blob = json.load(fp)
         
     intervals_GET_MLs = []
@@ -747,17 +747,17 @@ def durationmanifestblobs():
         
         delay_GET_M = datetime.datetime.strptime(r[0]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ')  
          
-        for i in len(r)-2:
-            delay_GET_Ls.append(datetime.datetime.strptime(r[i+1]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ'))
+        for i in range(1,len(r)):
+            delay_GET_Ls.append(datetime.datetime.strptime(r[i]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ'))
             
         for j in delay_GET_Ls:
             delta = j - delay_GET_M
             delta = delta.total_seconds()
             rintervals_GET_ML.append(delta)
-    
+    	print rintervals_GET_ML
         intervals_GET_MLs.append(rintervals_GET_ML)
         lst.extend(rintervals_GET_ML)
-    print "avg interval between a get manifest and a get layer:" + str(sum(lst) / len(lst)) 
+    print "avg interval between a get manifest and a get layer:" + str(sum(lst)*1.0 / len(lst)) 
     print "midian is:  "+ str(statistics.median(lst))  
     
     with open('intervals_client_GET_MLs.lst', 'w') as fp:
