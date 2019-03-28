@@ -18,241 +18,10 @@ import hash_ring
 from collections import defaultdict
 from audioop import avg
 import statistics
+import numpy
+from __builtin__ import str
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
-
-## get requests
-def send_request_get(client, payload):
-    ## Read from the queue
-    s = requests.session()
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    s.post("http://" + str(client) + "/up", data=json.dumps(payload), headers=headers, timeout=100)
-
-def send_warmup_thread(requests, q, registry, generate_random):
-    trace = {}
-    dxf = DXF(registry, 'test_repo', insecure=True)
-#     f = open(str(os.getpid()), 'wb')
-#     f.write('\0')
-#     f.close()
-    for request in requests:
-        if request['size'] < 0:
-            trace[request['uri']] = 'bad'
-#         elif not (request['uri'] in trace):
-#             with open(str(os.getpid()), 'wb') as f:
-#                 if generate_random is True:
-#                     f.seek(request['size'] - 9)
-#                     f.write(str(random.getrandbits(64)))
-#                     f.write('\0')
-#                 else:
-#                     f.seek(request['size'] - 1)
-#                     f.write('\0')
-
-        try:
-            dgst = dxf.push_blob(request['data'])
-        except:
-            dgst = 'bad'
-        print request['uri'], dgst
-        trace[request['uri']] = dgst
-#     os.remove(str(os.getpid()))
-    q.put(trace)
-
-def warmup(data, out_trace, registry, threads, generate_random):
-    trace = {}
-    processes = []
-    q = Queue()
-    process_data = []
-    for i in range(threads):
-        process_data.append([])
-    i = 0
-    for request in data:
-        if request['method'] == 'GET':
-            process_data[i % threads].append(request)
-            i += 1
-    for i in range(threads):
-        p = Process(target=send_warmup_thread, args=(process_data[i], q, registry, generate_random))
-        processes.append(p)
-
-    for p in processes:
-        p.start()
-
-    for i in range(threads):
-        d = q.get()
-        for thing in d:
-            if thing in trace:
-                if trace[thing] == 'bad' and d[thing] != 'bad':
-                    trace[thing] = d[thing]
-            else:
-                trace[thing] = d[thing]
-
-    for p in processes:
-        p.join()
-
-    with open(out_trace, 'w') as f:
-        json.dump(trace, f)
- 
-def stats(responses):
-    responses.sort(key = lambda x: x['time'])
-
-    endtime = 0
-    data = 0
-    latency = 0
-    total = len(responses)
-    onTimes = 0
-    failed = 0
-    wrongdigest = 0
-    startTime = responses[0]['time']
-    for r in responses:
-#         if r['onTime'] == 'failed':
-        if "failed" in r['onTime']:
-            total -= 1
-            failed += 1
-            continue
-        if r['time'] + r['duration'] > endtime:
-            endtime = r['time'] + r['duration']
-        latency += r['duration']
-        data += r['size']
-        if r['onTime'] == 'yes':
-            onTimes += 1
-        if r['onTime'] == 'yes: wrong digest':
-            wrongdigest += 1
-            
-    duration = endtime - startTime
-    print 'Statistics'
-    print 'Successful Requests: ' + str(total)
-    print 'Failed Requests: ' + str(failed)
-    print 'Wrong digest requests: '+str(wrongdigest)
-    print 'Duration: ' + str(duration)
-    print 'Data Transfered: ' + str(data) + ' bytes'
-    print 'Average Latency: ' + str(latency / total)
-    print '% requests on time: ' + str(1.*onTimes / total)
-    print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
-
-           
-def serve(port, ids, q, out_file):
-    server_address = ("0.0.0.0", port)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind(server_address)
-        sock.listen(len(ids))
-    except:
-        print "Port already in use: " + str(port)
-        q.put('fail')
-        quit()
-    q.put('success')
- 
-    i = 0
-    response = []
-    print "server waiting"
-    while i < len(ids):
-        connection, client_address = sock.accept()
-        resp = ''
-        while True:
-            r = connection.recv(1024)
-            if not r:
-                break
-            resp += r
-        connection.close()
-        try:
-            info = json.loads(resp)
-            if info[0]['id'] in ids:
-                info = info[1:]
-                response.extend(info)
-                i += 1
-        except:
-            print 'exception occured in server'
-            pass
-
-    with open(out_file, 'w') as f:
-        json.dump(response, f)
-    print 'results written to ' + out_file
-    stats(response)
-
-  
-## Get blobs
-def get_blobs(data, clients_list, port, out_file):
-    processess = []
-
-    ids = []
-    for d in data:
-        ids.append(d[0]['id'])
-
-    serveq = Queue()
-    server = Process(target=serve, args=(port, ids, serveq, out_file))
-    server.start()
-    status = serveq.get()
-    if status == 'fail':
-        quit()
-    ## Lets start processes
-    i = 0
-    for client in clients_list:
-        p1 = Process(target = send_request_get, args=(client, data[i], ))
-        processess.append(p1)
-        i += 1
-        print "starting client ..."
-    for p in processess:
-        p.start()
-    for p in processess:
-        p.join()
-
-    server.join()
-
-######
-# NANNAN: trace_file+'-realblob.json'
-######
-# def get_requests(files, t, limit):
-#     ret = []
-#     for filename in files:
-#         with open(filename+'-realblob.json', 'r') as f:
-#             requests = json.load(f)
-#     
-#         for request in requests:
-#             method = request['http.request.method']
-#             uri = request['http.request.uri']
-#             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
-#                 size = request['http.response.written']
-#                 if size > 0:
-#                     timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-#                     duration = request['http.request.duration']
-#                     client = request['http.request.remoteaddr']
-#                     blob = request['data']
-#                     r = {
-#                         'delay': timestamp, 
-#                         'uri': uri, 
-#                         'size': size, 
-#                         'method': method, 
-#                         'duration': duration,
-#                         'client': client,
-#                         'data': blob
-#                     }
-#                     ret.append(r)
-#     ret.sort(key= lambda x: x['delay'])
-#     begin = ret[0]['delay']
-# 
-#     for r in ret:
-#         r['delay'] = (r['delay'] - begin).total_seconds()
-#    
-#     if t == 'seconds':
-#         begin = ret[0]['delay']
-#         i = 0
-#         for r in ret:
-#             if r['delay'] > limit:
-#                 break
-#             i += 1
-#         print i 
-#         return ret[:i]
-#     elif t == 'requests':
-#         return ret[:limit]
-#     else:
-#         return ret
-
-
-def absoluteFilePaths(directory):
-    absFNames = []
-    for dirpath,_,filenames in os.walk(directory):
-        for f in filenames:
-            absFNames.append(os.path.abspath(os.path.join(dirpath, f)))
-            
-    return absFNames
 
 ####
 # Random match
@@ -725,10 +494,7 @@ def clusterClientReqs(total_trace):
         json.dump(img_req_group, fp)    
 #     return organized
  
- 
-# def distributeReqsClients(requests, out_trace, numclients, client_threads, port, wait, registries, round_robin, push_rand, replay_limits):
-#     img_req_group = clusterClientReqs(requests, out_trace, replay_limits)
-#     for img_req in img_req_group:
+
 #                               
 def durationmanifestblobs():
     with open('sorted_reqs.lst', 'r') as fp:
@@ -766,6 +532,66 @@ def durationmanifestblobs():
         json.dump(lst, fp)  
 
 
+def numpy_fillna(data):
+    # Get lengths of each row of data
+    lens = np.array([len(i) for i in data])
+
+    # Mask of valid places in each row
+    mask = np.arange(lens.max()) < lens[:,None]
+
+    # Setup output array and put elements from data into masked positions
+    out = np.zeros(mask.shape, dtype=data.dtype)
+    out[mask] = np.concatenate(data)
+    return out
+
+
+def calbatchstats():
+    with open('intervals_GET_MLs.lst', 'r') as fp: 
+        data = json.load(fp)
+    
+    all_intervals = numpy.array(data)
+    print "all intervals:====>"
+    print "50 percentile: "+str(numpy.percentile(all_intervals, 50))
+    print "75 percentile: "+str(numpy.percentile(all_intervals, 75))
+    print "99 percentile: "+str(numpy.percentile(all_intervals, 99))
+    print "max: "+str(numpy.amax(all_intervals))
+    print "min: "+str(numpy.amin(all_intervals))
+    
+    with open('intervals_client_GET_MLs.lst', 'r') as fp:
+        data = json.load(fp)
+    
+    client_img_pull_intervals = numpy.array(data, dtype=object)
+    out = numpy_fillna(data)
+    len = out.shape[1]
+    num_arrays = 0
+    if len % 3 == 0:
+        num_arrays = len/3
+    else:
+        num_arrays = len/3 + 1
+    array_lst = out.array_split(out, num_arrays)
+    i = 1
+    outputstat = []
+    for ar in array_lst:
+#         lst = ar.tolist()
+#         ar_lst = numpy.array(lst)
+        ar_lst_nozeros = numpy.ma.masked_equal(ar_lst).compressed()
+#         tmp = []
+        print "batch intervals:====> "+str(i)+" batch"
+        print "avg: "+ str(numpy.average(ar_lst_nozeros))
+        print "50 percentile: "+str(numpy.percentile(ar_lst_nozeros, 50))
+        print "75 percentile: "+str(numpy.percentile(ar_lst_nozeros, 75))
+        print "99 percentile: "+str(numpy.percentile(ar_lst_nozeros, 99))
+        print "max: "+str(numpy.amax(ar_lst_nozeros))
+        print "min: "+str(numpy.amin(ar_lst_nozeros))
+        outputstat.append([numpy.average(ar_lst_nozeros), numpy.percentile(ar_lst_nozeros, 50), numpy.percentile(ar_lst_nozeros, 75), numpy.percentile(ar_lst_nozeros, 99), numpy.amax(ar_lst_nozeros), numpy.amin(ar_lst_nozeros)])
+        i += 1
+    with open('batch_intervalstat_avg_50_75_99_max_min.lst', 'w') as fp:
+        json.dump(outputstat, fp)  
+        
+#     for i in range(0, len, 3):
+#         batch = out[:,1:len:3]
+
+
 def main():
 
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
@@ -777,76 +603,7 @@ def main():
     trace_dir = input_dir+args.input
     
     print "input dir: "+trace_dir
-
-#     try:
-#         inputs = yaml.load(config)
-#     except Exception as inst:
-#         print 'error reading config file'
-#         print inst
-#         exit(-1)
-# 
-#     verbose = False
-# 
-#     if 'verbose' in inputs:
-#         if inputs['verbose'] is True:
-#             verbose = True
-#             print 'Verbose Mode'
-# 
-#     if 'trace' not in inputs:
-#         print 'trace field required in config file'
-#         exit(1)
-# 
-#     trace_files = []
-# 
-#     if 'location' in inputs['trace']:
-#         location = inputs['trace']['location']
-#         if '/' != location[-1]:
-#             location += '/'
-#         for fname in inputs['trace']['traces']:
-#             trace_files.append(location + fname)
-#     else:
-#         trace_files.extend(inputs['trace']['traces'])
-# 
-#     if verbose:
-#         print 'Input traces'
-#         for f in trace_files:
-#             print f
-# 
-#     limit_type = None
-#     limit = 0
-# 
-#     if 'limit' in inputs['trace']:
-#         limit_type = inputs['trace']['limit']['type']
-#         if limit_type in ['seconds', 'requests']:
-#             limit = inputs['trace']['limit']['amount']
-#         else:
-#             print 'Invalid trace limit_type: limit_type must be either seconds or requests'
-#             print exit(1)
-#     elif verbose:
-#         print 'limit_type not specified, entirety of trace files will be used will be used.'
-# 
-#     if 'output' in inputs['trace']:
-#         out_file = inputs['trace']['output']
-#     else:
-#         out_file = 'output.json'
-#         if verbose:
-#             print 'Output trace not specified, ./output.json will be used'
-# 
-#     generate_random = False
-#     if args.command != 'simulate':
-#         if "warmup" not in inputs or 'output' not in inputs['warmup']:
-#             print 'warmup not specified in config, warmup output required. Exiting'
-#             exit(1)
-#         else:
-#             interm = inputs['warmup']['output']
-#             if 'random' in inputs['warmup']:
-#                 if inputs['warmup']['random'] is True:
-#                     generate_random = True
-# 
-#     registries = []
-#     if 'registry' in inputs:
-#         registries.extend(inputs['registry'])
-     
+    
     #NANNAN
     if args.command == 'get':    
 #         if 'realblobs' in inputs['client_info']:
@@ -873,100 +630,10 @@ def main():
         clusterClientReqs(os.path.join(input_dir, 'total_trace.json'))
     elif args.command == 'calintervalgetML':
         durationmanifestblobs()
+    elif args.command == 'calbatchstats':
+        calbatchstats()
         return
-#     else:
-#         return
-
-#     json_data = get_requests(trace_files, limit_type, limit)
-# 
-#     if args.command == 'warmup':
-#         if verbose: 
-#             print 'warmup mode'
-#         if 'threads' in inputs['warmup']:
-#             threads = inputs['warmup']['threads']
-#         else:
-#             threads = 1
-#         if verbose:
-#             print 'warmup threads: ' + str(threads)
-#         warmup(json_data, interm, registries[0], threads, generate_random)
-# 
-#     elif args.command == 'run':
-#         if verbose:
-#             print 'run mode'
-# 
-#         if 'client_info' not in inputs or inputs['client_info'] is None:
-#             print 'client_info required for run mode in config file'
-#             print 'exiting'
-#             exit(1)
-# 
-#         if 'port' not in inputs['client_info']:
-#             if verbose:
-#                 print 'master server port not specified, assuming 8080'
-#                 port = 8080
-#         else:
-#             port = inputs['client_info']['port']
-#             if verbose:
-#                 print 'master port: ' + str(port)
-# 
-#         if 'threads' not in inputs['client_info']:
-#             if verbose:
-#                 print 'client threads not specified, 1 thread will be used'
-#             client_threads = 1
-#         else:
-#             client_threads = inputs['client_info']['threads']
-#             if verbose:
-#                 print str(client_threads) + ' client threads'
-# 
-#         if 'client_list' not in inputs['client_info']:
-#             print 'client_list entries are required in config file'
-#             exit(1)
-#         else:
-#             client_list = inputs['client_info']['client_list']
-# 
-#         if 'wait' not in inputs['client_info']:
-#             if verbose:
-#                 print 'Wait not specified, clients will not wait'
-#             wait = False
-#         elif inputs['client_info']['wait'] is True:
-#             wait = True
-#         else:
-#             wait = False
-# 
-#         round_robin = True
-#         if 'route' in inputs['client_info']:
-#             if inputs['client_info']['route'] is True:
-#                 round_robin = False
-# 
-#         data = organize(json_data, interm, len(client_list), client_threads, port, wait, registries, round_robin, generate_random)
-#         ## Perform GET
-#         get_blobs(data, client_list, port, out_file)
-# 
-        
-    elif args.command == 'simulate':
-#         if verbose:
-#             print 'simulate mode'
-#         if 'simulate' not in inputs:
-#             print 'simulate file required in config'
-#             exit(1)
-#         pi = inputs['simulate']['name']
-#         if '.py' in pi:
-#             pi = pi[:-3]
-        with open(os.path.join(input_dir, 'total_trace.json'), 'r') as fp:
-            json_data = json.load(fp)
-        
-        pi = 'prefetch_old' #'cache_usr_repo_layer'
-        try:
-            plugin = importlib.import_module(pi)
-        except Exception as inst:
-            print 'Plugin did not work!'
-            print inst
-            exit(1)
-        try:
-            plugin.init(json_data)
-        except Exception as inst:
-            print 'Error running plugin init!'
-            print inst
-            print traceback.print_exc()
+    
 
 if __name__ == "__main__":
     main()
