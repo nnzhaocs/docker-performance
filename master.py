@@ -297,6 +297,7 @@ def absoluteFilePaths(directory):
 ####
 
 def match(realblob_locations, trace_files):
+    pdb.set_trace()
     print realblob_locations, trace_files
 
     blob_locations = []

@@ -7,19 +7,19 @@ client_info: # Required for run command
         # - client instance and port
     master_port: 9095 # the client's/master's port when using this config file with the client/master
     client_port: 9096
-    threads: 5000 # number of threads per client node, each thread is a process that sends requests
+    threads: 1000 # number of threads per client node, each thread is a process that sends requests
     wait: true # Determines if clients should wait the relative amount of time in trace before sending request
     route: true # Tells the master to forward based on hashing on client urls rather than round robin
     realblobs: # NANNAN: add real blobs
         #location_list:
         #- /home/nannan/dockerimages/layers/layers_less_50m/hulk1_layers_less_50m
-        - /home/nannan/dockerimages/layers/layers_less_50m
+        - /home/nannan/dockerimages/layers/hulk1_layers_less_1g
 
 verbose: true # optional input
 
 trace: # mandatory field
     #location: /home/nannan/dockerimages/docker-traces/data_centers/  #/home/michaellittley/data_centers/dal09 # current directory assumed if field not present
-    location: /home/nannan/dockerimages/layers/dal09/ # use a small trace for debugging
+    location: /home/nannan/dockerimages/layers/dal09_1g/ # use a small trace for debugging
     traces:
         # - total_trace_dal09.json
         - prod-dal09-logstash-2017.06.20-1.json
@@ -178,7 +178,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 5000
+        amount: 1000
 
     output: results.json # only used in run mode, produced output trace with latencies
 
@@ -186,12 +186,12 @@ registry-helpers:
     port: 8082
     
 redis:
-    host: 192.168.0.213 #thor13
-    port: 6379
+    host: 192.168.0.220 #thor13
+    port: 6379 
     
 registry:
   # thor13,14,15,16,17
-    - 192.168.0.200:5000 # at least one registry required for run and warmup mode
+    - 192.168.0.211:5000 # at least one registry required for run and warmup mode
     - 192.168.0.202:5000 # at least one registry required for run and warmup mode
     - 192.168.0.203:5000 # at least one registry required for run and warmup mode
     - 192.168.0.204:5000 # at least one registry required for run and warmup mode
