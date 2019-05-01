@@ -610,7 +610,7 @@ def repullLayers(total_trace):
         clientAddr = r['http.request.remoteaddr']
         method = r['http.request.method']
         
-        if ('blob' in uri) and (method == 'GET'):
+        if ('blobs' in uri) and ('GET' == method):
             layer_id = uri.rsplit('/', 1)[1]
                     
             print "layer_id: "+layer_id
