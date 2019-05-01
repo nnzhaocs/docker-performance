@@ -551,6 +551,7 @@ def calbatchstats():
     
     all_intervals = numpy.array(data)
     print "all intervals:====>"
+    print "mean: "+ str(numpy.mean(all_intervals))
     print "50 percentile: "+str(numpy.percentile(all_intervals, 50))
     print "75 percentile: "+str(numpy.percentile(all_intervals, 75))
     print "99 percentile: "+str(numpy.percentile(all_intervals, 99))
@@ -561,31 +562,33 @@ def calbatchstats():
         data = json.load(fp)
     
     client_img_pull_intervals = numpy.array(data, dtype=object)
-    out = numpy_fillna(data)
+    out = numpy_fillna(client_img_pull_intervals)
     len = out.shape[1]
     num_arrays = 0
     if len % 3 == 0:
         num_arrays = len/3
     else:
         num_arrays = len/3 + 1
-    array_lst = out.array_split(out, num_arrays)
+    array_lst = numpy.array_split(out, num_arrays, 1)
+    print num_arrays
+    print array_lst
     i = 1
     outputstat = []
     for ar in array_lst:
 #         lst = ar.tolist()
 #         ar_lst = numpy.array(lst)
-        ar_lst_nozeros = numpy.ma.masked_equal(ar_lst).compressed()
+        ar_lst_nozeros = numpy.ma.masked_equal(ar, 0).compressed()
 #         tmp = []
         print "batch intervals:====> "+str(i)+" batch"
-        print "avg: "+ str(numpy.average(ar_lst_nozeros))
+        print "mean: "+ str(numpy.mean(ar_lst_nozeros))
         print "50 percentile: "+str(numpy.percentile(ar_lst_nozeros, 50))
         print "75 percentile: "+str(numpy.percentile(ar_lst_nozeros, 75))
         print "99 percentile: "+str(numpy.percentile(ar_lst_nozeros, 99))
         print "max: "+str(numpy.amax(ar_lst_nozeros))
         print "min: "+str(numpy.amin(ar_lst_nozeros))
-        outputstat.append([numpy.average(ar_lst_nozeros), numpy.percentile(ar_lst_nozeros, 50), numpy.percentile(ar_lst_nozeros, 75), numpy.percentile(ar_lst_nozeros, 99), numpy.amax(ar_lst_nozeros), numpy.amin(ar_lst_nozeros)])
+        outputstat.append([numpy.mean(ar_lst_nozeros), numpy.percentile(ar_lst_nozeros, 50), numpy.percentile(ar_lst_nozeros, 75), numpy.percentile(ar_lst_nozeros, 99), numpy.amax(ar_lst_nozeros), numpy.amin(ar_lst_nozeros)])
         i += 1
-    with open('batch_intervalstat_avg_50_75_99_max_min.lst', 'w') as fp:
+    with open('batch_intervalstat_mean_50_75_99_max_min.lst', 'w') as fp:
         json.dump(outputstat, fp)  
         
 #     for i in range(0, len, 3):
