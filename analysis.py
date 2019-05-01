@@ -592,6 +592,8 @@ def calbatchstats():
 #     for i in range(0, len, 3):
 #         batch = out[:,1:len:3]
 
+####
+
 def repullLayers(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
@@ -602,7 +604,7 @@ def repullLayers(total_trace):
         uri = r['http.request.uri']
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
-        repo_name = usrname+'/'+repo_name
+#         repo_name = usrname+'/'+repo_name
         
         clientAddr = r['http.request.remoteaddr']
         method = r['http.request.method']
@@ -619,8 +621,9 @@ def repullLayers(total_trace):
                 for tup in lst:
                     if tup[0] == layer_id:
                         find = True
-                        newtup = (layer_id, tup[1]+1)
-                        clientTOlayerMap[clientAddr].append(newtup)
+                        tup[1] += 1
+#                         newtup = (layer_id, tup[1]+1)
+#                         clientTOlayerMap[clientAddr].append(newtup)
                         print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
                         break
                     
