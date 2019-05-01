@@ -20,6 +20,7 @@ from audioop import avg
 import statistics
 import numpy
 from __builtin__ import str
+from Carbon.Aliases import false
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
@@ -594,6 +595,63 @@ def calbatchstats():
 #     for i in range(0, len, 3):
 #         batch = out[:,1:len:3]
 
+def repullLayers(total_trace):
+    with open(total_trace, 'r') as fp:
+        blob = json.load(fp)
+    
+    clientTOlayerMap = defaultdict(list)
+        
+    for r in blob:
+        uri = r['http.request.uri']
+        usrname = uri.split('/')[1]
+        repo_name = uri.split('/')[2]
+        repo_name = usrname+'/'+repo_name
+        
+        clientAddr = r['http.request.remoteaddr']
+        method = r['http.request.method']
+        
+        if ('blob' in uri) and (method == 'GET'):
+            layer_id = uri.rsplit('/', 1)[1]
+                    
+            print "layer_id: "+layer_id
+#             print "repo_name: "+repo_name
+             
+            find = False    
+            try:
+                lst = clientTOlayerMap[clientAddr]
+                for tup in lst:
+                    if tup[0] == layer_id:
+                        find = True
+                        newtup = (layer_id, tup[1]+1)
+                        clientTOlayerMap[clientAddr].append(newtup)
+                        print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
+                        break
+                    
+                if not find:
+                    print "usrname has not this layer before"
+                    clientTOlayerMap[clientAddr].append((layer_id, 0))   
+                    print  clientAddr + ', ' + layer_id + ', ' + str(0)              
+            except Exception as e:
+                print "usrname has not this layer before"
+                clientTOlayerMap[clientAddr].append((layer_id, 0))
+                print  clientAddr + ', ' + layer_id + ', ' + str(0)
+
+    repulledlayer_cnt = 0
+    totallayer_cnt = 0
+ 
+    for cli in clientTOlayerMap.keys():
+        for tup in cli:
+            totallayer_cnt += 1
+            if tup[1]:
+                repulledlayer_cnt += 1
+                
+
+    print "totallayer_cnt:    " + str(totallayer_cnt) 
+    print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
+    print "ratio:  " + str(1.0*totallayer_cnt/repulledlayer_cnt)
+
+    with open('client_to_layer_map.json', 'w') as fp:
+        json.dump(clientTOlayerMap, fp) 
 
 def main():
 
@@ -635,6 +693,8 @@ def main():
         durationmanifestblobs()
     elif args.command == 'calbatchstats':
         calbatchstats()
+    elif args.command == 'repullLayers':
+        repullLayers(os.path.join(input_dir, 'total_trace.json'))
         return
     
 
