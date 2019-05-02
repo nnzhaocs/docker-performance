@@ -726,18 +726,18 @@ def repullLayers(total_trace):
             print "layer_id: "+layer_id
                
             try:
-                lst = clientTOlayerMap_0[clientAddr]
+                lst_0 = clientTOlayerMap_0[clientAddr]
                 if layer_id in lst:
                     print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
                     try:
-                        lst = clientTOlayerMap_1[clientAddr]
+                        lst_1 = clientTOlayerMap_1[clientAddr]
                         if layer_id not in lst:
                             clientTOlayerMap_1[clientAddr].append(layer_id) 
                     except Exception as e:
                         clientTOlayerMap_1[clientAddr].append(layer_id)  
                         
-                if layer_id not in lst:
-                    print clientAddr + ', ' + layer_id + ', ' + str(0)
+                if layer_id not in lst_0:
+#                     print clientAddr + ', ' + layer_id + ', ' + str(0)
                     clientTOlayerMap_0[clientAddr].append(layer_id)           
             except Exception as e:
                 clientTOlayerMap_0[clientAddr].append(layer_id)
