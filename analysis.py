@@ -707,11 +707,12 @@ def orderedRepoLayerMap(total_trace):
 def repullLayers(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
-    
+        
+    print "finished loading"
     clientTOlayerMap_0 = defaultdict(list)
     clientTOlayerMap_1 = defaultdict(list)
     
-    client_ls = []
+    client_ls = {}
     
     repulledlayer_cnt = 0
     totallayer_cnt = 0
@@ -724,11 +725,13 @@ def repullLayers(total_trace):
         if ('blobs' in uri) and ('GET' == method):
 #             layer_id = uri.rsplit('/', 1)[1]
 #             print "layer_id: "+layer_id
-            if clientAddr not in client_ls:
-                client_ls.append(clientAddr)
+            try:
+                x = client_ls[clientAddr]
+            except Exception:
+                client_ls[clientAddr] = 1
                 
-    print "number of clients: " + str(len(client_ls)) 
-    chunks = [client_ls[x:x+1000] for x in range(0, len(client_ls), 1000)]        
+    print "number of clients: " + str(len(client_ls.keys())) 
+    chunks = [client_ls.keys()[x:x+1000] for x in range(0, len(client_ls.keys()), 1000)]        
     
     for ck in chunks: 
         
