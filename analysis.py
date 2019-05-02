@@ -727,7 +727,7 @@ def repullLayers(total_trace):
                 if layer_id not in lst:
                     print clientAddr + ', ' + layer_id + ', ' + str(0)
                     clientTOlayerMap_0[clientAddr].append(layer_id)
-                else:
+                if layer_id in lst:
                     print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
                     try:
                         lst = clientTOlayerMap_1[clientAddr]
@@ -757,6 +757,7 @@ def repullLayers(total_trace):
 
 #     with open('client_to_layer_map.json', 'w') as fp:
 #         json.dump(clientTOlayerMap, fp) 
+
 
 def main():
 
