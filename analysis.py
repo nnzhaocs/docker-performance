@@ -588,23 +588,131 @@ def calbatchstats():
         i += 1
     with open('batch_intervalstat_avg_50_75_99_max_min.lst', 'w') as fp:
         json.dump(outputstat, fp)  
+
+
+def RepoLayerMap(total_trace):
+    with open(total_trace, 'r') as fp:
+        blob = json.load(fp)
+    
+    repoTOlayerMap = defaultdict(list)
+    method = r['http.request.method']
+    
+    for r in blob:
+        uri = r['http.request.uri']
+        usrname = uri.split('/')[1]
+        repo_name = uri.split('/')[2] 
+        repo_name = usrname+'/'+repo_name
         
+        if ('blobs' in uri) and ('GET' == method):
+            layer_id = uri.rsplit('/', 1)[1]
+                    
+            print "layer_id: "+layer_id
+            print "repo_name: "+repo_name
+             
+            find = False    
+            try:
+                lst = repoTOlayerMap[repo_name]
+                if layer_id not in lst:                    
+#                 for tup in lst:
+#                     if tup[0] == layer_id:
+#                         find = True
+#                         tup[1] += 1
+# #                         newtup = (layer_id, tup[1]+1)
+# #                         clientTOlayerMap[clientAddr].append(newtup)
+#                         print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
+#                         break
+#                     
+#                 if not find:
+                    print "repo_name has not this layer before"
+                    repoTOlayerMap[repo_name].append(layer_id)   
+                    print  repo_name + ', ' + layer_id              
+            except Exception as e:
+                print "repo_name has not this layer before"
+                repoTOlayerMap[repo_name].append(layer_id)
+                print  repo_name + ', ' + layer_id
+                
+    with open('repoTOlayerMap.json', 'w') as fp:
+        json.dump(repoTOlayerMap, fp) 
+                
 #     for i in range(0, len, 3):
 #         batch = out[:,1:len:3]
-
 ####
 
+
+def mergeOrderedArr(first, second):
+    in_first = set(first)
+    in_second = set(second)
+    
+    print in_first
+    print in_second
+    
+    in_second_but_not_in_first = in_second - in_first
+    
+    result = first_list + list(in_second_but_not_in_first)
+    print result
+    return result
+    
+
+def orderedRepoLayerMap(total_trace):
+    with open(total_trace, 'r') as fp:
+        blob = json.load(fp)
+        
+    with open('repoTOlayerMap.json', 'r') as fp:
+        repoTOlayerMap = json.load(fp)
+        
+    
+    repoTOlayerMap = defaultdict(list)
+    method = r['http.request.method']
+    
+    for r in blob:
+        uri = r['http.request.uri']
+        usrname = uri.split('/')[1]
+        repo_name = uri.split('/')[2] 
+        repo_name = usrname+'/'+repo_name
+        
+        if ('blobs' in uri) and ('GET' == method):
+            layer_id = uri.rsplit('/', 1)[1]
+                    
+            print "layer_id: "+layer_id
+            print "repo_name: "+repo_name
+             
+            find = False    
+            try:
+                lst = repoTOlayerMap[repo_name]
+                if layer_id not in lst:                    
+#                 for tup in lst:
+#                     if tup[0] == layer_id:
+#                         find = True
+#                         tup[1] += 1
+# #                         newtup = (layer_id, tup[1]+1)
+# #                         clientTOlayerMap[clientAddr].append(newtup)
+#                         print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
+#                         break
+#                     
+#                 if not find:
+                    print "repo_name has not this layer before"
+                    repoTOlayerMap[repo_name].append(layer_id)   
+                    print  repo_name + ', ' + layer_id              
+            except Exception as e:
+                print "repo_name has not this layer before"
+                repoTOlayerMap[repo_name].append(layer_id)
+                print  repo_name + ', ' + layer_id
+                
+    with open('repoTOlayerMap.json', 'w') as fp:
+        json.dump(repoTOlayerMap, fp) 
+
+####
+#killed by memory
+####
 def repullLayers(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
     
-    clientTOlayerMap = defaultdict(list)
+    clientTOlayerMap_0 = defaultdict(list)
+    clientTOlayerMap_1 = defaultdict(list)
         
     for r in blob:
         uri = r['http.request.uri']
-        usrname = uri.split('/')[1]
-        repo_name = uri.split('/')[2]
-#         repo_name = usrname+'/'+repo_name
         
         clientAddr = r['http.request.remoteaddr']
         method = r['http.request.method']
@@ -613,45 +721,42 @@ def repullLayers(total_trace):
             layer_id = uri.rsplit('/', 1)[1]
                     
             print "layer_id: "+layer_id
-#             print "repo_name: "+repo_name
-             
-            find = False    
+               
             try:
-                lst = clientTOlayerMap[clientAddr]
-                for tup in lst:
-                    if tup[0] == layer_id:
-                        find = True
-                        tup[1] += 1
-#                         newtup = (layer_id, tup[1]+1)
-#                         clientTOlayerMap[clientAddr].append(newtup)
-                        print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
-                        break
-                    
-                if not find:
-                    print "usrname has not this layer before"
-                    clientTOlayerMap[clientAddr].append((layer_id, 0))   
-                    print  clientAddr + ', ' + layer_id + ', ' + str(0)              
+                lst = clientTOlayerMap_0[clientAddr]
+                if layer_id not in lst:
+                    print clientAddr + ', ' + layer_id + ', ' + str(0)
+                    clientTOlayerMap_0[clientAddr].append(layer_id)
+                else:
+                    print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
+                    try:
+                        lst = clientTOlayerMap_1[clientAddr]
+                        if layer_id not in lst:
+                            clientTOlayerMap_1[clientAddr].append(layer_id) 
+                    except Exception as e:
+                        clientTOlayerMap_1[clientAddr].append(layer_id)             
             except Exception as e:
-                print "usrname has not this layer before"
-                clientTOlayerMap[clientAddr].append((layer_id, 0))
+                clientTOlayerMap_0[clientAddr].append(layer_id)
                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
 
     repulledlayer_cnt = 0
     totallayer_cnt = 0
- 
-    for cli in clientTOlayerMap.keys():
-        for tup in cli:
+    
+    for cli in clientTOlayerMap_0.keys():
+        for l in clientTOlayerMap_0[cli]:
             totallayer_cnt += 1
-            if tup[1]:
-                repulledlayer_cnt += 1
+ 
+    for cli in clientTOlayerMap_1.keys():
+        for l in clientTOlayerMap_1[cli]:
+            repulledlayer_cnt += 1
                 
 
     print "totallayer_cnt:    " + str(totallayer_cnt) 
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*totallayer_cnt/repulledlayer_cnt)
 
-    with open('client_to_layer_map.json', 'w') as fp:
-        json.dump(clientTOlayerMap, fp) 
+#     with open('client_to_layer_map.json', 'w') as fp:
+#         json.dump(clientTOlayerMap, fp) 
 
 def main():
 
