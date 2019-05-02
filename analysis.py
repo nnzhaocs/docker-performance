@@ -745,32 +745,33 @@ def repullLayers(total_trace):
     totallayer_cnt = 0
           
     for r in blob:
-        uri = r['http.request.uri']
+#         uri = r['http.request.uri']
          
-        clientAddr = r['http.request.remoteaddr']
-        method = r['http.request.method']
+        clientAddr = r['clientAddr']
+        layer_id = r['layer_id']
+#         method = r['http.request.method']
          
-        if ('blobs' in uri) and ('GET' == method):
-            layer_id = uri.rsplit('/', 1)[1]
+#         if ('blobs' in uri) and ('GET' == method):
+#             layer_id = uri.rsplit('/', 1)[1]
                      
-            print "layer_id: "+layer_id
-                
-            try:
-                lst_0 = clientTOlayerMap_0[clientAddr]
-                if layer_id in lst_0:
-                    print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
-                    try:
-                        lst_1 = clientTOlayerMap_1[clientAddr]
-                        if layer_id not in lst_1:
-                            clientTOlayerMap_1[clientAddr].append(layer_id) 
-                    except Exception as e:
-                        clientTOlayerMap_1[clientAddr].append(layer_id)  
-                         
-                if layer_id not in lst_0:
+        print "layer_id: "+layer_id
+            
+        try:
+            lst_0 = clientTOlayerMap_0[clientAddr]
+            if layer_id in lst_0:
+                print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
+                try:
+                    lst_1 = clientTOlayerMap_1[clientAddr]
+                    if layer_id not in lst_1:
+                        clientTOlayerMap_1[clientAddr].append(layer_id) 
+                except Exception as e:
+                    clientTOlayerMap_1[clientAddr].append(layer_id)  
+                     
+            if layer_id not in lst_0:
 #                     print clientAddr + ', ' + layer_id + ', ' + str(0)
-                    clientTOlayerMap_0[clientAddr].append(layer_id)           
-            except Exception as e:
-                clientTOlayerMap_0[clientAddr].append(layer_id)
+                clientTOlayerMap_0[clientAddr].append(layer_id)           
+        except Exception as e:
+            clientTOlayerMap_0[clientAddr].append(layer_id)
 #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
         
     for cli in clientTOlayerMap_0.keys():
