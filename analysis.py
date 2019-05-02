@@ -708,83 +708,103 @@ def repullLayers(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
         
-    print "finished loading"
-    clientTOlayerMap_0 = defaultdict(list)
-    clientTOlayerMap_1 = defaultdict(list)
-    
-    client_ls = {}
-    
-    repulledlayer_cnt = 0
-    totallayer_cnt = 0
-    
+    print "finished loading"  
+      
+    req = []    
     for r in blob:
         uri = r['http.request.uri']
+        
         clientAddr = r['http.request.remoteaddr']
         method = r['http.request.method']
         
         if ('blobs' in uri) and ('GET' == method):
-#             layer_id = uri.rsplit('/', 1)[1]
-#             print "layer_id: "+layer_id
-            try:
-                x = client_ls[clientAddr]
-            except Exception:
-                client_ls[clientAddr] = 1
-                
-    print "number of clients: " + str(len(client_ls.keys())) 
-    chunks = [client_ls.keys()[x:x+1000] for x in range(0, len(client_ls.keys()), 1000)]        
-    
-    for ck in chunks: 
-        
-        clientTOlayerMap_0 = defaultdict(list)
-#         clientTOlayerMap_1 = defaultdict(list)
-        
-        for c in ck:
-            clientTOlayerMap_0[c] = [] 
-        
-        for r in blob:
-            uri = r['http.request.uri']
-            
-            clientAddr = r['http.request.remoteaddr']
-            method = r['http.request.method']
-            
-            if ('blobs' in uri) and ('GET' == method):
-                layer_id = uri.rsplit('/', 1)[1]
-                        
-                print "layer_id: "+layer_id
-                   
-                try:
-                    lst_0 = clientTOlayerMap_0[clientAddr]
-                    if layer_id in lst_0:
-                        print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
-                        try:
-                            lst_1 = clientTOlayerMap_1[clientAddr]
-                            if layer_id not in lst_1:
-                                clientTOlayerMap_1[clientAddr].append(layer_id) 
-                        except Exception as e:
-                            clientTOlayerMap_1[clientAddr].append(layer_id)  
-                            
-                    if layer_id not in lst_0:
-    #                     print clientAddr + ', ' + layer_id + ', ' + str(0)
-                        clientTOlayerMap_0[clientAddr].append(layer_id)           
-                except Exception as e:
-                    pass
-#                     clientTOlayerMap_0[clientAddr].append(layer_id)
-#                     print  clientAddr + ', ' + layer_id + ', ' + str(0)
-    
-
-        
-        for cli in clientTOlayerMap_0.keys():
-            for l in clientTOlayerMap_0[cli]:
-                totallayer_cnt += 1
-     
-    for cli in clientTOlayerMap_1.keys():
-        for l in clientTOlayerMap_1[cli]:
-            repulledlayer_cnt += 1
+            layer_id = uri.rsplit('/', 1)[1]
                     
+            print "layer_id: "+layer_id    
+            u = {
+                "clientAddr" : clientAddr,
+                "layer_id": layer_id,        
+            }
+            req.append(u)
+    with open('client_get_layers_reqs.json', 'w') as fp:
+        json.dump(req, fp)    
     
-    print "totallayer_cnt:    " + str(totallayer_cnt + repulledlayer_cnt) 
-    print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
-    print "ratio:  " + str(1.0*totallayer_cnt/(repulledlayer_cnt + totallayer_cnt))
+#     clientTOlayerMap_0 = defaultdict(list)
+#     clientTOlayerMap_1 = defaultdict(list)
+#     
+#     client_ls = {}
+#     
+#     repulledlayer_cnt = 0
+#     totallayer_cnt = 0
+#     
+#     for r in blob:
+#         uri = r['http.request.uri']
+#         clientAddr = r['http.request.remoteaddr']
+#         method = r['http.request.method']
+#         
+#         if ('blobs' in uri) and ('GET' == method):
+# #             layer_id = uri.rsplit('/', 1)[1]
+# #             print "layer_id: "+layer_id
+#             try:
+#                 x = client_ls[clientAddr]
+#             except Exception:
+#                 client_ls[clientAddr] = 1
+#                 
+#     print "number of clients: " + str(len(client_ls.keys())) 
+#     chunks = [client_ls.keys()[x:x+1000] for x in range(0, len(client_ls.keys()), 1000)]        
+#     
+#     for ck in chunks: 
+#         
+#         clientTOlayerMap_0 = defaultdict(list)
+# #         clientTOlayerMap_1 = defaultdict(list)
+#         
+#         for c in ck:
+#             clientTOlayerMap_0[c] = [] 
+#         
+#         for r in blob:
+#             uri = r['http.request.uri']
+#             
+#             clientAddr = r['http.request.remoteaddr']
+#             method = r['http.request.method']
+#             
+#             if ('blobs' in uri) and ('GET' == method):
+#                 layer_id = uri.rsplit('/', 1)[1]
+#                         
+#                 print "layer_id: "+layer_id
+#                    
+#                 try:
+#                     lst_0 = clientTOlayerMap_0[clientAddr]
+#                     if layer_id in lst_0:
+#                         print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
+#                         try:
+#                             lst_1 = clientTOlayerMap_1[clientAddr]
+#                             if layer_id not in lst_1:
+#                                 clientTOlayerMap_1[clientAddr].append(layer_id) 
+#                         except Exception as e:
+#                             clientTOlayerMap_1[clientAddr].append(layer_id)  
+#                             
+#                     if layer_id not in lst_0:
+#     #                     print clientAddr + ', ' + layer_id + ', ' + str(0)
+#                         clientTOlayerMap_0[clientAddr].append(layer_id)           
+#                 except Exception as e:
+#                     pass
+# #                     clientTOlayerMap_0[clientAddr].append(layer_id)
+# #                     print  clientAddr + ', ' + layer_id + ', ' + str(0)
+#     
+# 
+#         
+#         for cli in clientTOlayerMap_0.keys():
+#             for l in clientTOlayerMap_0[cli]:
+#                 totallayer_cnt += 1
+#      
+#     for cli in clientTOlayerMap_1.keys():
+#         for l in clientTOlayerMap_1[cli]:
+#             repulledlayer_cnt += 1
+#                     
+#     
+#     print "totallayer_cnt:    " + str(totallayer_cnt) 
+#     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
+#     print "ratio:  " + str(1.0*repulledlayer_cnt/(totallayer_cnt))
 
 #     with open('client_to_layer_map.json', 'w') as fp:
 #         json.dump(clientTOlayerMap, fp) 
