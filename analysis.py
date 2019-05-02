@@ -735,49 +735,45 @@ def repullLayers(total_trace):
     with open('client_get_layers_reqs.json', 'r') as fp:
         blob = json.load(fp)    
     
-    clientTOlayerMap_0 = defaultdict(list)
-    clientTOlayerMap_1 = defaultdict(list)
+    clientTOlayerMap = defaultdict(list)
+#     clientTOlayerMap_1 = defaultdict(list)
    
     repulledlayer_cnt = 0
     totallayer_cnt = 0
           
-    for r in blob:
-#         uri = r['http.request.uri']
-         
+    for r in blob:         
         clientAddr = r['clientAddr']
         layer_id = r['layer_id']
-#         method = r['http.request.method']
-         
-#         if ('blobs' in uri) and ('GET' == method):
-#             layer_id = uri.rsplit('/', 1)[1]
                      
         print "layer_id: "+layer_id
             
+        find = False    
         try:
-            lst_0 = clientTOlayerMap_0[clientAddr]
-            if layer_id in lst_0:
-                print clientAddr + ', ' + layer_id + ', ' + str(1)+'+'    
-                try:
-                    lst_1 = clientTOlayerMap_1[clientAddr]
-                    if layer_id not in lst_1:
-                        clientTOlayerMap_1[clientAddr].append(layer_id) 
-                except Exception as e:
-                    clientTOlayerMap_1[clientAddr].append(layer_id)  
-                     
-            if layer_id not in lst_0:
-#                     print clientAddr + ', ' + layer_id + ', ' + str(0)
-                clientTOlayerMap_0[clientAddr].append(layer_id)           
+            lst = clientTOlayerMap[clientAddr]
+            for tup in lst:
+                if tup[0] == layer_id:
+                    find = True
+                    tup[1] += 1
+#                         newtup = (layer_id, tup[1]+1)
+#                         clientTOlayerMap[clientAddr].append(newtup)
+                    print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
+                    break
+                
+            if not find:
+#                 print "usrname has not this layer before"
+                clientTOlayerMap[clientAddr].append((layer_id, 0))   
+                print  clientAddr + ', ' + layer_id + ', ' + str(0)              
         except Exception as e:
-            clientTOlayerMap_0[clientAddr].append(layer_id)
+#             print "usrname has not this layer before"
+            clientTOlayerMap[clientAddr].append((layer_id, 0))
+            print  clientAddr + ', ' + layer_id + ', ' + str(0)
 #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
         
-    for cli in clientTOlayerMap_0.keys():
-        for l in clientTOlayerMap_0[cli]:
+    for cli in clientTOlayerMap.keys():
+        for tup in cli:
             totallayer_cnt += 1
-      
-    for cli in clientTOlayerMap_1.keys():
-        for l in clientTOlayerMap_1[cli]:
-            repulledlayer_cnt += 1
+            if tup[1]:
+                repulledlayer_cnt += 1
                       
     print "totallayer_cnt:    " + str(totallayer_cnt) 
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
