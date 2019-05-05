@@ -745,28 +745,35 @@ def repullLayers(total_trace):
    
     repulledlayer_cnt = 0
     totallayer_cnt = 0
-          
+    debug_cnt = 0      
     for r in blob:         
         clientAddr = r['clientAddr']
         layer_id = r['layer_id']
-                     
+        debug_cnt ++     
+        if debug_cnt > 100
+            break      
         print "layer_id: "+layer_id
             
         find = False    
         try:
             lst = clientTOlayerMap[clientAddr]
+            print "after try: lst =>"
+            print lst
             for tup in lst:
                 if tup[0] == layer_id:
                     find = True
                     tup[1] += 1
 #                         newtup = (layer_id, tup[1]+1)
                     clientTOlayerMap[clientAddr] = lst
+                    print "after try: add repull"
+                    print lst
                     print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
                     break
                 
             if not find:
 #                 print "usrname has not this layer before"
-                
+                print "after try: not find: lst ==>"
+                print lst
                 lst.append((layer_id, 0))  
                 clientTOlayerMap[clientAddr] = lst 
                 print  clientAddr + ', ' + layer_id + ', ' + str(0)              
@@ -775,10 +782,12 @@ def repullLayers(total_trace):
             lst = []
             lst.append((layer_id, 0)) 
             clientTOlayerMap[clientAddr] = lst
+            print "except: ===>"
+            print lst
             print  clientAddr + ', ' + layer_id + ', ' + str(0)
 #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
         
-    for cli, lst in clientTOlayerMap.keys():
+    for cli, lst in clientTOlayerMap.iteritems():
         for tup in lst:
             totallayer_cnt += 1
             if tup[1]:
