@@ -656,14 +656,13 @@ def mergeOrderedArr(first, second):
     return result
     
 
-def orderedRepoLayerMap(total_trace):
-    with open(total_trace, 'r') as fp:
+def orderedRepoLayerMap():
+    with open('client_get_layers_reqs', 'r') as fp:
         blob = json.load(fp)
         
-    with open('repoTOlayerMap.json', 'r') as fp:
-        repoTOlayerMap = json.load(fp)
+#     with open('repoTOlayerMap.json', 'r') as fp:
+#         repoTOlayerMap = json.load(fp)
         
-    
     repoTOlayerMap = defaultdict(list)
     method = r['http.request.method']
     
@@ -731,15 +730,18 @@ def storeGetreqs(total_trace):
         json.dump(req, fp)
 
 ####
-#killed by memory
+#killed by memory, so we convert it to a smaller file
 ####
+
+from sqlitedict import SqliteDict
 def repullLayers(total_trace):
 
     with open('client_get_layers_reqs.json', 'r') as fp:
         blob = json.load(fp)    
     
-    clientTOlayerMap = defaultdict(list)
+#     clientTOlayerMap = defaultdict(list)
 #     clientTOlayerMap_1 = defaultdict(list)
+    clientTOlayerMap = SqliteDict('./my_db.sqlite', autocommit=True)
    
     repulledlayer_cnt = 0
     totallayer_cnt = 0
@@ -758,22 +760,26 @@ def repullLayers(total_trace):
                     find = True
                     tup[1] += 1
 #                         newtup = (layer_id, tup[1]+1)
-#                         clientTOlayerMap[clientAddr].append(newtup)
+                    clientTOlayerMap[clientAddr] = lst
                     print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
                     break
                 
             if not find:
 #                 print "usrname has not this layer before"
-                clientTOlayerMap[clientAddr].append((layer_id, 0))   
+                
+                lst.append((layer_id, 0))  
+                clientTOlayerMap[clientAddr] = lst 
                 print  clientAddr + ', ' + layer_id + ', ' + str(0)              
         except Exception as e:
 #             print "usrname has not this layer before"
-            clientTOlayerMap[clientAddr].append((layer_id, 0))
+            lst = []
+            lst.append((layer_id, 0)) 
+            clientTOlayerMap[clientAddr] = lst
             print  clientAddr + ', ' + layer_id + ', ' + str(0)
 #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
         
-    for cli in clientTOlayerMap.keys():
-        for tup in cli:
+    for cli, lst in clientTOlayerMap.keys():
+        for tup in lst:
             totallayer_cnt += 1
             if tup[1]:
                 repulledlayer_cnt += 1
@@ -781,7 +787,7 @@ def repullLayers(total_trace):
     print "totallayer_cnt:    " + str(totallayer_cnt) 
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
-
+    clientTOlayerMap.close()
 #     with open('client_to_layer_map.json', 'w') as fp:
 #         json.dump(clientTOlayerMap, fp) 
 
