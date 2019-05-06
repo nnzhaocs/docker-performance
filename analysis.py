@@ -508,6 +508,102 @@ def clusterClientReqs(total_trace):
     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'w') as fp:
         json.dump(img_req_group, fp)    
 #     return organized
+
+
+def repullReqsCal(total_trace):
+    fname = os.path.basename(total_trace) 
+    clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
+    
+    for cli, lst in clientTOlayerMap.iteritems():
+        for tup in lst:
+            if 0 == tup[1]:
+                totallayer_cnt += 1
+            else:
+                totallayer_cnt += tup[1]
+            if tup[1]:
+                repulledlayer_cnt += tup[1]
+    
+    print "totallayer_cnt:    " + str(totallayer_cnt) 
+    print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
+    print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
+    clientTOlayerMap.close()
+#     fname = os.path.basename(total_trace) 
+#     print "the output sqlite db would be: "+'./'+ fname +'my_dba.sqlite'
+#     with open(input_dir + fname + '-client_get_layers_reqs.json', 'r') as fp:
+#         blob = json.load(fp)    
+#     
+# #     clientTOlayerMap = defaultdict(list)
+# #     clientTOlayerMap_1 = defaultdict(list)
+#     clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
+#    
+#     repulledlayer_cnt = 0
+#     totallayer_cnt = 0
+#     debug_cnt = 0      
+#     for r in blob:         
+#         clientAddr = r['clientAddr']
+#         layer_id = r['layer_id']
+#         debug_cnt += 1     
+#         if debug_cnt % 10000 == 0:
+#             print "debug_cnt: "+str(debug_cnt)      
+#         print "layer_id: "+layer_id
+#             
+#         find = False    
+#         try:
+#             lst = clientTOlayerMap[clientAddr]
+#             #print "after try: lst =>"
+#             #print lst
+#             for tup in lst:
+#         #print "tup loop ====>"
+#         #print tup
+#         #print tup[0]
+#                 if tup[0] == layer_id:
+#             #print "find a same layer_id"
+#                     find = True
+#             x = tup[1]
+#             x += 1
+#             lst.remove(tup)
+#             lst.append((layer_id, x))
+#                     #tup[1] = x + 1
+#             
+# #                         newtup = (layer_id, tup[1]+1)
+#             #print "tup[1]:"
+#             #print tup[1]
+#             #print "x: "
+#             #print x
+#                     clientTOlayerMap[clientAddr] = lst
+#                     #print "after try: add repull"
+#                     #print lst
+#                     print clientAddr + ', ' + layer_id + ', ' + str(x)
+#                     break
+#                 
+#             if not find:
+# #                 print "usrname has not this layer before"
+#                 lst.append((layer_id, 0))  
+#                 clientTOlayerMap[clientAddr] = lst 
+#         #print "after try: not find: lst ==>"
+#                 #print lst
+#                 print  clientAddr + ', ' + layer_id + ', ' + str(0)              
+#         except Exception as e:
+# #             print "usrname has not this layer before"
+#             lst = []
+#             lst.append((layer_id, 0)) 
+#             clientTOlayerMap[clientAddr] = lst
+#             #print "except: ===>"
+#             #print lst
+#             print  clientAddr + ', ' + layer_id + ', ' + str(0)
+# #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
+#         
+#     for cli, lst in clientTOlayerMap.iteritems():
+#         for tup in lst:
+#             totallayer_cnt += 1
+#             if tup[1]:
+#                 repulledlayer_cnt += 1
+#                       
+#     print "totallayer_cnt:    " + str(totallayer_cnt) 
+#     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
+#     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
+#     clientTOlayerMap.close()
+    
  
  
 def getGetManfiests(total_trace):
@@ -519,7 +615,7 @@ def getGetManfiests(total_trace):
     client_repo_dict = defaultdict(list)
          
     for r in blob:
-        uri = r['http.request.uri']
+        uri = rr[0]['http.request.uri']
 #         layer_or_manifest_id = uri.rsplit('/', 1)[1]
         parts = uri.split('/')
         repo = parts[1] + '/' + parts[2]
@@ -955,6 +1051,8 @@ def main():
         storeGetreqs(trace_dir) 
     elif args.command == 'getGetManfiests':
         getGetManfiests(trace_dir)
+    elif args.command == 'repullReqsCal':
+        repullReqsCal(trace_dir)
         return
     
 
