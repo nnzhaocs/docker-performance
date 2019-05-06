@@ -24,6 +24,16 @@ from __builtin__ import str
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
+
+def absoluteFilePaths(directory):
+    absFNames = []
+    for dirpath,_,filenames in os.walk(directory):
+        for f in filenames:
+            absFNames.append(os.path.abspath(os.path.join(dirpath, f)))
+            
+    return absFNames
+
+
 ####
 # Random match
 ####
@@ -31,7 +41,7 @@ input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 def get_requests(trace_dir):
     print "walking trace_dir: "+trace_dir
     absFNames = absoluteFilePaths(trace_dir)
-
+    dirname = os.path.basename(trace_dir)
     blob_locations = []
 #     tTOblobdic = {}
 #     blobTOtdic = {}
@@ -41,6 +51,7 @@ def get_requests(trace_dir):
 #     for location in realblob_locations:
 #         absFNames = absoluteFilePaths(location)
     print "Dir: "+trace_dir+" has the following files"
+    print "The output file would be: "+trace_dir+dirname+'_total_trace.json'
     print absFNames
     blob_locations.extend(absFNames)
     
@@ -94,7 +105,7 @@ def get_requests(trace_dir):
 #                         i += 1
 #     return ret 
     ret.sort(key= lambda x: x['timestamp'])                          
-    with open(os.path.join(input_dir, 'total_trace.json'), 'w') as fp:
+    with open(os.path.join(input_dir, dirname+'_total_trace.json'), 'w') as fp:
         json.dump(ret, fp)      
         
 
