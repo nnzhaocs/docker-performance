@@ -741,7 +741,7 @@ def repullLayers(total_trace):
     
 #     clientTOlayerMap = defaultdict(list)
 #     clientTOlayerMap_1 = defaultdict(list)
-    clientTOlayerMap = SqliteDict('./my_db.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict('./my_dba.sqlite', autocommit=True)
    
     repulledlayer_cnt = 0
     totallayer_cnt = 0
@@ -749,41 +749,54 @@ def repullLayers(total_trace):
     for r in blob:         
         clientAddr = r['clientAddr']
         layer_id = r['layer_id']
-        debug_cnt ++     
-        if debug_cnt > 100
-            break      
+        debug_cnt += 1     
+        if debug_cnt % 10000 == 0:
+            print "debug_cnt: "+str(debug_cnt)      
         print "layer_id: "+layer_id
             
         find = False    
         try:
             lst = clientTOlayerMap[clientAddr]
-            print "after try: lst =>"
-            print lst
+            #print "after try: lst =>"
+            #print lst
             for tup in lst:
+		#print "tup loop ====>"
+		#print tup
+		#print tup[0]
                 if tup[0] == layer_id:
+		    #print "find a same layer_id"
                     find = True
-                    tup[1] += 1
+		    x = tup[1]
+		    x += 1
+		    lst.remove(tup)
+		    lst.append((layer_id, x))
+                    #tup[1] = x + 1
+		    
 #                         newtup = (layer_id, tup[1]+1)
+		    #print "tup[1]:"
+		    #print tup[1]
+		    #print "x: "
+		    #print x
                     clientTOlayerMap[clientAddr] = lst
-                    print "after try: add repull"
-                    print lst
-                    print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
+                    #print "after try: add repull"
+                    #print lst
+                    print clientAddr + ', ' + layer_id + ', ' + str(x)
                     break
                 
             if not find:
 #                 print "usrname has not this layer before"
-                print "after try: not find: lst ==>"
-                print lst
                 lst.append((layer_id, 0))  
                 clientTOlayerMap[clientAddr] = lst 
+		#print "after try: not find: lst ==>"
+                #print lst
                 print  clientAddr + ', ' + layer_id + ', ' + str(0)              
         except Exception as e:
 #             print "usrname has not this layer before"
             lst = []
             lst.append((layer_id, 0)) 
             clientTOlayerMap[clientAddr] = lst
-            print "except: ===>"
-            print lst
+            #print "except: ===>"
+            #print lst
             print  clientAddr + ', ' + layer_id + ', ' + str(0)
 #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
         
