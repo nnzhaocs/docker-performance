@@ -615,7 +615,7 @@ def getGetManfiests(total_trace):
     client_repo_dict = defaultdict(list)
          
     for r in blob:
-        uri = rr[0]['http.request.uri']
+        uri = r[0]['uri']
 #         layer_or_manifest_id = uri.rsplit('/', 1)[1]
         parts = uri.split('/')
         repo = parts[1] + '/' + parts[2]
@@ -643,26 +643,31 @@ def getGetManfiests(total_trace):
     
     GetM_l = [] # duration between two subsequent get manifest with layers for same client and same repo
     GetM_ln = [] # duration between two subsequent get manifests, first with layers, later without layers
-            
+    nothing = 0
+    pulls  = 0       
     for key, lst in client_repo_dict.items():
-        if len(lst) < 2:
+	pulls += 1
+        if (len(lst) < 2) and (0 == lst[0][1]):
+            nothing += 1
             print "this client doesn't pull anything from this repo at all"
+	if len(lst) < 2:
             continue
         
         first = False
         prev = 0
         for tup in lst:
-            if tup[0] != 0:
+            if tup[1] != 0:
                 if first: # prev get manifest with layers, and this also has layer
-                    t = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    t = datetime.datetime.strptime(tup[0], '%Y-%m-%dT%H:%M:%S.%fZ')
                     delta = t - prev
                     delta = delta.total_seconds()
                     GetM_l.append(delta)
                 else:
-                    prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    prev = datetime.datetime.strptime(tup[0], '%Y-%m-%dT%H:%M:%S.%fZ')
+		    first = True
             else:
                 if first: # prev get manifest layers, and this don't has layer
-                    t = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    t = datetime.datetime.strptime(tup[0], '%Y-%m-%dT%H:%M:%S.%fZ')
                     delta = t - prev
                     delta = delta.total_seconds()
                     GetM_ln.append(delta)
@@ -672,13 +677,32 @@ def getGetManfiests(total_trace):
 #         print rintervals_GET_ML
 #         intervals_GET_MLs.append(rintervals_GET_ML)
 #         lst.extend(rintervals_GET_ML)
-        
+    print "num of clients repo reqs do not pull anything: " + str(nothing*1.0/pulls) 
     print "avg interval between a get manifest with layers and a get manifest with layers:" + str(sum(GetM_l)*1.0 / len(GetM_l)) 
-    print "midian is:  "+ str(statistics.median(GetM_l))  
+    print "number: "+str(len(GetM_l))
+    print "midian is:  "+ str(statistics.median(GetM_l)) 
+
+    print "all intervals:====>"
+    print "mean: "+ str(numpy.mean(GetM_l))
+    print "10 percentile: "+str(numpy.percentile(GetM_l, 10))
+    print "25 percentile: "+str(numpy.percentile(GetM_l, 25))
+    print "39 percentile: "+str(numpy.percentile(GetM_l, 39))
+    print "max: "+str(numpy.amax(GetM_l))
+    print "min: "+str(numpy.amin(GetM_l)) 
     
     print "avg interval between a get manifest with layers and a get manifest without layers:" + str(sum(GetM_ln)*1.0 / len(GetM_ln)) 
+    print "number: "+str(len(GetM_ln))
     print "midian is:  "+ str(statistics.median(GetM_ln)) 
     
+    print "all intervals:====>"
+    print "mean: "+ str(numpy.mean(GetM_ln))
+    print "1 percentile: "+str(numpy.percentile(GetM_ln, 1))
+    print "25 percentile: "+str(numpy.percentile(GetM_ln, 25))
+    print "39 percentile: "+str(numpy.percentile(GetM_ln, 39))
+    print "max: "+str(numpy.amax(GetM_ln))
+    print "min: "+str(numpy.amin(GetM_ln))
+
+
     with open(input_dir + fname +'_getgetmanifests_GetM_l.json', 'w') as fp:
         json.dump(GetM_l, fp)
         
