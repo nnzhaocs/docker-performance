@@ -21,6 +21,7 @@ import statistics
 import numpy
 from __builtin__ import str
 #from Carbon.Aliases import false
+from sqlitedict import SqliteDict
 
 input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
@@ -452,11 +453,13 @@ def clusterUserreqs(total_trace):
         print request
         organized[clientAddr].append(request)
     return organized
- 
+            
  
 def clusterClientReqs(total_trace):
     organized = defaultdict(list)
-
+    fname = os.path.basename(total_trace)
+    print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_client.lst'
+    
     organized = clusterUserreqs(total_trace)     
      
     img_req_group = []
@@ -502,10 +505,90 @@ def clusterClientReqs(total_trace):
         img_req_group += cli_img_req_group_new
     img_req_group.sort(key= lambda x: x[0]['delay'])
 #     return img_req_group
-    with open('sorted_reqs.lst', 'w') as fp:
+    with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'w') as fp:
         json.dump(img_req_group, fp)    
 #     return organized
  
+ 
+def getGetManfiests(total_trace):
+    fname = os.path.basename(total_trace) 
+    print "the output file would be: " + input_dir + fname +'_getgetmanifests_nl.json'
+    with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'r') as fp:
+        blob = json.load(fp) 
+    
+    client_repo_dict = defaultdict(list)
+         
+    for r in blob:
+        uri = r['http.request.uri']
+#         layer_or_manifest_id = uri.rsplit('/', 1)[1]
+        parts = uri.split('/')
+        repo = parts[1] + '/' + parts[2]
+        #key = client address : reponame
+        
+        if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
+            print "a wrong requests"
+            print r
+            continue
+        
+        key = r[0]['clientAddr'] + ':' + repo
+        
+        tup = (r[0]['delay'], len(r) - 1)
+        print key
+        print tup
+        client_repo_dict[key].append(tup)
+        
+#         try:
+#             lst = client_repo_dict[key]
+#             client_repo_dict[key].append(r)
+#         except Exception as e:
+#             client_repo_dict[key].append(r)
+    with open(input_dir + fname +'_getgetmanifests.json', 'w') as fp:
+        json.dump(client_repo_dict, fp)
+    
+    GetM_l = [] # duration between two subsequent get manifest with layers for same client and same repo
+    GetM_ln = [] # duration between two subsequent get manifests, first with layers, later without layers
+            
+    for key, lst in client_repo_dict.items():
+        if len(lst) < 2:
+            print "this client doesn't pull anything from this repo at all"
+            continue
+        
+        first = False
+        prev = 0
+        for tup in lst:
+            if tup[0] != 0:
+                if first: # prev get manifest with layers, and this also has layer
+                    t = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    delta = t - prev
+                    delta = delta.total_seconds()
+                    GetM_l.append(delta)
+                else:
+                    prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
+            else:
+                if first: # prev get manifest layers, and this don't has layer
+                    t = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    delta = t - prev
+                    delta = delta.total_seconds()
+                    GetM_ln.append(delta)
+#                 else: # prev dont have layers and so as this one
+#                     prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ') 
+#                     pass
+#         print rintervals_GET_ML
+#         intervals_GET_MLs.append(rintervals_GET_ML)
+#         lst.extend(rintervals_GET_ML)
+        
+    print "avg interval between a get manifest with layers and a get manifest with layers:" + str(sum(GetM_l)*1.0 / len(GetM_l)) 
+    print "midian is:  "+ str(statistics.median(GetM_l))  
+    
+    print "avg interval between a get manifest with layers and a get manifest without layers:" + str(sum(GetM_ln)*1.0 / len(GetM_ln)) 
+    print "midian is:  "+ str(statistics.median(GetM_ln)) 
+    
+    with open(input_dir + fname +'_getgetmanifests_GetM_l.json', 'w') as fp:
+        json.dump(GetM_l, fp)
+        
+    with open(input_dir + fname +'_getgetmanifests_GetM_ln.json', 'w') as fp:
+        json.dump(GetM_ln, fp)  
+        
 
 #                               
 def durationmanifestblobs():
@@ -743,10 +826,8 @@ def storeGetreqs(total_trace):
         json.dump(req, fp)
 
 ####
-#killed by memory, so we convert it to a smaller file
+#killed by memory, too big
 ####
-
-from sqlitedict import SqliteDict
 def repullLayers(total_trace):
     fname = os.path.basename(total_trace) 
     print "the output sqlite db would be: "+'./'+ fname +'my_dba.sqlite'
@@ -871,7 +952,9 @@ def main():
     elif args.command == 'repullLayers':
         repullLayers(trace_dir)
     elif args.command == 'storeGetreqs':
-        storeGetreqs(trace_dir)
+        storeGetreqs(trace_dir) 
+    elif args.command == 'getGetManfiests':
+        getGetManfiests(trace_dir)
         return
     
 
