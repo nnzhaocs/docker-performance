@@ -719,7 +719,9 @@ def storeGetreqs(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
         
-    print "finished loading"  
+    print "finished loading" 
+    fname = os.path.basename(total_trace) 
+    print "the output file would be : "+ input_dir + fname + '-client_get_layers_reqs.json'
       
     req = []    
     for r in blob:
@@ -737,7 +739,7 @@ def storeGetreqs(total_trace):
                 "layer_id": layer_id,        
             }
             req.append(u)
-    with open('client_get_layers_reqs.json', 'w') as fp:
+    with open(input_dir + fname + '-client_get_layers_reqs.json', 'w') as fp:
         json.dump(req, fp)
 
 ####
@@ -746,13 +748,14 @@ def storeGetreqs(total_trace):
 
 from sqlitedict import SqliteDict
 def repullLayers(total_trace):
-
-    with open('client_get_layers_reqs.json', 'r') as fp:
+    fname = os.path.basename(total_trace) 
+    print "the output sqlite db would be: "+'./'+ fname +'my_dba.sqlite'
+    with open(input_dir + fname + '-client_get_layers_reqs.json', 'r') as fp:
         blob = json.load(fp)    
     
 #     clientTOlayerMap = defaultdict(list)
 #     clientTOlayerMap_1 = defaultdict(list)
-    clientTOlayerMap = SqliteDict('./my_dba.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
    
     repulledlayer_cnt = 0
     totallayer_cnt = 0
@@ -866,7 +869,9 @@ def main():
     elif args.command == 'calbatchstats':
         calbatchstats()
     elif args.command == 'repullLayers':
-        repullLayers(os.path.join(input_dir, 'total_trace.json'))
+        repullLayers(trace_dir)
+    elif args.command == 'storeGetreqs':
+        storeGetreqs(trace_dir)
         return
     
 
