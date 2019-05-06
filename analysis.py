@@ -513,7 +513,8 @@ def clusterClientReqs(total_trace):
 def repullReqsCal(total_trace):
     fname = os.path.basename(total_trace) 
     clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
-    
+    totallayer_cnt = 0
+    repulledlayer_cnt = 0   
     for cli, lst in clientTOlayerMap.iteritems():
         for tup in lst:
             if 0 == tup[1]:
