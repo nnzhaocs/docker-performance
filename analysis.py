@@ -944,7 +944,7 @@ def main():
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
-        clusterClientReqs(os.path.join(input_dir, 'total_trace.json'))
+        clusterClientReqs(trace_dir)
     elif args.command == 'calintervalgetML':
         durationmanifestblobs()
     elif args.command == 'calbatchstats':
