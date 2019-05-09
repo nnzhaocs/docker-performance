@@ -9,7 +9,7 @@ import datetime
 import random
 import threading
 import multiprocessing
-import json 
+import json
 import yaml
 from dxf import *
 from multiprocessing import Process, Queue
@@ -23,7 +23,7 @@ from __builtin__ import str
 #from Carbon.Aliases import false
 from sqlitedict import SqliteDict
 
-input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
+input_dir = '/home/nannan/dockerimages/hulk1/docker-traces/data_centers/'
 
 
 def absoluteFilePaths(directory):
@@ -31,7 +31,7 @@ def absoluteFilePaths(directory):
     for dirpath,_,filenames in os.walk(directory):
         for f in filenames:
             absFNames.append(os.path.abspath(os.path.join(dirpath, f)))
-            
+
     return absFNames
 
 
@@ -48,20 +48,20 @@ def get_requests(trace_dir):
 #     blobTOtdic = {}
     ret = []
 #     i = 0
-    
+
 #     for location in realblob_locations:
 #         absFNames = absoluteFilePaths(location)
     print "Dir: "+trace_dir+" has the following files"
     print "The output file would be: "+trace_dir+dirname+'_total_trace.json'
     print absFNames
     blob_locations.extend(absFNames)
-    
+
     for trace_file in blob_locations:
         with open(trace_file, 'r') as f:
             requests = json.load(f)
-            
+
         for request in requests:
-            
+
             method = request['http.request.method']
             uri = request['http.request.uri']
     	    if len(uri.split('/')) < 3:
@@ -73,7 +73,7 @@ def get_requests(trace_dir):
 #                     timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
 #                     duration = request['http.request.duration']
 #                     client = request['http.request.remoteaddr']
-            
+
 #                     for blob in blob_locations:
 #                     if i < len(blob_locations):
 #                         blob = blob_locations[i]
@@ -82,12 +82,12 @@ def get_requests(trace_dir):
 #                             continue
 #                         if blob in blobTOtdic.keys():
 #                             continue
-                        
+
 #                         tTOblobdic[layer_id] = blob
 #                         blobTOtdic[blob] = layer_id
 
 #                         size = os.stat(blob).st_size
-                
+
                         r = {
                             "host": request['host'],
                             "http.request.duration": request['http.request.duration'],
@@ -104,58 +104,58 @@ def get_requests(trace_dir):
                         print r
                         ret.append(r)
 #                         i += 1
-#     return ret 
-    ret.sort(key= lambda x: x['timestamp'])                          
+#     return ret
+    ret.sort(key= lambda x: x['timestamp'])
     with open(os.path.join(input_dir, dirname+'_total_trace.json'), 'w') as fp:
-        json.dump(ret, fp)      
-        
+        json.dump(ret, fp)
+
 
 def analyze_layerlifetime():
-    
+
     layerPUTGAcctimedic = defaultdict(list)
     layerNPUTGAcctimedic = defaultdict(list)
     layerNGETAcctimedic = {}
-    
+
     layer1stPUT = -1
 #     layer1stGET = -1
     layerNPUT = False
     layerNGET = False
 #     layecntGET = 0
-    
+
     with open(os.path.join(input_dir, 'layer_access.json')) as fp:
         layerTOtimedic = json.load(fp)
 
     for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reverse=True):
-         
+
         #lifetime = layerTOtimedic[k][len(layerTOtimedic[k][0])-1][1] - layerTOtimedic[k][0][1]
         #lifetime = lifetime.total_seconds()
-           
+
         lst = layerTOtimedic[k]
-        
+
         if 'PUT' == lst[0][0]:
             layer1stPUT = 0
             if len(lst) == 1:
                 layerNGET = True
         else:
             layerNPUT = True
-            
+
         if True == layerNGET:
             layerNGETAcctimedic[k] = True
             continue
-        
+
         starttime = lst[0][1]#datetime.datetime.strptime(lst[0][1], '%Y-%m-%dT%H:%M:%S.%fZ')
         interaccess = ((starttime),)
         #interaccess = interaccess + (k,)
         # (digest, next pull time)
-        
+
         for i in range(len(lst)-1):
             nowtime = datetime.datetime.strptime(lst[i][1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i][1]
             nexttime = datetime.datetime.strptime(lst[i+1][1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i+1][1]
             delta = nexttime - nowtime
             delta = delta.total_seconds()
-            
-            interaccess = interaccess + (delta,)                   
-                    
+
+            interaccess = interaccess + (delta,)
+
         if -1 == layer1stPUT:
             layerNPUTGAcctimedic[k] = interaccess
         else:
@@ -175,7 +175,7 @@ def analyze_layerlifetime():
 def analyze_requests(total_trace):
     organized = []
     layerTOtimedic = defaultdict(list)
-    
+
 #     start = ()
 
 #     if round_robin is False:
@@ -192,31 +192,31 @@ def analyze_requests(total_trace):
         uri = r['http.request.uri']
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
-        
+
         if 'blob' in uri:
             # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
-        
+
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
             print "usrname: "+usrname
-            
+
     #         if layer_id in layerTOtimedic.keys():
             layerTOtimedic[layer_id].append((method, timestamp))
-        
+
     with open(os.path.join(input_dir, 'layer_access.json'), 'w') as fp:
         json.dump(layerTOtimedic, fp)
-        
+
 
 def analyze_repo_reqs(total_trace):
 #     organized = []
     usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
     repoTOlayerdic = defaultdict(list)
     usrTOrepodic = defaultdict(list) # repoTOlayerdic
-    
+
 #     start = ()
 
 #     if round_robin is False:
@@ -236,24 +236,24 @@ def analyze_repo_reqs(total_trace):
         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
-        
+
         if 'blob' in uri:
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
-        
+
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
             print "usrname: "+usrname
-            
+
             if repo_name in repoTOlayerdic.keys():
                 if layer_id not in repoTOlayerdic[repo_name]:
                     repoTOlayerdic[repo_name].append(layer_id)
             else:
                 repoTOlayerdic[repo_name].append(layer_id)
-                
-            
+
+
 #             try:
 #                 lst = repoTOlayerdic[repo_name]
 #                 if layer_id not in lst:
@@ -262,8 +262,8 @@ def analyze_repo_reqs(total_trace):
 #                 print "repo has not this layer before"
 #                 repoTOlayerdic[repo_name].append(layer_id)
 
-            #if 
-                
+            #if
+
             try:
                 lst = usrTOrepodic[usrname]
                 if repo_name not in lst:
@@ -272,7 +272,7 @@ def analyze_repo_reqs(total_trace):
                 print "usrname has not this repo before"
                 usrTOrepodic[usrname].append(repo_name)
 #             if layer_id
-            
+
     #         if layer_id in layerTOtimedic.keys():
             #layerTOtimedic[layer_id].append((method, timestamp))
 #             repoTOlayerdic[repo_name].append(layer_id)
@@ -285,29 +285,29 @@ def analyze_repo_reqs(total_trace):
     for usr in usrTOrepodic.keys():
         for repo in usrTOrepodic[usr]:
             usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
-            
+
     for usr in usrTOrepodic.keys():
         jsondata = {
             'usr': usr,
             'repos': usrTOrepoTOlayerdic[usr]
-            
+
         }
-        
+
     with open(os.path.join(input_dir, 'usr2repo2layer_map.json'), 'w') as fp:
         json.dump(usrTOrepoTOlayerdic, fp)
 
 
 def analyze_usr_repolifetime():
-#     layerPUTGAcctimedic = defaultdict(list)  # 
+#     layerPUTGAcctimedic = defaultdict(list)  #
 #     layerNPUTGAcctimedic = defaultdict(list) #
 #     layerNGETAcctimedic = {}
-    
+
 #     layer1stPUT = -1
 # #     layer1stGET = -1
 #     layerNPUT = False
 #     layerNGET = False
 #     layecntGET = 0
-    
+
     with open(os.path.join(input_dir, 'usr2repo2layer_map.json')) as fp:
         usrrepolayer_map = json.load(fp)
 
@@ -315,35 +315,35 @@ def analyze_usr_repolifetime():
 #         layerTOtimedic = json.load(fp)
 
 #     for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reversed=True):
-#          
+#
 #         lifetime = layerTOtimedic[k][len(layerTOtimedic[k][0])-1][1] - layerTOtimedic[k][0][1]
 #         lifetime = lifetime.total_seconds()
-#            
+#
 #         lst = layerTOtimedic[k]
-#         
+#
 #         if 'PUT' == lst[0][0]:
 #             layer1stPUT = 0
 #             if len(lst) == 1:
 #                 layerNGET = True
 #         else:
 #             layerNPUT = True
-#             
+#
 #         if False == layerNGET:
 #             layerNGETAcctimedic[k] = True
 #             continue
-#         
+#
 #         interaccess = ((),)
 #         #interaccess = interaccess + (k,)
 #         # (digest, next pull time)
-#         
+#
 #         for i in len(lst)-2:
 #             nowtime = lst[i][1]
 #             nexttime = lst[i+1][1]
 #             delta = nexttime - nowtime
 #             delta = delta.total_seconds()
-#             
-#             interaccess = interaccess + (delta,)                   
-#                     
+#
+#             interaccess = interaccess + (delta,)
+#
 #         if -1 == layer1stPUT:
 #             layerNPUTGAcctimedic[k] = interaccess
 #         else:
@@ -354,9 +354,9 @@ def analyze_usr_repolifetime():
     NlayerPUTGAcctimedic = 0
     NlayerNPUTGAcctimedic = 0
     NlayerNGETAcctimedic = 0
-    
+
     repoTOlayerdic = {} #defaultdict(list)
-    
+
 #     userTOlayerdic = defaultdict(list)
 
     with open(os.path.join(input_dir, 'layerNGETAcctime.json')) as fp1:
@@ -368,33 +368,33 @@ def analyze_usr_repolifetime():
     with open(os.path.join(input_dir, 'layerPUTGAcctime.json')) as fp3:
          layerPUTGAcctimedic = json.load(fp3)
     #cnt = 0
-    for usr in usrrepolayer_map.keys():   
+    for usr in usrrepolayer_map.keys():
         #cnt += 1
         #if cnt > 100:
-        #    break;     
+        #    break;
 #         usrTOrepodic = defaultdict(list) # repoTOlayerdic
 #         repoTONPUTAlayerdic = defaultdict(list)
 #         repoTONGETAlayerdic = defaultdict(list)
         print "process usr "+usr
-        for repo_item in usrrepolayer_map[usr]:  
-            for repo, layers in repo_item.items():                         
+        for repo_item in usrrepolayer_map[usr]:
+            for repo, layers in repo_item.items():
                 if repo in repoTOlayerdic.keys():
 			continue
                 print "process repo "+repo
                 #cnt += 1
 		#if cnt > 1000:
-		   
+
                 #repoTOPUTGAlayerdic = defaultdict(list) # repoTOlayerdic
                 #repoTONPUTAlayerdic = defaultdict(list)
                 #repoTONGETAlayerdic = defaultdict(list)
-                
+
 #                 repodic = defaultdict(list)
                 repodic = {
                         'layerPUTGAlayerdic': [],
                         'layerNPUTGAcctimedic': [],
                         'layerNGETAlayerdic': []
                     }
-            
+
                 for layer in layers:#repo.keys():
                     if layer in layerPUTGAcctimedic.keys():
                         NlayerPUTGAcctimedic = 1
@@ -406,16 +406,16 @@ def analyze_usr_repolifetime():
                         NlayerNGETAcctimedic = 1
                         lst = layerNGETAcctimedic[layer]
                     else:
-                        print "cannot find the layer: "+layer 
-                        continue                            
-                    
+                        print "cannot find the layer: "+layer
+                        continue
+
 #                     if NlayerPUTGAcctimedic and NlayerNPUTGAcctimedic and NlayerNGETAcctimedic:
 #                         print "this is not a legal layer"
 #                         continue
                     if NlayerPUTGAcctimedic == 1:
                         print "this is a layerPUTGAcctimedic "+layer
 #                         repoTOPUTGAlayerdic[layer].append(lst)
-                        repodic['layerPUTGAlayerdic'].append({layer: lst}) 
+                        repodic['layerPUTGAlayerdic'].append({layer: lst})
                     elif NlayerNPUTGAcctimedic == 1:
                         print "this is a layerNPUTGAcctimedic "+layer
 #                         repoTONPUTAlayerdic[layer].append(lst)
@@ -424,17 +424,17 @@ def analyze_usr_repolifetime():
                         print "this is a layerNGETAcctimedic "+layer
 #                         repoTONGETAlayerdic[layer].append(lst)
                         repodic['layerNGETAlayerdic'].append({layer: lst})
-                        
+
             repoTOlayerdic[repo] = repodic
-        
+
 #             repoTOlayerdic[repo]['repoTOPUTGAlayerdic'] =  repodic['repoTOPUTGAlayerdic']
 #             repoTOlayerdic[repo]['repoTONPUTAlayerdic'] =  repodic['repoTONPUTAlayerdic']
 #             repoTOlayerdic[repo]['repoTONGETAlayerdic'] =  repodic['repoTONGETAlayerdic']
-            
+
     with open(os.path.join(input_dir, 'repo2layersaccesstime.json'), 'w') as fp:
-        json.dump(repoTOlayerdic, fp)           
-                    
-         
+        json.dump(repoTOlayerdic, fp)
+
+
 def clusterUserreqs(total_trace):
     organized = defaultdict(list)
     with open(total_trace, 'r') as f:
@@ -448,20 +448,20 @@ def clusterUserreqs(total_trace):
             'clientAddr': r['http.request.remoteaddr'],
             'method':r['http.request.method'],
         }
- 
+
         clientAddr = r['http.request.remoteaddr']
         print request
         organized[clientAddr].append(request)
     return organized
-            
- 
+
+
 def clusterClientReqs(total_trace):
     organized = defaultdict(list)
     fname = os.path.basename(total_trace)
     print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_client.lst'
-    
-    organized = clusterUserreqs(total_trace)     
-     
+
+    organized = clusterUserreqs(total_trace)
+
     img_req_group = []
     for cli, reqs in organized.items():
         cli_img_req_group = [[]]
@@ -470,7 +470,7 @@ def clusterClientReqs(total_trace):
 #         prev_push = []
 #         cur_push = []
         for req in reqs:
-            uri = req['uri'] 
+            uri = req['uri']
             layer_or_manifest_id = uri.rsplit('/', 1)[1]
             parts = uri.split('/')
             repo = parts[1] + '/' + parts[2]
@@ -497,7 +497,7 @@ def clusterClientReqs(total_trace):
 #                     cur_push = []
 #                     cli_img_push_group.append(cur_push)
 #                 prev_push = cli_img_push_group[-1]
-                 
+
 #         cli_img_req_group = cli_img_pull_group + cli_img_push_group
 	cli_img_req_group_new = [x for x in cli_img_req_group if x]
 	print cli_img_req_group_new
@@ -506,7 +506,7 @@ def clusterClientReqs(total_trace):
     img_req_group.sort(key= lambda x: x[0]['delay'])
 #     return img_req_group
     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'w') as fp:
-        json.dump(img_req_group, fp)    
+        json.dump(img_req_group, fp)
 #     return organized
 
 
@@ -514,9 +514,9 @@ def clusterClientReqForClients(total_trace):
     organized = defaultdict(list)
     fname = os.path.basename(total_trace)
     print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_clientForclients.lst'
-    
-    organized = clusterUserreqs(total_trace)     
-     
+
+    organized = clusterUserreqs(total_trace)
+
     img_req_group = defaultdict(list)
     for cli, reqs in organized.items():
         cli_img_req_group = [[]]
@@ -525,7 +525,7 @@ def clusterClientReqForClients(total_trace):
 #         prev_push = []
 #         cur_push = []
         for req in reqs:
-            uri = req['uri'] 
+            uri = req['uri']
             layer_or_manifest_id = uri.rsplit('/', 1)[1]
             parts = uri.split('/')
             repo = parts[1] + '/' + parts[2]
@@ -552,7 +552,7 @@ def clusterClientReqForClients(total_trace):
 #                     cur_push = []
 #                     cli_img_push_group.append(cur_push)
 #                 prev_push = cli_img_push_group[-1]
-                 
+
 #         cli_img_req_group = cli_img_pull_group + cli_img_push_group
         cli_img_req_group_new = [x for x in cli_img_req_group if x]
         print cli_img_req_group_new
@@ -561,34 +561,34 @@ def clusterClientReqForClients(total_trace):
 #     img_req_group.sort(key= lambda x: x[0]['delay'])
 #     return img_req_group
     with open(input_dir + fname + '-sorted_reqs_repo_clientForclients.lst', 'w') as fp:
-        json.dump(img_req_group, fp)    
-        
-#     fname = os.path.basename(total_trace) 
+        json.dump(img_req_group, fp)
+
+#     fname = os.path.basename(total_trace)
 #     print "the output file would be: " + input_dir + fname +'_repullRepoClient.json'
 #     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'r') as fp:
-#         blob = json.load(fp) 
-    
+#         blob = json.load(fp)
+
 #     client_repo_dict = defaultdict(list)
-#          
+#
 #     for r in blob:
 #         uri = r[0]['uri']
 # #         layer_or_manifest_id = uri.rsplit('/', 1)[1]
 #         parts = uri.split('/')
 #         repo = parts[1] + '/' + parts[2]
 #         #key = client address : reponame
-#         
+#
 #         if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
 #             print "a wrong requests"
 #             print r
 #             continue
-#         
+#
 #         key = r[0]['clientAddr'] + ':' + repo
-#         
+#
 #         tup = (r[0]['delay'], len(r) - 1)
 #         print key
 #         print tup
 #         client_repo_dict[key].append(tup)
-#         
+#
 # #         try:
 # #             lst = client_repo_dict[key]
 # #             client_repo_dict[key].append(r)
@@ -596,11 +596,11 @@ def clusterClientReqForClients(total_trace):
 # #             client_repo_dict[key].append(r)
 #     with open(input_dir + fname +'_getgetmanifests.json', 'w') as fp:
 #         json.dump(client_repo_dict, fp)
-#     
+#
 #     GetM_l = [] # duration between two subsequent get manifest with layers for same client and same repo
 #     GetM_ln = [] # duration between two subsequent get manifests, first with layers, later without layers
 #     nothing = 0
-#     pulls  = 0       
+#     pulls  = 0
 #     for key, lst in client_repo_dict.items():
 #     pulls += 1
 #         if (len(lst) < 2) and (0 == lst[0][1]):
@@ -608,7 +608,7 @@ def clusterClientReqForClients(total_trace):
 #             print "this client doesn't pull anything from this repo at all"
 #     if len(lst) < 2:
 #             continue
-#         
+#
 #         first = False
 #         prev = 0
 #         for tup in lst:
@@ -628,28 +628,28 @@ def clusterClientReqForClients(total_trace):
 #                     delta = delta.total_seconds()
 #                     GetM_ln.append(delta)
 # #                 else: # prev dont have layers and so as this one
-# #                     prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ') 
+# #                     prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
 # #                     pass
 # #         print rintervals_GET_ML
 # #         intervals_GET_MLs.append(rintervals_GET_ML)
 # #         lst.extend(rintervals_GET_ML)
-#     print "num of clients repo reqs do not pull anything: " + str(nothing*1.0/pulls) 
-#     print "avg interval between a get manifest with layers and a get manifest with layers:" + str(sum(GetM_l)*1.0 / len(GetM_l)) 
+#     print "num of clients repo reqs do not pull anything: " + str(nothing*1.0/pulls)
+#     print "avg interval between a get manifest with layers and a get manifest with layers:" + str(sum(GetM_l)*1.0 / len(GetM_l))
 #     print "number: "+str(len(GetM_l))
-#     print "midian is:  "+ str(statistics.median(GetM_l)) 
-# 
+#     print "midian is:  "+ str(statistics.median(GetM_l))
+#
 #     print "all intervals:====>"
 #     print "mean: "+ str(numpy.mean(GetM_l))
 #     print "10 percentile: "+str(numpy.percentile(GetM_l, 10))
 #     print "25 percentile: "+str(numpy.percentile(GetM_l, 25))
 #     print "39 percentile: "+str(numpy.percentile(GetM_l, 39))
 #     print "max: "+str(numpy.amax(GetM_l))
-#     print "min: "+str(numpy.amin(GetM_l)) 
-#     
-#     print "avg interval between a get manifest with layers and a get manifest without layers:" + str(sum(GetM_ln)*1.0 / len(GetM_ln)) 
+#     print "min: "+str(numpy.amin(GetM_l))
+#
+#     print "avg interval between a get manifest with layers and a get manifest without layers:" + str(sum(GetM_ln)*1.0 / len(GetM_ln))
 #     print "number: "+str(len(GetM_ln))
-#     print "midian is:  "+ str(statistics.median(GetM_ln)) 
-#     
+#     print "midian is:  "+ str(statistics.median(GetM_ln))
+#
 #     print "all intervals:====>"
 #     print "mean: "+ str(numpy.mean(GetM_ln))
 #     print "1 percentile: "+str(numpy.percentile(GetM_ln, 1))
@@ -657,20 +657,20 @@ def clusterClientReqForClients(total_trace):
 #     print "39 percentile: "+str(numpy.percentile(GetM_ln, 39))
 #     print "max: "+str(numpy.amax(GetM_ln))
 #     print "min: "+str(numpy.amin(GetM_ln))
-# 
-# 
+#
+#
 #     with open(input_dir + fname +'_getgetmanifests_GetM_l.json', 'w') as fp:
 #         json.dump(GetM_l, fp)
-#         
+#
 #     with open(input_dir + fname +'_getgetmanifests_GetM_ln.json', 'w') as fp:
-#         json.dump(GetM_ln, fp)  
+#         json.dump(GetM_ln, fp)
 
 
 def repullReqsCal(total_trace):
-    fname = os.path.basename(total_trace) 
+    fname = os.path.basename(total_trace)
     clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
     totallayer_cnt = 0
-    repulledlayer_cnt = 0   
+    repulledlayer_cnt = 0
     for cli, lst in clientTOlayerMap.iteritems():
         for tup in lst:
             if 0 == tup[1]:
@@ -679,21 +679,21 @@ def repullReqsCal(total_trace):
                 totallayer_cnt += tup[1]
             if tup[1]:
                 repulledlayer_cnt += tup[1]
-    
-    print "totallayer_cnt:    " + str(totallayer_cnt) 
+
+    print "totallayer_cnt:    " + str(totallayer_cnt)
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
     clientTOlayerMap.close()
-    
+
 
 def repullReqUsr(total_trace):
-    fname = os.path.basename(total_trace) 
+    fname = os.path.basename(total_trace)
     clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
-  
+
     f = open(input_dir + fname + '-layers_repulllayers_client.lst', 'w')
     for cli, lst in clientTOlayerMap.iteritems():
         usrlayer_cnt = 0
-        repulledlayer_cnt = 0 
+        repulledlayer_cnt = 0
         for tup in lst:
             if 0 == tup[1]:
                 usrlayer_cnt += 1
@@ -702,40 +702,40 @@ def repullReqUsr(total_trace):
             if tup[1]:
                 repulledlayer_cnt += tup[1]
         f.write(str(usrlayer_cnt)+'\t'+str(repulledlayer_cnt)+'\t\n')
-    print "totallayer_cnt:    " + str(totallayer_cnt) 
+    print "totallayer_cnt:    " + str(totallayer_cnt)
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
     clientTOlayerMap.close()
     f.close()
- 
- 
+
+
 def getGetManfiests(total_trace):
-    fname = os.path.basename(total_trace) 
+    fname = os.path.basename(total_trace)
     print "the output file would be: " + input_dir + fname +'_getgetmanifests_nl.json'
     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'r') as fp:
-        blob = json.load(fp) 
-    
+        blob = json.load(fp)
+
     client_repo_dict = defaultdict(list)
-         
+
     for r in blob:
         uri = r[0]['uri']
 #         layer_or_manifest_id = uri.rsplit('/', 1)[1]
         parts = uri.split('/')
         repo = parts[1] + '/' + parts[2]
         #key = client address : reponame
-        
+
         if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
             print "a wrong requests"
             print r
             continue
-        
+
         key = r[0]['clientAddr'] + ':' + repo
-        
+
         tup = (r[0]['delay'], len(r) - 1)
         print key
         print tup
         client_repo_dict[key].append(tup)
-        
+
 #         try:
 #             lst = client_repo_dict[key]
 #             client_repo_dict[key].append(r)
@@ -743,11 +743,11 @@ def getGetManfiests(total_trace):
 #             client_repo_dict[key].append(r)
     with open(input_dir + fname +'_getgetmanifests.json', 'w') as fp:
         json.dump(client_repo_dict, fp)
-    
+
     GetM_l = [] # duration between two subsequent get manifest with layers for same client and same repo
     GetM_ln = [] # duration between two subsequent get manifests, first with layers, later without layers
     nothing = 0
-    pulls  = 0       
+    pulls  = 0
     for key, lst in client_repo_dict.items():
 	pulls += 1
         if (len(lst) < 2) and (0 == lst[0][1]):
@@ -755,7 +755,7 @@ def getGetManfiests(total_trace):
             print "this client doesn't pull anything from this repo at all"
 	if len(lst) < 2:
             continue
-        
+
         first = False
         prev = 0
         for tup in lst:
@@ -775,15 +775,15 @@ def getGetManfiests(total_trace):
                     delta = delta.total_seconds()
                     GetM_ln.append(delta)
 #                 else: # prev dont have layers and so as this one
-#                     prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ') 
+#                     prev = datetime.datetime.strptime(lst[0][0], '%Y-%m-%dT%H:%M:%S.%fZ')
 #                     pass
 #         print rintervals_GET_ML
 #         intervals_GET_MLs.append(rintervals_GET_ML)
 #         lst.extend(rintervals_GET_ML)
-    print "num of clients repo reqs do not pull anything: " + str(nothing*1.0/pulls) 
-    print "avg interval between a get manifest with layers and a get manifest with layers:" + str(sum(GetM_l)*1.0 / len(GetM_l)) 
+    print "num of clients repo reqs do not pull anything: " + str(nothing*1.0/pulls)
+    print "avg interval between a get manifest with layers and a get manifest with layers:" + str(sum(GetM_l)*1.0 / len(GetM_l))
     print "number: "+str(len(GetM_l))
-    print "midian is:  "+ str(statistics.median(GetM_l)) 
+    print "midian is:  "+ str(statistics.median(GetM_l))
 
     print "all intervals:====>"
     print "mean: "+ str(numpy.mean(GetM_l))
@@ -791,12 +791,12 @@ def getGetManfiests(total_trace):
     print "25 percentile: "+str(numpy.percentile(GetM_l, 25))
     print "39 percentile: "+str(numpy.percentile(GetM_l, 39))
     print "max: "+str(numpy.amax(GetM_l))
-    print "min: "+str(numpy.amin(GetM_l)) 
-    
-    print "avg interval between a get manifest with layers and a get manifest without layers:" + str(sum(GetM_ln)*1.0 / len(GetM_ln)) 
+    print "min: "+str(numpy.amin(GetM_l))
+
+    print "avg interval between a get manifest with layers and a get manifest without layers:" + str(sum(GetM_ln)*1.0 / len(GetM_ln))
     print "number: "+str(len(GetM_ln))
-    print "midian is:  "+ str(statistics.median(GetM_ln)) 
-    
+    print "midian is:  "+ str(statistics.median(GetM_ln))
+
     print "all intervals:====>"
     print "mean: "+ str(numpy.mean(GetM_ln))
     print "1 percentile: "+str(numpy.percentile(GetM_ln, 1))
@@ -808,32 +808,32 @@ def getGetManfiests(total_trace):
 
     with open(input_dir + fname +'_getgetmanifests_GetM_l.json', 'w') as fp:
         json.dump(GetM_l, fp)
-        
-    with open(input_dir + fname +'_getgetmanifests_GetM_ln.json', 'w') as fp:
-        json.dump(GetM_ln, fp)  
-        
 
-#                               
+    with open(input_dir + fname +'_getgetmanifests_GetM_ln.json', 'w') as fp:
+        json.dump(GetM_ln, fp)
+
+
+#
 def durationmanifestblobs():
     with open('sorted_reqs.lst', 'r') as fp:
         blob = json.load(fp)
-        
+
     intervals_GET_MLs = []
     lst = []
     for r in blob:
         rintervals_GET_ML = []
         delay_GET_Ls=[]
-        
+
         if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
             continue
         if len(r) < 2:
             continue
-        
-        delay_GET_M = datetime.datetime.strptime(r[0]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ')  
-         
+
+        delay_GET_M = datetime.datetime.strptime(r[0]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ')
+
         for i in range(1,len(r)):
             delay_GET_Ls.append(datetime.datetime.strptime(r[i]['delay'], '%Y-%m-%dT%H:%M:%S.%fZ'))
-            
+
         for j in delay_GET_Ls:
             delta = j - delay_GET_M
             delta = delta.total_seconds()
@@ -841,13 +841,13 @@ def durationmanifestblobs():
     	print rintervals_GET_ML
         intervals_GET_MLs.append(rintervals_GET_ML)
         lst.extend(rintervals_GET_ML)
-    print "avg interval between a get manifest and a get layer:" + str(sum(lst)*1.0 / len(lst)) 
-    print "midian is:  "+ str(statistics.median(lst))  
-    
+    print "avg interval between a get manifest and a get layer:" + str(sum(lst)*1.0 / len(lst))
+    print "midian is:  "+ str(statistics.median(lst))
+
     with open('intervals_client_GET_MLs.lst', 'w') as fp:
         json.dump(intervals_GET_MLs, fp)
     with open('intervals_GET_MLs.lst', 'w') as fp:
-        json.dump(lst, fp)  
+        json.dump(lst, fp)
 
 
 def numpy_fillna(data):
@@ -864,9 +864,9 @@ def numpy_fillna(data):
 
 
 def calbatchstats():
-    with open('intervals_GET_MLs.lst', 'r') as fp: 
+    with open('intervals_GET_MLs.lst', 'r') as fp:
         data = json.load(fp)
-    
+
     all_intervals = numpy.array(data)
     print "all intervals:====>"
     print "mean: "+ str(numpy.mean(all_intervals))
@@ -875,10 +875,10 @@ def calbatchstats():
     print "99 percentile: "+str(numpy.percentile(all_intervals, 99))
     print "max: "+str(numpy.amax(all_intervals))
     print "min: "+str(numpy.amin(all_intervals))
-    
+
     with open('intervals_client_GET_MLs.lst', 'r') as fp:
         data = json.load(fp)
-    
+
     client_img_pull_intervals = numpy.array(data, dtype=object)
     out = numpy_fillna(client_img_pull_intervals)
     len = out.shape[1]
@@ -907,32 +907,32 @@ def calbatchstats():
         outputstat.append([numpy.mean(ar_lst_nozeros), numpy.percentile(ar_lst_nozeros, 50), numpy.percentile(ar_lst_nozeros, 75), numpy.percentile(ar_lst_nozeros, 99), numpy.amax(ar_lst_nozeros), numpy.amin(ar_lst_nozeros)])
         i += 1
     with open('batch_intervalstat_mean_50_75_99_max_min.lst', 'w') as fp:
-        json.dump(outputstat, fp)  
+        json.dump(outputstat, fp)
 
 
 def RepoLayerMap(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
-    
+
     repoTOlayerMap = defaultdict(list)
     method = r['http.request.method']
-    
+
     for r in blob:
         uri = r['http.request.uri']
         usrname = uri.split('/')[1]
-        repo_name = uri.split('/')[2] 
+        repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
-        
+
         if ('blobs' in uri) and ('GET' == method):
             layer_id = uri.rsplit('/', 1)[1]
-                    
+
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
-             
-            find = False    
+
+            find = False
             try:
                 lst = repoTOlayerMap[repo_name]
-                if layer_id not in lst:                    
+                if layer_id not in lst:
 #                 for tup in lst:
 #                     if tup[0] == layer_id:
 #                         find = True
@@ -941,19 +941,19 @@ def RepoLayerMap(total_trace):
 # #                         clientTOlayerMap[clientAddr].append(newtup)
 #                         print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
 #                         break
-#                     
+#
 #                 if not find:
                     print "repo_name has not this layer before"
-                    repoTOlayerMap[repo_name].append(layer_id)   
-                    print  repo_name + ', ' + layer_id              
+                    repoTOlayerMap[repo_name].append(layer_id)
+                    print  repo_name + ', ' + layer_id
             except Exception as e:
                 print "repo_name has not this layer before"
                 repoTOlayerMap[repo_name].append(layer_id)
                 print  repo_name + ', ' + layer_id
-                
+
     with open('repoTOlayerMap.json', 'w') as fp:
-        json.dump(repoTOlayerMap, fp) 
-                
+        json.dump(repoTOlayerMap, fp)
+
 #     for i in range(0, len, 3):
 #         batch = out[:,1:len:3]
 ####
@@ -962,43 +962,43 @@ def RepoLayerMap(total_trace):
 def mergeOrderedArr(first, second):
     in_first = set(first)
     in_second = set(second)
-    
+
     print in_first
     print in_second
-    
+
     in_second_but_not_in_first = in_second - in_first
-    
+
     result = first_list + list(in_second_but_not_in_first)
     print result
     return result
-    
+
 
 def orderedRepoLayerMap():
     with open('client_get_layers_reqs', 'r') as fp:
         blob = json.load(fp)
-        
+
 #     with open('repoTOlayerMap.json', 'r') as fp:
 #         repoTOlayerMap = json.load(fp)
-        
+
     repoTOlayerMap = defaultdict(list)
     method = r['http.request.method']
-    
+
     for r in blob:
         uri = r['http.request.uri']
         usrname = uri.split('/')[1]
-        repo_name = uri.split('/')[2] 
+        repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
-        
+
         if ('blobs' in uri) and ('GET' == method):
             layer_id = uri.rsplit('/', 1)[1]
-                    
+
             print "layer_id: "+layer_id
             print "repo_name: "+repo_name
-             
-            find = False    
+
+            find = False
             try:
                 lst = repoTOlayerMap[repo_name]
-                if layer_id not in lst:                    
+                if layer_id not in lst:
 #                 for tup in lst:
 #                     if tup[0] == layer_id:
 #                         find = True
@@ -1007,42 +1007,42 @@ def orderedRepoLayerMap():
 # #                         clientTOlayerMap[clientAddr].append(newtup)
 #                         print clientAddr + ', ' + layer_id + ', ' + str(tup[1]+1)
 #                         break
-#                     
+#
 #                 if not find:
                     print "repo_name has not this layer before"
-                    repoTOlayerMap[repo_name].append(layer_id)   
-                    print  repo_name + ', ' + layer_id              
+                    repoTOlayerMap[repo_name].append(layer_id)
+                    print  repo_name + ', ' + layer_id
             except Exception as e:
                 print "repo_name has not this layer before"
                 repoTOlayerMap[repo_name].append(layer_id)
                 print  repo_name + ', ' + layer_id
-                
+
     with open('repoTOlayerMap.json', 'w') as fp:
-        json.dump(repoTOlayerMap, fp) 
+        json.dump(repoTOlayerMap, fp)
 
 
 def storeGetreqs(total_trace):
     with open(total_trace, 'r') as fp:
         blob = json.load(fp)
-        
-    print "finished loading" 
-    fname = os.path.basename(total_trace) 
+
+    print "finished loading"
+    fname = os.path.basename(total_trace)
     print "the output file would be : "+ input_dir + fname + '-client_get_layers_reqs.json'
-      
-    req = []    
+
+    req = []
     for r in blob:
         uri = r['http.request.uri']
-        
+
         clientAddr = r['http.request.remoteaddr']
         method = r['http.request.method']
-        
+
         if ('blobs' in uri) and ('GET' == method):
             layer_id = uri.rsplit('/', 1)[1]
-                    
-            print "layer_id: "+layer_id    
+
+            print "layer_id: "+layer_id
             u = {
                 "clientAddr" : clientAddr,
-                "layer_id": layer_id,        
+                "layer_id": layer_id,
             }
             req.append(u)
     with open(input_dir + fname + '-client_get_layers_reqs.json', 'w') as fp:
@@ -1052,27 +1052,27 @@ def storeGetreqs(total_trace):
 #killed by memory, too big
 ####
 def repullLayers(total_trace):
-    fname = os.path.basename(total_trace) 
+    fname = os.path.basename(total_trace)
     print "the output sqlite db would be: "+'./'+ fname +'my_dba.sqlite'
     with open(input_dir + fname + '-client_get_layers_reqs.json', 'r') as fp:
-        blob = json.load(fp)    
-    
+        blob = json.load(fp)
+
 #     clientTOlayerMap = defaultdict(list)
 #     clientTOlayerMap_1 = defaultdict(list)
     clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
-   
+
     repulledlayer_cnt = 0
     totallayer_cnt = 0
-    debug_cnt = 0      
-    for r in blob:         
+    debug_cnt = 0
+    for r in blob:
         clientAddr = r['clientAddr']
         layer_id = r['layer_id']
-        debug_cnt += 1     
+        debug_cnt += 1
         if debug_cnt % 10000 == 0:
-            print "debug_cnt: "+str(debug_cnt)      
+            print "debug_cnt: "+str(debug_cnt)
         print "layer_id: "+layer_id
-            
-        find = False    
+
+        find = False
         try:
             lst = clientTOlayerMap[clientAddr]
             #print "after try: lst =>"
@@ -1089,7 +1089,7 @@ def repullLayers(total_trace):
 		    lst.remove(tup)
 		    lst.append((layer_id, x))
                     #tup[1] = x + 1
-		    
+
 #                         newtup = (layer_id, tup[1]+1)
 		    #print "tup[1]:"
 		    #print tup[1]
@@ -1100,36 +1100,36 @@ def repullLayers(total_trace):
                     #print lst
                     print clientAddr + ', ' + layer_id + ', ' + str(x)
                     break
-                
+
             if not find:
 #                 print "usrname has not this layer before"
-                lst.append((layer_id, 0))  
-                clientTOlayerMap[clientAddr] = lst 
+                lst.append((layer_id, 0))
+                clientTOlayerMap[clientAddr] = lst
 		#print "after try: not find: lst ==>"
                 #print lst
-                print  clientAddr + ', ' + layer_id + ', ' + str(0)              
+                print  clientAddr + ', ' + layer_id + ', ' + str(0)
         except Exception as e:
 #             print "usrname has not this layer before"
             lst = []
-            lst.append((layer_id, 0)) 
+            lst.append((layer_id, 0))
             clientTOlayerMap[clientAddr] = lst
             #print "except: ===>"
             #print lst
             print  clientAddr + ', ' + layer_id + ', ' + str(0)
 #                 print  clientAddr + ', ' + layer_id + ', ' + str(0)
-        
+
     for cli, lst in clientTOlayerMap.iteritems():
         for tup in lst:
             totallayer_cnt += 1
             if tup[1]:
                 repulledlayer_cnt += 1
-                      
-    print "totallayer_cnt:    " + str(totallayer_cnt) 
+
+    print "totallayer_cnt:    " + str(totallayer_cnt)
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
     clientTOlayerMap.close()
 #     with open('client_to_layer_map.json', 'w') as fp:
-#         json.dump(clientTOlayerMap, fp) 
+#         json.dump(clientTOlayerMap, fp)
 
 
 def main():
@@ -1139,13 +1139,13 @@ def main():
     parser.add_argument('-c', '--command', dest='command', type=str, required=True, help= 'Trace player command. Possible commands: warmup, run, simulate, warmup is used to populate the registry with the layers of the trace, run replays the trace, and simulate is used to test different caching and prefecting policies.')
 
     args = parser.parse_args()
-    
+
     trace_dir = input_dir+args.input
-    
+
     print "input dir: "+trace_dir
-    
+
     #NANNAN
-    if args.command == 'get':    
+    if args.command == 'get':
 #         if 'realblobs' in inputs['client_info']:
             #if inputs['client_info']['realblobs'] is True:
 #             realblob_locations = inputs['client_info']['realblobs']
@@ -1157,7 +1157,7 @@ def main():
     elif args.command == 'Alayer':
 #         print "wrong cmd!"
         analyze_requests(os.path.join(input_dir, 'total_trace.json'))
-        return 
+        return
     elif args.command == 'layerlifetime':
         analyze_layerlifetime()
         return
@@ -1175,7 +1175,7 @@ def main():
     elif args.command == 'repullLayers':
         repullLayers(trace_dir)
     elif args.command == 'storeGetreqs':
-        storeGetreqs(trace_dir) 
+        storeGetreqs(trace_dir)
     elif args.command == 'getGetManfiests':
         getGetManfiests(trace_dir)
     elif args.command == 'repullReqsCal':
