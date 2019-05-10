@@ -110,9 +110,9 @@ def get_requests(trace_dir):
         json.dump(ret, fp)
 
 
-def analyze_layerlifetime():
+def analyze_layerlifetime(total_trace):
     interaccess = []
-    
+    fname = os.path.basename(total_trace)
     with open(os.path.join(fname + '-layer_access_timestamp.json'), 'r') as fp:
         layerTOtimedic = json.load(fp)
 
@@ -1067,13 +1067,13 @@ def main():
 		#return
     elif args.command == 'Alayer':
 #         print "wrong cmd!"
-        analyze_requests(os.path.join(input_dir, 'total_trace.json'))
+        analyze_requests(trace_dir)
         return
     elif args.command == 'layerlifetime':
-        analyze_layerlifetime()
+        analyze_layerlifetime(trace_dir)
         return
     elif args.command == 'map':
-        analyze_repo_reqs(os.path.join(input_dir, 'total_trace.json'))
+        analyze_repo_reqs(trace_dir)
         return
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
