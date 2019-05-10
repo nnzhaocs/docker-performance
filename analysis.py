@@ -513,17 +513,17 @@ def clusterClientReqs(total_trace):
 def clusterClientReqForClients(total_trace):
     organized = defaultdict(list)
     fname = os.path.basename(total_trace)
-<<<<<<< HEAD
-    print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_clientForclients.lst'
+#<<<<<<< HEAD
+#    print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_clientForclients.lst'
+
+#    organized = clusterUserreqs(total_trace)
+
+#=======
+    print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_clientForclients.json'
 
     organized = clusterUserreqs(total_trace)
 
-=======
-    print "the output file would be: " + input_dir + fname + '-sorted_reqs_repo_clientForclients.json'
-    
-    organized = clusterUserreqs(total_trace)     
-     
->>>>>>> 0ba27965e20b5f761d035f38df9f6830b1aeed72
+#>>>>>>> 0ba27965e20b5f761d035f38df9f6830b1aeed72
     img_req_group = defaultdict(list)
     for cli, reqs in organized.items():
         cli_img_req_group = [[]]
@@ -567,9 +567,9 @@ def clusterClientReqForClients(total_trace):
         img_req_group[cli]= cli_img_req_group_new
 #     img_req_group.sort(key= lambda x: x[0]['delay'])
 #     return img_req_group
-<<<<<<< HEAD
-    with open(input_dir + fname + '-sorted_reqs_repo_clientForclients.lst', 'w') as fp:
-        json.dump(img_req_group, fp)
+#<<<<<<< HEAD
+#    with open(input_dir + fname + '-sorted_reqs_repo_clientForclients.lst', 'w') as fp:
+#        json.dump(img_req_group, fp)
 
 #     fname = os.path.basename(total_trace)
 #     print "the output file would be: " + input_dir + fname +'_repullRepoClient.json'
@@ -672,27 +672,27 @@ def clusterClientReqForClients(total_trace):
 #
 #     with open(input_dir + fname +'_getgetmanifests_GetM_ln.json', 'w') as fp:
 #         json.dump(GetM_ln, fp)
-=======
+#=======
     with open(input_dir + fname + '-sorted_reqs_repo_clientForclients.json', 'w') as fp:
         json.dump(img_req_group, fp)
-        
-        
 
-def clusterClientRepoPull(total_trace):    
-    fname = os.path.basename(total_trace) 
+
+
+def clusterClientRepoPull(total_trace):
+    fname = os.path.basename(total_trace)
     print "the output file would be: " + input_dir + fname +'_clusterClientRepoPull.json'
     with open(input_dir + fname + '-sorted_reqs_repo_clientForclients.json', 'r') as fp:
-        blob = json.load(fp) 
-      
+        blob = json.load(fp)
+
     client_repo_dict = defaultdict(list)
-    
+
     f = open(input_dir + fname + '-_clusterClientRepoPull.lst', 'w')
-    
-    for client, rlst in blob: 
+
+    for client, rlst in blob.items():
         repo_state_dict = {}
         if 0 == len(rlst):
             print "empty reqs"
-        
+
         for r in rlst:
             uri = r[0]['uri']
 #         layer_or_manifest_id = uri.rsplit('/', 1)[1]
@@ -701,48 +701,53 @@ def clusterClientRepoPull(total_trace):
                 print "a wrong request"
                 print r
                 continue
-        
+
             parts = uri.split('/')
             repo = parts[1] + '/' + parts[2]
             #key = client address : reponame
             layer_or_manifest_id = uri.rsplit('/', 1)[1]
-            key = r[0]['clientAddr'] + ':' + repo   
-             
+            key = r[0]['clientAddr'] + ':' + repo
+
             if 1 == len(r):
                 print "empty get manifest request"
                 if key in repo_state_dict.keys():
-                    repo_state_dict[key][0] += 1
-                    repo_state_dict[key][2] += 1
+#                    repo_state_dict[key][0] += 1
+#                    repo_state_dict[key][2] += 1
+
+                    repo_state_dict[key] = (repo_state_dict[key][0]+1, repo_state_dict[key][1],            repo_state_dict[key][2]+1, repo_state_dict[key][3])
                 else:
                     repo_state_dict[key] = (1,0,1,[]) # empty get count, repull cnt, total pull cnt
+                continue
+
             llst = []
             for l in r[1:]:
                 lid = layer_or_manifest_id = uri.rsplit('/', 1)[1]
-                llst.append[lid]
-                
+                llst.append(lid)
+
             if key in repo_state_dict.keys():
                 prev_lst = repo_state_dict[key][3]
                 repulled_lst = list(set(prev_lst) & set(llst))
                 if len(repulled_lst) >= 0.5*len(prev_lst) or len(repulled_lst) >= 0.5*len(llst):
-                    repo_state_dict[key][1] += 1
+                    repo_state_dict[key] = (repo_state_dict[key][0], repo_state_dict[key][1] + 1, repo_state_dict[key][2] + 1, list(set(prev_lst) | set(llst)))
 #                 else:
-                repo_state_dict[key][2] += 1
-                
-                repo_state_dict[key][3] = list(set(prev_lst) | set(llst))
+                #repo_state_dict[key][2] += 1
+
+                #repo_state_dict[key][3] = list(set(prev_lst) | set(llst))
             else:
                 repo_state_dict[key] = (0,0,1,llst) # empty get count, repull cnt, partial pull cnt
-        
+
         client_repo_dict[client].append(repo_state_dict)
-             
-        print key
-        print repo_state_dict[key]
-        f.write(str(repo_state_dict[key][0])+'\t'+str(repo_state_dict[key][1])+'\t'+str(repo_state_dict[key][2])+'\t\n')
-         
+
+        print client
+        print repo_state_dict
+        for key in repo_state_dict.keys():
+            f.write(str(repo_state_dict[key][0])+'\t'+str(repo_state_dict[key][1])+'\t'+str(repo_state_dict[key][2])+'\t\n')
+
     with open(input_dir + fname +'_clusterClientRepoPull.json', 'w') as fp:
         json.dump(client_repo_dict, fp)
-        
+
     f.close()
->>>>>>> 0ba27965e20b5f761d035f38df9f6830b1aeed72
+#>>>>>>> 0ba27965e20b5f761d035f38df9f6830b1aeed72
 
 
 def repullReqsCal(total_trace):
@@ -1262,7 +1267,7 @@ def main():
     elif args.command == 'clusterClientReqForClients':
         clusterClientReqForClients(trace_dir)
     elif args.command == 'clusterClientRepoPull':
-        clusterClientRepoPull(total_trace)
+        clusterClientRepoPull(trace_dir)
         return
 
 
