@@ -113,7 +113,7 @@ def get_requests(trace_dir):
 def analyze_layerlifetime(total_trace):
     interaccess = []
     fname = os.path.basename(total_trace)
-    with open(os.path.join(fname + '-layer_access_timestamp.json'), 'r') as fp:
+    with open(os.path.join(input_dir, fname + '-layer_access_timestamp.json'), 'r') as fp:
         layerTOtimedic = json.load(fp)
 
     for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reverse=True):
@@ -148,7 +148,7 @@ def analyze_requests(total_trace):
         uri = r['http.request.uri']
         method = r['http.request.method']
 
-        if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
+        if (method != 'GET') or ('manifest' not in uri):
             # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
