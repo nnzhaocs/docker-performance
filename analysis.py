@@ -671,9 +671,9 @@ def repullReqUsr(total_trace):
             if tup[1]:
                 repulledlayer_cnt += tup[1]
         f.write(str(usrlayer_cnt)+'\t'+str(repulledlayer_cnt)+'\t\n')
-    print "totallayer_cnt:    " + str(totallayer_cnt)
+    print "totallayer_cnt:    " + str(usrlayer_cnt)
     print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
-    print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
+    print "ratio:  " + str(1.0*repulledlayer_cnt/usrlayer_cnt)
     clientTOlayerMap.close()
     f.close()
 
