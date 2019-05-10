@@ -1,0 +1,9 @@
+sudo apt install python-pip
+pip install requests
+sudo pip install pyyaml
+sudo pip install python-dxf
+pip install hash_ring
+pip install statistics
+pip install numpy
+pip install -U sqlitedict
+
