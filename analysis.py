@@ -111,125 +111,67 @@ def get_requests(trace_dir):
 
 
 def analyze_layerlifetime():
-
-    layerPUTGAcctimedic = defaultdict(list)
-    layerNPUTGAcctimedic = defaultdict(list)
-    layerNGETAcctimedic = {}
-
-    layer1stPUT = -1
-#     layer1stGET = -1
-    layerNPUT = False
-    layerNGET = False
-#     layecntGET = 0
-
-    with open(os.path.join(input_dir, 'layer_access.json')) as fp:
+    interaccess = []
+    
+    with open(os.path.join(fname + '-layer_access_timestamp.json'), 'r') as fp:
         layerTOtimedic = json.load(fp)
 
     for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reverse=True):
 
-        #lifetime = layerTOtimedic[k][len(layerTOtimedic[k][0])-1][1] - layerTOtimedic[k][0][1]
-        #lifetime = lifetime.total_seconds()
-
         lst = layerTOtimedic[k]
 
-        if 'PUT' == lst[0][0]:
-            layer1stPUT = 0
-            if len(lst) == 1:
-                layerNGET = True
-        else:
-            layerNPUT = True
-
-        if True == layerNGET:
-            layerNGETAcctimedic[k] = True
-            continue
-
-        starttime = lst[0][1]#datetime.datetime.strptime(lst[0][1], '%Y-%m-%dT%H:%M:%S.%fZ')
-        interaccess = ((starttime),)
-        #interaccess = interaccess + (k,)
-        # (digest, next pull time)
+        if 1 == len(lst):
+            continue 
 
         for i in range(len(lst)-1):
-            nowtime = datetime.datetime.strptime(lst[i][1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i][1]
-            nexttime = datetime.datetime.strptime(lst[i+1][1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i+1][1]
+            nowtime = datetime.datetime.strptime(lst[i], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i][1]
+            nexttime = datetime.datetime.strptime(lst[i+1], '%Y-%m-%dT%H:%M:%S.%fZ')#lst[i+1][1]
             delta = nexttime - nowtime
             delta = delta.total_seconds()
+            
+            interaccess.append(delta)
 
-            interaccess = interaccess + (delta,)
-
-        if -1 == layer1stPUT:
-            layerNPUTGAcctimedic[k] = interaccess
-        else:
-            layerPUTGAcctimedic[k] = interaccess
-
-    if layerNGETAcctimedic:
-        with open(os.path.join(input_dir, 'layerNGETAcctime.json'), 'w') as fp:
-            json.dump(layerNGETAcctimedic, fp)
-    if layerNPUTGAcctimedic:
-        with open(os.path.join(input_dir, 'layerNPUTAcctime.json'), 'w') as fp:
-            json.dump(layerNPUTGAcctimedic, fp)
-    if layerPUTGAcctimedic:
-         with open(os.path.join(input_dir, 'layerPUTGAcctime.json'), 'w') as fp:
-             json.dump(layerPUTGAcctimedic, fp)
+    with open(os.path.join(input_dir, fname + 'layeraccessinterval.json'), 'w') as fp:
+        json.dump(interaccess, fp)
 
 
 def analyze_requests(total_trace):
     organized = []
     layerTOtimedic = defaultdict(list)
-
-#     start = ()
-
-#     if round_robin is False:
-#         ring = hash_ring.HashRing(range(numclients))
+    fname = os.path.basename(total_trace)
+    print "the output file would be: " + input_dir + fname + '-layer_access_timestamp.json'
+    
     with open(total_trace, 'r') as f:
         blob = json.load(f)
 
-#     for i in range(numclients):
-#         organized.append([{'port': port, 'id': random.getrandbits(32), 'threads': client_threads, 'wait': wait, 'registry': registries, 'random': push_rand}])
-#         print organized[-1][0]['id']
-#     i = 0
-
     for r in blob:
         uri = r['http.request.uri']
-        usrname = uri.split('/')[1]
-        repo_name = uri.split('/')[2]
+        method = r['http.request.method']
 
-        if 'blob' in uri:
+        if (r[0]['method'] != 'GET') or ('manifest' not in r[0]['uri']):
             # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
             layer_id = uri.rsplit('/', 1)[1]
             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-            method = r['http.request.method']
+            
 
             print "layer_id: "+layer_id
-            print "repo_name: "+repo_name
-            print "usrname: "+usrname
+#             print "repo_name: "+repo_name
+#             print "usrname: "+usrname
 
-    #         if layer_id in layerTOtimedic.keys():
-            layerTOtimedic[layer_id].append((method, timestamp))
+            layerTOtimedic[layer_id].append(timestamp)
 
-    with open(os.path.join(input_dir, 'layer_access.json'), 'w') as fp:
+    with open(os.path.join(input_dir, fname + '-layer_access_timestamp.json'), 'w') as fp:
         json.dump(layerTOtimedic, fp)
 
 
 def analyze_repo_reqs(total_trace):
-#     organized = []
     usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
     repoTOlayerdic = defaultdict(list)
     usrTOrepodic = defaultdict(list) # repoTOlayerdic
 
-#     start = ()
-
-#     if round_robin is False:
-#         ring = hash_ring.HashRing(range(numclients))
     with open(total_trace, 'r') as f:
         blob = json.load(f)
-
-#     for i in range(numclients):
-#         organized.append([{'port': port, 'id': random.getrandbits(32), 'threads': client_threads, 'wait': wait, 'registry': registries, 'random': push_rand}])
-#         print organized[-1][0]['id']
-#     i = 0
-
-    # get usr -> repo -> layer map
 
     for r in blob:
         uri = r['http.request.uri']
