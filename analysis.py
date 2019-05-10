@@ -1153,6 +1153,9 @@ def main():
         clusterClientReqForClients(trace_dir)
     elif args.command == 'clusterClientRepoPull':
         clusterClientRepoPull(trace_dir)
+    elif args.command == 'repullReqUsr':
+        repullReqUsr(trace_dir)
+#repullReqUsr
         return
 
 
