@@ -15,29 +15,28 @@ from dxf import *
 from multiprocessing import Process, Queue
 import importlib
 import hash_ring
-from mimify import repl
 
-## get requests
-def send_request_get(client, payload):
-    ## Read from the queue
-    s = requests.session()
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    s.post("http://" + str(client) + "/up", data=json.dumps(payload), headers=headers, timeout=100)
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import as_completed
+from client import *
+from os.path import stat
 
-def send_warmup_thread(requests, q, registry):
+
+def send_warmup_thread(req):
+    idx = req[0]
+    request = req[1]
+    
     trace = {}
     dxf = DXF(registry, 'test_repo', insecure=True)
     for request in requests:
-        if request['size'] < 0:
-            trace[request['uri']] = 'bad'
         try:
             dgst = dxf.push_blob(request['data'])
         except Exception as e:
-	    print("dxf send exception: ", e, request['data'])
+            print("dxf send exception: ", e, request['data'])
             dgst = 'bad'
         print request['uri'], dgst
         trace[request['uri']] = dgst
-    q.put(trace)
+    return trace
 
 #######################
 # send to registries according to cht 
@@ -46,58 +45,38 @@ def send_warmup_thread(requests, q, registry):
 # let set threads = n* len(registries)
 #######################
 
-def warmup(data, out_trace, registries, threads, numclients):
+def warmup(data, out_trace, registries, threads):
     trace = {}
-    processes = []
-    q = Queue()
     process_data = []
-    # nannan
-    # requests distribution based cht, where digest is blob digest.
-    # process_data = [[] [] [] [] [] [] [] ... []threads]
-    #                 r1 r2 r3 r1 r2 r3
-    
+    global ring
     ring = hash_ring.HashRing(registries)
-    
-    for i in range(threads):
-        process_data.append([])
-
-    count = 0
+       
     for request in data:
-        if request['method'] == 'GET':
+        if (request['method']) == 'GET':  #and ('blobs' in request['uri']):
             uri = request['uri']
             layer_id = uri.split('/')[-1]
             registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
             idx = registries.index(registry_tmp) 
-            process_data[(idx+(len(registries)*count))%threads].append(request)
-            print "layer: "+layer_id+"goest to registry: "+registry_tmp+", idx:"+str(idx)
-            count += 1
-	    #if i > 10:
-		#break;
-    threadcount = 0
-    for regidx in range(len(registries)):
-        for i in range(0, threads, len(registries)):
-            p = Process(target=send_warmup_thread, args=(process_data[regidx+i], q, registries[regidx]))
-            processes.append(p)
-            threadcount += 1
+            process_data.append((idx, request))
 
-    for p in processes:
-        p.start()
-
-    for i in range(threads):
-        d = q.get()
-        for thing in d:
-            if thing in trace:
-                if trace[thing] == 'bad' and d[thing] != 'bad':
-                    trace[thing] = d[thing]
-            else:
-                trace[thing] = d[thing]
-
-    for p in processes:
-        p.join()
+    print("total requests:", len(list(set(process_data))))
+    
+    with ProcessPoolExecutor(max_workers=threads) as executor:
+        futures = [executor.submit(send_warmup_thread, req) for req in list(set(process_data))]
+        for future in as_completed(futures):
+            print(future.result())
+            try:
+                x = future.result()
+                for k in x:
+                    if x[k] != 'bad':
+                        trace[k] = x[k]
+                    
+            except Exception as e:
+                print('something generated an exception: %s', e)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
-    print("total threads:", threadcount)
+    print("max threads:", threads)
 
 
 #############
@@ -115,16 +94,12 @@ def stats(responses):
     total = len(responses)
     onTimes = 0
     failed = 0
-    wrongdigest = 0
+
     startTime = responses[0]['time']
     for r in responses:
-	print r
-#         if r['onTime'] == 'failed':
-##nannan
-        if isinstance(r['onTime_l'], list):
-	    #i = [json.loads(l) for l in r['onTime_l']]
-	    #print i
-            for i in r['onTime_l']:
+        print r
+        try:
+            for i in r['onTime']:
                 if "failed" in i['onTime']:
                     total -= 1
                     failed += 1
@@ -133,12 +108,7 @@ def stats(responses):
             if r['time'] + r['duration'] > endtime:
                 endtime = r['time'] + r['duration']
             latency += r['duration']
-            #data += r['size']
-#             if r['onTime'] == 'yes':
-#                 onTimes += 1
-#             if r['onTime'] == 'yes: wrong digest':
-#                 wrongdigest += 1
-        else:
+        except Exception as e:
             if "failed" in r['onTime']:
                 total -= 1
                 failed += 1
@@ -147,90 +117,36 @@ def stats(responses):
                 endtime = r['time'] + r['duration']
             latency += r['duration']
             data += r['size']
-#             if r['onTime'] == 'yes':
-#                 onTimes += 1
-##             if r['onTime'] == 'yes: wrong digest':
-##                 wrongdigest += 1
+
             
     duration = endtime - startTime
     print 'Statistics'
     print 'Successful Requests: ' + str(total)
     print 'Failed Requests: ' + str(failed)
-#     print 'Wrong digest requests: '+str(wrongdigest)
     print 'Duration: ' + str(duration)
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
-#     print '% requests on time: ' + str(1.*onTimes / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
 
-           
-def serve(port, ids, q, out_file):
-    server_address = ("0.0.0.0", port)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind(server_address)
-        sock.listen(len(ids))
-    except:
-        print "Port already in use: " + str(port)
-        q.put('fail')
-        quit()
-    q.put('success')
  
-    i = 0
-    response = []
-    print "server waiting"
-    while i < len(ids):
-        connection, client_address = sock.accept()
-        resp = ''
-        while True:
-            r = connection.recv(1024)
-            if not r:
-                break
-            resp += r
-        connection.close()
-        try:
-            info = json.loads(resp)
-            if info[0]['id'] in ids:
-                info = info[1:]
-                response.extend(info)
-                i += 1
-        except:
-            print 'exception occured in server'
-            pass
-
-    with open(out_file, 'w') as f:
-        json.dump(response, f)
-    print 'results written to ' + out_file
-    stats(response)
-
-  
 ## Get blobs
-def get_blobs(data, clients_list, port, out_file):
-    processess = []
+def get_blobs(data, numclients, out_file):
+    results = []
+    with ProcessPoolExecutor(max_workers = numclientss) as executor:
+        futures = [executor.submit(send_requests, reqlst) for reqlst in data]
+        for future in as_completed(futures):
+            print(future.result())
+            try:
+                x = future.result()
+                results.extend(results)
+                    
+            except Exception as e:
+                print('something generated an exception: %s', e)
+    stats(results)
 
-    ids = []
-    for d in data:
-        ids.append(d[0]['id'])
-
-    serveq = Queue()
-    server = Process(target=serve, args=(port, ids, serveq, out_file))
-    server.start()
-    status = serveq.get()
-    if status == 'fail':
-        quit()
-    ## Lets start processes
-    i = 0
-    for client in clients_list:
-        p1 = Process(target = send_request_get, args=(client, data[i], ))
-        processess.append(p1)
-        i += 1
-        print "starting client ..."
-    for p in processess:
-        p.start()
-    for p in processess:
-        p.join()
-
-    server.join()
+    with open(out_trace, 'w') as f:
+        json.dump(results, f)
+       
 
 ######
 # NANNAN: trace_file+'-realblob.json'
@@ -283,62 +199,60 @@ def get_requests(files, t, limit):
         return ret
 
 
-def absoluteFilePaths(directory):
-    absFNames = []
-    for dirpath,_,filenames in os.walk(directory):
-        for f in filenames:
-            absFNames.append(os.path.abspath(os.path.join(dirpath, f)))
-            
-    return absFNames
-
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
 ####
 
-def match(realblob_locations, trace_files):
-    print realblob_locations, trace_files
+def match(realblob_location_file, trace_files, limit):
+    print realblob_location_file, trace_files
 
     blob_locations = []
     tTOblobdic = {}
     blobTOtdic = {}
     ret = []
     i = 0
+    count = 0
     
-    for location in realblob_locations:
-        absFNames = absoluteFilePaths(location)
-	print "Dir: "+location+" has the following files"
-	print absFNames
-        blob_locations.extend(absFNames)
+    print "File: "+realblob_location_file+" has the following blobs"
+    
+    with open(realblob_location_file, 'r') as f:
+        for line in f:
+            print line
+            if line:
+                blob_locations.append(line.replace("\n", ""))
     
     for trace_file in trace_files:
         with open(trace_file, 'r') as f:
             requests = json.load(f)
             
         for request in requests:
-            
             method = request['http.request.method']
             uri = request['http.request.uri']
-	    if len(uri.split('/')) < 3:
-		continue
-            layer_id = uri.rsplit('/', 1)[1]
-            usrname = uri.split('/')[1]
-            repo_name = uri.split('/')[2]
+            if len(uri.split('/')) < 3:
+                continue
             
-            if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
+            if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
+                layer_id = uri.rsplit('/', 1)[1]
                 size = request['http.response.written']
                 if size > 0:
+                    if count > limit:
+                        break
                     if i < len(blob_locations):
-                        blob = blob_locations[i]
-                        if layer_id in tTOblobdic.keys():
-                            continue
-                        if blob in blobTOtdic.keys():
-                            continue
-                        
-                        tTOblobdic[layer_id] = blob
-                        blobTOtdic[blob] = layer_id
-
-                        size = os.stat(blob).st_size
+                        if 'manifest' in uri:
+                            blob = './config_1.yaml'
+                        else:
+                            blob = blob_locations[i]
+                            if layer_id in tTOblobdic.keys():
+                                continue
+                            if blob in blobTOtdic.keys():
+                                print "this is not gonna happen"
+                                continue
+                            
+                            tTOblobdic[layer_id] = blob
+                            blobTOtdic[blob] = layer_id
+    
+                            size = os.stat(blob).st_size
                 
                         r = {
                             "host": request['host'],
@@ -356,6 +270,7 @@ def match(realblob_locations, trace_files):
                         print r
                         ret.append(r)
                         i += 1
+                        count += 1
                                
         with open(trace_file+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
@@ -374,25 +289,15 @@ def match(realblob_locations, trace_files):
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
 
-def organize(requests, out_trace, numclients, client_threads, port, wait, registries, round_robin, push_rand, replay_limits):
-    organized = []
-
-    if round_robin is False:
-        ring = hash_ring.HashRing(range(numclients))
+def organize(requests, out_trace, numclients):
+    organized = [[]]
+    clientTOThreads = {}
+    clientToReqs = defaultdict(list)
+    
     with open(out_trace, 'r') as f:
         blob = json.load(f)
-
-    for i in range(numclients):
-        organized.append([{'port': port, 'id': random.getrandbits(32), 'threads': client_threads, 'wait': wait, 'registry': registries, 'random': push_rand}])
-        print organized[-1][0]['id']
-    i = 0
-    cnt = 0
-    
+            
     for r in requests:
-        cnt += 1
-        if replay_limits > 0:
-            if cnt > replay_limits:
-                break
         request = {
             'delay': r['delay'],
             'duration': r['duration'],
@@ -404,20 +309,66 @@ def organize(requests, out_trace, numclients, client_threads, port, wait, regist
             if b != 'bad':
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
-                if round_robin is True:
-                    organized[i % numclients].append(request)
-                    i += 1
-                else:
-                    organized[ring.get_node(r['client'])].append(request)
         else:
             request['size'] = r['size']
             request['method'] = 'PUT'
-            if round_robin is True:
-                organized[i % numclients].append(request)
-                i += 1
+            
+        clientToReqs[r['client']].append(request)
+                
+    img_req_group = []
+    for cli, reqs in clientToReqs.items():
+        cli_img_req_group = [[]]
+        cli_img_push_group = [[]]
+        prev = cli_img_req_group[-1]
+        prev_push = cli_img_push_group[-1]
+        
+        for req in reqs:
+            uri = req['uri']
+            if req['method'] == 'GET':
+                print 'GET: '+uri
+                if 'blobs' in uri:
+                    print 'GET layer:'+uri
+                    prev.append(req)
+                else:
+                    print 'GET manifest:'+uri
+                    cur = []
+                    cur.append(req)
+                    cli_img_req_group.append(cur)
+                    prev = cli_img_req_group[-1]
             else:
-                organized[ring.get_node(r['client'])].append(request)
-        print request
+                print 'PUT: '+uri
+                if 'blobs' in uri:
+                    print 'PUT layer:'+uri
+                    prev_push.append(req)
+                elif 'manifests' in uri:
+                    print 'PUT manifest:'+uri
+                    prev_push.append(req)
+                    cur_push = []
+                    cli_img_push_group.append(cur_push)
+                    prev_push = cli_img_push_group[-1]
+        
+        cli_img_req_group += cli_img_push_group
+        cli_img_req_group_new = [x for x in cli_img_req_group if len(x)]
+        print cli_img_req_group_new
+        img_req_group += cli_img_req_group_new
+        img_req_group.sort(key= lambda x: x[0]['delay'])
+
+#     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'w') as fp:
+#         json.dump(img_req_group, fp)
+    
+    i = 0
+    for r in img_req_group:
+        req = r[0]
+        
+        try:
+            threadid = clientTOThreads[req['client']]
+            organized[threadid].append(r)
+        except Exception as e:
+            organized[i%numclients].append(r)
+            clientTOThreads[req['client']] = i%numclients
+            i += 1     
+            
+        print req
 
     return organized
 
@@ -432,20 +383,14 @@ def main():
     args = parser.parse_args()
     
     config = file(args.input, 'r')
+    global ring
 
     try:
         inputs = yaml.load(config)
     except Exception as inst:
         print 'error reading config file'
-        print inst
         exit(-1)
 
-    verbose = False
-
-    if 'verbose' in inputs:
-        if inputs['verbose'] is True:
-            verbose = True
-            print 'Verbose Mode'
 
     if 'trace' not in inputs:
         print 'trace field required in config file'
@@ -462,10 +407,9 @@ def main():
     else:
         trace_files.extend(inputs['trace']['traces'])
 
-    if verbose:
-        print 'Input traces'
-        for f in trace_files:
-            print f
+    print 'Input traces'
+    for f in trace_files:
+        print f
 
     limit_type = None
     limit = 0
@@ -476,27 +420,22 @@ def main():
             limit = inputs['trace']['limit']['amount']
         else:
             print 'Invalid trace limit_type: limit_type must be either seconds or requests'
-            print exit(1)
-    elif verbose:
+            exit(1)
+    else:
         print 'limit_type not specified, entirety of trace files will be used will be used.'
 
     if 'output' in inputs['trace']:
         out_file = inputs['trace']['output']
     else:
         out_file = 'output.json'
-        if verbose:
-            print 'Output trace not specified, ./output.json will be used'
+        print 'Output trace not specified, ./output.json will be used'
 
-    generate_random = False
     if args.command != 'simulate':
         if "warmup" not in inputs or 'output' not in inputs['warmup']:
             print 'warmup not specified in config, warmup output required. Exiting'
             exit(1)
         else:
             interm = inputs['warmup']['output']
-            if 'random' in inputs['warmup']:
-                if inputs['warmup']['random'] is True:
-                    generate_random = True
 
     registries = []
     if 'registry' in inputs:
@@ -513,76 +452,39 @@ def main():
 	    print "please write realblobs in the config files"
 	    return
 
-#     replay_limits = 0
-#     if 'debugging' in inputs['client_info']:
-#         if inputs['client_info']['debugging'] is True:
-#             replay_limits = inputs['client_info']['debugging']['limits']
+    if 'redis' not in inputs:
+        print 'please config redis for client!'
+    else:
+        redis_host = inputs['redis']['host']
+        redis_port = inputs['redis']['port']
+        print 'redis: host:'+str(redis_host)+',port:'+str(redis_port)
 
     json_data = get_requests(trace_files, limit_type, limit)
 
-    if args.command == 'warmup':
-        if verbose: 
-            print 'warmup mode'
+    if args.command == 'warmup': 
+        print 'warmup mode'
         if 'threads' in inputs['warmup']:
             threads = inputs['warmup']['threads']
         else:
             threads = 1
-        if verbose:
-            print 'warmup threads: ' + str(threads)
+        print 'warmup threads same as number of clients: ' + str(threads)
             # NANNAN: not sure why only warmup a single registry, let's warmup all.
-        warmup(json_data, interm, registries, threads, generate_random)
+        warmup(json_data, interm, registries, threads)
 
     elif args.command == 'run':
-        if verbose:
-            print 'run mode'
-
-        if 'client_info' not in inputs or inputs['client_info'] is None:
-            print 'client_info required for run mode in config file'
-            print 'exiting'
-            exit(1)
-
-        if 'master_port' not in inputs['client_info']:
-            if verbose:
-                print 'master server port not specified, assuming 8080'
-                port = 8080
-        else:
-            port = inputs['client_info']['master_port']
-            if verbose:
-                print 'master port: ' + str(port)
-
+        print 'run mode'
         if 'threads' not in inputs['client_info']:
-            if verbose:
-                print 'client threads not specified, 1 thread will be used'
-            client_threads = 1
+            print 'client threads not specified, 1 thread will be used'
+            client_threads = 3
         else:
             client_threads = inputs['client_info']['threads']
-            if verbose:
-                print str(client_threads) + ' client threads'
+            print str(client_threads) + ' client threads'
 
-        if 'client_list' not in inputs['client_info']:
-            print 'client_list entries are required in config file'
-            exit(1)
-        else:
-            client_list = inputs['client_info']['client_list']
-
-        if 'wait' not in inputs['client_info']:
-            if verbose:
-                print 'Wait not specified, clients will not wait'
-            wait = False
-        elif inputs['client_info']['wait'] is True:
-            wait = True
-        else:
-            wait = False
-
-        round_robin = True
+        config_client(ring, redis_host, redis_port, client_threads, registries) #requests, out_trace, numclients
         
-        if 'route' in inputs['client_info']:
-            if inputs['client_info']['route'] is True:
-                round_robin = False
-
-        data = organize(json_data, interm, len(client_list), client_threads, port, wait, registries, round_robin, generate_random, 0)
+        data = organize(json_data, interm, threads)
         ## Perform GET
-        get_blobs(data, client_list, port, out_file)
+        get_blobs(data, threads, out_file)
 
 
     elif args.command == 'simulate':
