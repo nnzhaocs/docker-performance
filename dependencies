@@ -6,4 +6,6 @@ pip install hash_ring
 pip install statistics
 pip install numpy
 pip install -U sqlitedict
+pip install futures
+
 

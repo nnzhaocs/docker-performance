@@ -15,6 +15,7 @@ from dxf import *
 from multiprocessing import Process, Queue
 import importlib
 import hash_ring
+from collections import defaultdict
 
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
@@ -23,19 +24,19 @@ from os.path import stat
 
 
 def send_warmup_thread(req):
-    idx = req[0]
+    registry = req[0]
     request = req[1]
     
     trace = {}
     dxf = DXF(registry, 'test_repo', insecure=True)
-    for request in requests:
-        try:
-            dgst = dxf.push_blob(request['data'])
-        except Exception as e:
-            print("dxf send exception: ", e, request['data'])
-            dgst = 'bad'
-        print request['uri'], dgst
-        trace[request['uri']] = dgst
+    #for request in requests:
+    try:
+        dgst = dxf.push_blob(request['data'])
+    except Exception as e:
+        print("dxf send exception: ", e, request['data'])
+        dgst = 'bad'
+    print request['uri'], dgst
+    trace[request['uri']] = dgst
     return trace
 
 #######################
@@ -56,13 +57,13 @@ def warmup(data, out_trace, registries, threads):
             uri = request['uri']
             layer_id = uri.split('/')[-1]
             registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
-            idx = registries.index(registry_tmp) 
-            process_data.append((idx, request))
-
-    print("total requests:", len(list(set(process_data))))
+            #idx = registries.index(registry_tmp) 
+            process_data.append((registry_tmp, request))
+    print process_data
+    print("total requests:", len(process_data))
     
     with ProcessPoolExecutor(max_workers=threads) as executor:
-        futures = [executor.submit(send_warmup_thread, req) for req in list(set(process_data))]
+        futures = [executor.submit(send_warmup_thread, req) for req in process_data]
         for future in as_completed(futures):
             print(future.result())
             try:
@@ -132,19 +133,21 @@ def stats(responses):
 ## Get blobs
 def get_blobs(data, numclients, out_file):
     results = []
-    with ProcessPoolExecutor(max_workers = numclientss) as executor:
+    i = 0
+    with ProcessPoolExecutor(max_workers = numclients) as executor:
         futures = [executor.submit(send_requests, reqlst) for reqlst in data]
         for future in as_completed(futures):
-            print(future.result())
+	    print i
+	    i += 1
+            #print future.result()
             try:
                 x = future.result()
-                results.extend(results)
-                    
+                results.extend(x)        
             except Exception as e:
-                print('something generated an exception: %s', e)
+                print('get_blobs: something generated an exception: %s', e)
+    print "start stats"
     stats(results)
-
-    with open(out_trace, 'w') as f:
+    with open(out_file, 'w') as f:
         json.dump(results, f)
        
 
@@ -204,8 +207,8 @@ def get_requests(files, t, limit):
 # the output file is the last trace filename-realblob.json, which is total trace file.
 ####
 
-def match(realblob_location_file, trace_files, limit):
-    print realblob_location_file, trace_files
+def match(realblob_location_files, trace_files, limit):
+    print realblob_location_files, trace_files
 
     blob_locations = []
     tTOblobdic = {}
@@ -213,14 +216,14 @@ def match(realblob_location_file, trace_files, limit):
     ret = []
     i = 0
     count = 0
+    for realblob_location_file in realblob_location_files:
+    	print "File: "+realblob_location_file+" has the following blobs"
     
-    print "File: "+realblob_location_file+" has the following blobs"
-    
-    with open(realblob_location_file, 'r') as f:
-        for line in f:
-            print line
-            if line:
-                blob_locations.append(line.replace("\n", ""))
+    	with open(realblob_location_file, 'r') as f:
+            for line in f:
+            	print line
+            	if line:
+                    blob_locations.append(line.replace("\n", ""))
     
     for trace_file in trace_files:
         with open(trace_file, 'r') as f:
@@ -290,7 +293,7 @@ def match(realblob_location_file, trace_files, limit):
 ##############
 
 def organize(requests, out_trace, numclients):
-    organized = [[]]
+    organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
     clientToReqs = defaultdict(list)
     
@@ -302,7 +305,8 @@ def organize(requests, out_trace, numclients):
             'delay': r['delay'],
             'duration': r['duration'],
             'data': r['data'],
-            'uri': r['uri']
+            'uri': r['uri'],
+	    'client': r['client']
         }
         if r['uri'] in blob:
             b = blob[r['uri']]
@@ -359,7 +363,6 @@ def organize(requests, out_trace, numclients):
     i = 0
     for r in img_req_group:
         req = r[0]
-        
         try:
             threadid = clientTOThreads[req['client']]
             organized[threadid].append(r)
@@ -446,7 +449,7 @@ def main():
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
             realblob_locations = inputs['client_info']['realblobs']
-            match(realblob_locations, trace_files)
+            match(realblob_locations, trace_files, limit)
             return
 	else:
 	    print "please write realblobs in the config files"
@@ -461,14 +464,15 @@ def main():
 
     json_data = get_requests(trace_files, limit_type, limit)
 
+    if 'threads' in inputs['warmup']:
+        threads = inputs['warmup']['threads']
+    else:
+        threads = 1
+    print 'warmup threads same as number of clients: ' + str(threads)
+
     if args.command == 'warmup': 
         print 'warmup mode'
-        if 'threads' in inputs['warmup']:
-            threads = inputs['warmup']['threads']
-        else:
-            threads = 1
-        print 'warmup threads same as number of clients: ' + str(threads)
-            # NANNAN: not sure why only warmup a single registry, let's warmup all.
+        # NANNAN: not sure why only warmup a single registry, let's warmup all.
         warmup(json_data, interm, registries, threads)
 
     elif args.command == 'run':
@@ -480,7 +484,7 @@ def main():
             client_threads = inputs['client_info']['threads']
             print str(client_threads) + ' client threads'
 
-        config_client(ring, redis_host, redis_port, client_threads, registries) #requests, out_trace, numclients
+        config_client(redis_host, redis_port, client_threads, registries) #requests, out_trace, numclients
         
         data = organize(json_data, interm, threads)
         ## Perform GET
