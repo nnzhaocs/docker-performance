@@ -1,0 +1,15 @@
+{'hits': 61474, 'bad prefetch': 93, 'max size': 3872828958, 'misses': 44541, 'hit ratio': 0.5798613403763618, 'cache capacity': 3872830000, 'good prefetch': 403}
+{'hits': 62401, 'bad prefetch': 142, 'max size': 7745656147, 'misses': 43697, 'hit ratio': 0.588144922618711, 'cache capacity': 7745660000, 'good prefetch': 558}
+{'hits': 88037, 'bad prefetch': 204, 'max size': 11618481366, 'misses': 40683, 'hit ratio': 0.683941889372281, 'cache capacity': 11618490000, 'good prefetch': 948}
+{'hits': 95698, 'bad prefetch': 276, 'max size': 15491297817, 'misses': 33666, 'hit ratio': 0.7397575832534554, 'cache capacity': 15491320000, 'good prefetch': 1213}
+{'hits': 105731, 'bad prefetch': 341, 'max size': 23236926471, 'misses': 37206, 'hit ratio': 0.7397035057402912, 'cache capacity': 23236980000, 'good prefetch': 1634}
+{'hits': 141784, 'bad prefetch': 154, 'max size': 7933237341, 'misses': 131189, 'hit ratio': 0.5194066812468633, 'cache capacity': 7933238960, 'good prefetch': 545}
+{'hits': 142400, 'bad prefetch': 330, 'max size': 15866414273, 'misses': 125702, 'hit ratio': 0.5311411328524218, 'cache capacity': 15866477920, 'good prefetch': 973}
+{'hits': 198451, 'bad prefetch': 499, 'max size': 23799615061, 'misses': 104081, 'hit ratio': 0.655966972088903, 'cache capacity': 23799716880, 'good prefetch': 1849}
+{'hits': 252512, 'bad prefetch': 544, 'max size': 31732916724, 'misses': 86425, 'hit ratio': 0.745011609827195, 'cache capacity': 31732955840, 'good prefetch': 2217}
+{'hits': 269456, 'bad prefetch': 803, 'max size': 47599425717, 'misses': 94459, 'hit ratio': 0.7404366404242749, 'cache capacity': 47599433760, 'good prefetch': 3475}
+{'hits': 622262, 'bad prefetch': 330, 'max size': 16304562969, 'misses': 194792, 'hit ratio': 0.7615922570601209, 'cache capacity': 16304565327, 'good prefetch': 1792}
+{'hits': 740477, 'bad prefetch': 584, 'max size': 32609123247, 'misses': 185458, 'hit ratio': 0.7997073228682359, 'cache capacity': 32609130655, 'good prefetch': 2885}
+{'hits': 882989, 'bad prefetch': 908, 'max size': 48913695169, 'misses': 162141, 'hit ratio': 0.8448604479825477, 'cache capacity': 48913695982, 'good prefetch': 4320}
+{'hits': 992034, 'bad prefetch': 1038, 'max size': 65218256782, 'misses': 144781, 'hit ratio': 0.8726433060788255, 'cache capacity': 65218261310, 'good prefetch': 5045}
+{'hits': 1212850, 'bad prefetch': 1345, 'max size': 97827391650, 'misses': 125152, 'hit ratio': 0.9064635179917518, 'cache capacity': 97827391965, 'good prefetch': 7704}

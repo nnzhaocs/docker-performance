@@ -88,42 +88,6 @@ def warmup(data, out_trace, registry, threads, generate_random):
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
 
-def stats(responses):
-    responses.sort(key = lambda x: x['time'])
-
-    endtime = 0
-    data = 0
-    latency = 0
-    total = len(responses)
-    onTimes = 0
-    failed = 0
-    wrongdigest = 0
-    startTime = responses[0]['time']
-    for r in responses:
-#         if r['onTime'] == 'failed':
-        if "failed" in r['onTime']:
-            total -= 1
-            failed += 1
-            continue
-        if r['time'] + r['duration'] > endtime:
-            endtime = r['time'] + r['duration']
-        latency += r['duration']
-        data += r['size']
-        if r['onTime'] == 'yes':
-            onTimes += 1
-        if r['onTime'] == 'yes: wrong digest':
-            wrongdigest += 1
-
-    duration = endtime - startTime
-    print 'Statistics'
-    print 'Successful Requests: ' + str(total)
-    print 'Failed Requests: ' + str(failed)
-    print 'Wrong digest requests: '+str(wrongdigest)
-    print 'Duration: ' + str(duration)
-    print 'Data Transfered: ' + str(data) + ' bytes'
-    print 'Average Latency: ' + str(latency / total)
-    print '% requests on time: ' + str(1.*onTimes / total)
-    print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
 
 
 def serve(port, ids, q, out_file):
@@ -738,11 +702,10 @@ def main():
 #         pi = inputs['simulate']['name']
 #         if '.py' in pi:
 #             pi = pi[:-3]
-        portion_files = {'10': 'total_trace_10_percent.json',
-                         '25': 'total_trace_25_percent.json',
-                         '50': 'total_trace_50_percent.json',
-                         '75': 'total_trace_75_percent.json',
-                         '5': 'total_trace_5_percent.json',
+        portion_files = {'10': 'total_trace_fra02_10_percent.json',
+                         '25': 'total_trace_fra02_25_percent.json',
+                         '50': 'total_trace_fra02_50_percent.json',
+                         '75': 'total_trace_fra02_75_percent.json',
                          }
         if args.portion in portion_files.keys():
             with open(os.path.join(input_dir, portion_files[args.portion]), 'r') as fp:
@@ -754,7 +717,7 @@ def main():
         else:
             print("you chose poorly")
             exit()
-        pi = 'siftcachenew' #'cache_usr_repo_layer' #'prefetch_old'
+        pi = 'prefetch_layersize1' #'cache_usr_repo_layer' #'prefetch_old'
         try:
             plugin = importlib.import_module(pi)
         except Exception as inst:

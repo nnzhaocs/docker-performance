@@ -66,11 +66,11 @@ def reformat(indata, type):
 # layers: 829,202
 
 def run_sim(requests, type, portion):
-    num_layers = {10: 194007,
-                  25: 267151,
-                  50: 339813,
-                  75: 394729,
-                  100: 450944
+    num_layers = {10:75059,
+                  25: 85292,
+                  50: 96712,
+                  75: 111213,
+                  100: 122744,
                   }
     t = time.time()
        
@@ -151,7 +151,7 @@ def init(data, portion=100):
     with open(outputfile, 'w') as fp:
         json.dump(info, fp)
 
-    with open("LRU_total_hit_ratios.json", 'a') as fp:
+    with open("LRU_total_hit_ratios_lon02.json", 'a') as fp:
         fp.write(str(portion)+"% trace\n")
         json.dump(total_hit_ratio, fp)
         fp.write("\n\n")
