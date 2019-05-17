@@ -17,7 +17,7 @@ from dxf import *
 import rejson, redis, json
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
-
+from uhashring import HashRing
 
 # app = Bottle()
 
@@ -251,7 +251,7 @@ def config_client(redis_host, redis_port, num_client_threads, registries_input):
     global registries
     registries = registries_input
     numthreads = num_client_threads
-    ring = hash_ring.HashRing(registries)
+    ring = HashRing(nodes = registries)
     
     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 

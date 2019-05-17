@@ -21,13 +21,18 @@ from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from client import *
 from os.path import stat
+from uhashring import HashRing
 
 
 def send_warmup_thread(req):
     registry = req[0]
     request = req[1]
-    
+    all = {}
     trace = {}
+    size = 0
+    onTime = 'yes'
+    now = time.time()
+    
     dxf = DXF(registry, 'test_repo', insecure=True)
     #for request in requests:
     try:
@@ -35,9 +40,17 @@ def send_warmup_thread(req):
     except Exception as e:
         print("dxf send exception: ", e, request['data'])
         dgst = 'bad'
+        onTime = 'failed: '+str(e)
+        
+    t = time.time() - now
+    result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t}
+    #print("Putting results for: ", dgst, result)
+#     return result
+    print result
     print request['uri'], dgst
     trace[request['uri']] = dgst
-    return trace
+    all = {'trace': trace, 'result': result}
+    return all
 
 #######################
 # send to registries according to cht 
@@ -48,9 +61,10 @@ def send_warmup_thread(req):
 
 def warmup(data, out_trace, registries, threads):
     trace = {}
+    results = []
     process_data = []
     global ring
-    ring = hash_ring.HashRing(registries)
+    ring = HashRing(nodes = registries)
        
     for request in data:
         if (request['method']) == 'GET':  #and ('blobs' in request['uri']):
@@ -68,15 +82,21 @@ def warmup(data, out_trace, registries, threads):
             print(future.result())
             try:
                 x = future.result()
-                for k in x:
-                    if x[k] != 'bad':
-                        trace[k] = x[k]
-                    
+                for k in x['trace']:
+                    if x['trace'][k] != 'bad':
+                        trace[k] = x['trace'][k]
+                        
+                results.append(x['result'])    
             except Exception as e:
                 print('something generated an exception: %s', e)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
+        
+    stats(results)
+    with open('warmup_push_performance.json', 'w') as f:
+        json.dump(results, f)
+            
     print("max threads:", threads)
 
 
