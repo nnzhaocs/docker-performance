@@ -579,7 +579,7 @@ def clusterClientRepoPull(total_trace):
 
 def repullReqsCal(total_trace):
     fname = os.path.basename(total_trace)
-    clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict('./'+ fname +'my_repulldb.sqlite', autocommit=True)
     totallayer_cnt = 0
     repulledlayer_cnt = 0
     for cli, lst in clientTOlayerMap.iteritems():
@@ -599,9 +599,9 @@ def repullReqsCal(total_trace):
 
 def repullReqUsr(total_trace):
     fname = os.path.basename(total_trace)
-    clientTOlayerMap = SqliteDict('/home/nannan/dockerimages/docker-traces/data_centers/usrRepulls'+ fname +'my_dba.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict(input_dir+'/usrRepulls/'+ fname +'my_repulldb.sqlite', autocommit=True)
 
-    f = open(input_dir + fname + '-layers_repulllayers_client.lst', 'w')
+    f = open(input_dir +'usrRepulls/repullClientratiolst/' + fname + '-layers_repulllayers_client.lst', 'w')
     for cli, lst in clientTOlayerMap.iteritems():
         usrlayer_cnt = 0
         repulledlayer_cnt = 0
