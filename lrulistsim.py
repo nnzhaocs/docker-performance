@@ -24,6 +24,7 @@ class complex_cache:
         self.repo_set.add(request['repo'])
         if self.repo_lru.has_key(request['repo']): 
             self.repo_lru[request['repo']]['clients'].add(request['client'])
+            self.repo_lru[request['repo']]['layers'].add((request['layer'], request['size']))
             self.repo_lru[request['repo']]['count'] += 1
             if self.user_lru.has_key(request['client']):
                 self.user_lru[request['client']] += 1
@@ -40,10 +41,10 @@ class complex_cache:
                 # first 10 percent
                 item_clients = item_to_check[1]['clients']
                 all_clients = self.user_lru.keys()
-                ten_percent = int(math.ceil((len(all_clients)/100.0)*2))
+                two_percent = int(math.ceil((len(all_clients)/100.0)*2))
 
-                all_clients_10_percent = set(all_clients[:ten_percent]) # the first 10 percent of the clients in MRU order
-                if item_clients.intersection(all_clients_10_percent):
+                all_clients_2_percent = set(all_clients[:two_percent]) # the first 2 percent of the clients in MRU order
+                if item_clients.intersection(all_clients_2_percent):
                     index -= 1
                     continue
 
@@ -57,8 +58,9 @@ class complex_cache:
                 del self.repo_lru[remove]
                 self.cache_stack_size -= 1
                 
-            self.repo_lru[request['repo']] = {'clients': set(), 'count': 0, 'size': request['size']}
+            self.repo_lru[request['repo']] = {'clients': set(), 'count': 0, 'layers': set() }
             self.repo_lru[request['repo']]['clients'].add(request['client'])
+            self.repo_lru[request['repo']]['layers'].add((request['layer'], request['size']))
             self.repo_lru[request['repo']]['count'] += 1
             if self.user_lru.has_key(request['client']):
                 self.user_lru[request['client']] += 1
@@ -86,6 +88,7 @@ def extract(data):
                         'client': request['http.request.remoteaddr'], 
                         'method': request['http.request.method'], 
                          'repo': parts[1]+'/'+parts[2],
+                         'layer': parts[-1],
                          'size': size,
         })
     return requests
@@ -121,10 +124,13 @@ def run_sim(requests, portion):
             count += 10
         i += 1
 
+    repo_lru_size = sum([sum([item[1] for item in repo[1]['layers']])
+                         for repo in caches[0].repo_lru.items()])
     total_hit_ratio = {"hit_ratio": caches[0].hits/caches[0].reqs,
                        "repo lru length": len(caches[0].repo_lru.keys()),
                        "client lru size": len(caches[0].user_lru.keys()),
                        "unique repos": len(caches[0].repo_set),
+                       "repo lru size in bytes": repo_lru_size,
                        }
 
     return total_hit_ratio
