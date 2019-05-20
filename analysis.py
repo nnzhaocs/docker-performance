@@ -599,7 +599,7 @@ def repullReqsCal(total_trace):
 
 def repullReqUsr(total_trace):
     fname = os.path.basename(total_trace)
-    clientTOlayerMap = SqliteDict('./'+ fname +'my_dba.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict('/home/nannan/dockerimages/docker-traces/data_centers/usrRepulls'+ fname +'my_dba.sqlite', autocommit=True)
 
     f = open(input_dir + fname + '-layers_repulllayers_client.lst', 'w')
     for cli, lst in clientTOlayerMap.iteritems():
