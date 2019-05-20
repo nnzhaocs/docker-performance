@@ -22,20 +22,22 @@ class complex_cache:
 
 
     def place(self, request):
-        # request is a tuple (timestamp, username)
+        # request is a tuple (timestamp, layerid, size)
         self.reqs += 1 
-        if self.lru.has_key(request[-1]): 
-            self.lru[request[1]] = self.lru[request[1]] + 1
+        if self.lru.has_key(request[1]): 
+            self.lru[request[1]]['count'] += 1
             
             self.hits += 1            
         else:
-            if self.cache_stack_size + 1 > self.size: 
-                item = self
-                print "evict an item: "+str(self.lru.peek_last_item())
-                self.cache_stack_size = 1
+            while self.cache_stack_size + request[-1] > self.size: 
+                item_to_remove = self.lru.peek_last_item()[0] # gets the key
+                print "evict an item: "+str(item_to_remove)
+                self.cache_stack_size -= self.lru[item_to_remove]['size'] 
+                del self.lru[item_to_remove]
                 
-            self.lru[request[1]] = 1
+            self.lru[request[1]] = {'size': request[-1], 'count':1}
             self.cache_stack_size += request[-1]
+            print('cache stack size: ', self.cache_stack_size)
             
 
 def reformat(indata, type):
@@ -69,11 +71,12 @@ def reformat(indata, type):
 # layers: 829,202
 
 def run_sim(requests, type, portion):
-    size_layers = {10: 3733953345324,
-                  25: 4932029114665,
-                  50: 5963318483606,
-                  75: 6754128982235,
-                  100: 7719397028187,
+    size_layers = {
+        10:   27535984079,
+        25:   58508739055,
+        50:   136813252141,
+        75:   166149540055,
+        100:  205963219961,
                   }
     t = time.time()
        
@@ -154,7 +157,7 @@ def init(data, portion=100):
     with open(outputfile, 'w') as fp:
         json.dump(info, fp)
 
-    with open("LRU_total_hit_ratios.json", 'a') as fp:
+    with open("LRU_total_hit_ratios_syd01.json", 'a') as fp:
         fp.write(str(portion)+"% trace\n")
         json.dump(total_hit_ratio, fp)
         fp.write("\n\n")

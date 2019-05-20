@@ -209,11 +209,12 @@ def init(data, portion=100):
     requests = extract(data)
 
     # total size of the layers based on unique get requests, in each portion of the trace
-    size_layers = {10:77456600001,
-                   25: 158664779202,
-                   50: 326091306553,
-                   75: 400991300935,
-                  100: 481877787818,
+    size_layers = {
+  10:  77240958863,
+  25:  295691300410,
+  50:  299731834918,
+  75:  301887281014,
+ 100:  304791066887,
                   }
 
     print 'running simulation'
@@ -326,7 +327,8 @@ def init(data, portion=100):
 
     outfile = "prefetch_trace_cachesizeset.txt"
     f1 = open(outfile, 'a')
-    f2 = open("prefetch_trace_detail_cachesizeset_fra02.txt", 'a')
+    f2 = open("prefetch_trace_detail_cachesizeset_dev-mon01.txt", 'a')
+    f2.write(str(portion)+'% trace \n')
     for n in data:
         f2.write(str(n) + '\n')
         size = n['max size']

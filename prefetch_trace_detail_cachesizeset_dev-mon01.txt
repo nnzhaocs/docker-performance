@@ -1,0 +1,24 @@
+10% trace 
+{'hits': 1118, 'bad prefetch': 15, 'max size': 187357034, 'misses': 7853, 'hit ratio': 0.12462378776056181, 'cache capacity': 3862047943, 'good prefetch': 64}
+{'hits': 1118, 'bad prefetch': 15, 'max size': 187357034, 'misses': 7853, 'hit ratio': 0.12462378776056181, 'cache capacity': 7724095886, 'good prefetch': 64}
+{'hits': 1118, 'bad prefetch': 15, 'max size': 187357034, 'misses': 7853, 'hit ratio': 0.12462378776056181, 'cache capacity': 11586143829, 'good prefetch': 64}
+{'hits': 1118, 'bad prefetch': 15, 'max size': 187357034, 'misses': 7853, 'hit ratio': 0.12462378776056181, 'cache capacity': 15448191772, 'good prefetch': 64}
+{'hits': 1118, 'bad prefetch': 15, 'max size': 187357034, 'misses': 7853, 'hit ratio': 0.12462378776056181, 'cache capacity': 23172287658, 'good prefetch': 64}
+25% trace 
+{'hits': 5765, 'bad prefetch': 13, 'max size': 314860120, 'misses': 31030, 'hit ratio': 0.1566788965892105, 'cache capacity': 14784565020, 'good prefetch': 104}
+{'hits': 5765, 'bad prefetch': 13, 'max size': 314860120, 'misses': 31030, 'hit ratio': 0.1566788965892105, 'cache capacity': 29569130041, 'good prefetch': 104}
+{'hits': 5765, 'bad prefetch': 13, 'max size': 314860120, 'misses': 31030, 'hit ratio': 0.1566788965892105, 'cache capacity': 44353695061, 'good prefetch': 104}
+{'hits': 5765, 'bad prefetch': 13, 'max size': 314860120, 'misses': 31030, 'hit ratio': 0.1566788965892105, 'cache capacity': 59138260082, 'good prefetch': 104}
+{'hits': 5765, 'bad prefetch': 13, 'max size': 314860120, 'misses': 31030, 'hit ratio': 0.1566788965892105, 'cache capacity': 88707390123, 'good prefetch': 104}
+50% trace 
+{'hits': 14497, 'bad prefetch': 11, 'max size': 334432940, 'misses': 67931, 'hit ratio': 0.17587470277090309, 'cache capacity': 14986591745, 'good prefetch': 119}
+{'hits': 14497, 'bad prefetch': 11, 'max size': 334432940, 'misses': 67931, 'hit ratio': 0.17587470277090309, 'cache capacity': 29973183491, 'good prefetch': 119}
+{'hits': 14497, 'bad prefetch': 11, 'max size': 334432940, 'misses': 67931, 'hit ratio': 0.17587470277090309, 'cache capacity': 44959775237, 'good prefetch': 119}
+{'hits': 14497, 'bad prefetch': 11, 'max size': 334432940, 'misses': 67931, 'hit ratio': 0.17587470277090309, 'cache capacity': 59946366983, 'good prefetch': 119}
+{'hits': 14497, 'bad prefetch': 11, 'max size': 334432940, 'misses': 67931, 'hit ratio': 0.17587470277090309, 'cache capacity': 89919550475, 'good prefetch': 119}
+75% trace 
+{'hits': 20968, 'bad prefetch': 17, 'max size': 371634988, 'misses': 82514, 'hit ratio': 0.2026246110434665, 'cache capacity': 15094364050, 'good prefetch': 144}
+{'hits': 20968, 'bad prefetch': 17, 'max size': 371634988, 'misses': 82514, 'hit ratio': 0.2026246110434665, 'cache capacity': 30188728101, 'good prefetch': 144}
+{'hits': 20968, 'bad prefetch': 17, 'max size': 371634988, 'misses': 82514, 'hit ratio': 0.2026246110434665, 'cache capacity': 45283092152, 'good prefetch': 144}
+{'hits': 20968, 'bad prefetch': 17, 'max size': 371634988, 'misses': 82514, 'hit ratio': 0.2026246110434665, 'cache capacity': 60377456202, 'good prefetch': 144}
+{'hits': 20968, 'bad prefetch': 17, 'max size': 371634988, 'misses': 82514, 'hit ratio': 0.2026246110434665, 'cache capacity': 90566184304, 'good prefetch': 144}

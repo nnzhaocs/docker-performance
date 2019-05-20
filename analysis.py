@@ -17,7 +17,7 @@ import importlib
 import hash_ring
 from collections import defaultdict
 
-input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
+input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/total_trace_splits/'
 
 ## get requests
 def send_request_get(client, payload):
@@ -671,7 +671,7 @@ def main():
     #NANNAN
     if args.command == 'get':
 #         if 'realblobs' in inputs['client_info']:
-            #if inputs['client_info']['realblobs'] is True:
+          #if inputs['client_info']['realblobs'] is True:
 #             realblob_locations = inputs['client_info']['realblobs']
         get_requests(trace_dir)
         return
@@ -706,7 +706,7 @@ def main():
                          '25': 'total_trace_25_percent.json',
                          '50': 'total_trace_50_percent.json',
                          '75': 'total_trace_75_percent.json',
-                         '2': 'total_trace_2_percent.json',
+                         '100': 'total_trace_100_percent.json',
                          }
         if args.portion in portion_files.keys():
             with open(os.path.join(input_dir, portion_files[args.portion]), 'r') as fp:
@@ -718,7 +718,7 @@ def main():
         else:
             print("you chose poorly")
             exit()
-        pi = 'prefetch_layersize1' #'cache_usr_repo_layer' #'prefetch_old'
+        pi = 'lrulistsim' #'prefetch_old'
         try:
             plugin = importlib.import_module(pi)
         except Exception as inst:
