@@ -1,6 +1,6 @@
 # excample configuration file for trace player
 client_info: # Required for run command
-    threads: 3 #  number of layers pulled in parallel
+    threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
         - /home/nannan/dockerimages/layers/hulk1_layers_less_50m.lst
 
@@ -37,7 +37,7 @@ registry:
 
 warmup: # required for run and warmup mode
     output: interm-3-5.json # name of file that holds mapping between trace uri's and hashes
-    threads: 3 # how many clients used to push/pull blobs to registry
+    threads: 10 # how many clients used to push/pull blobs to registry
 
 simulate: # required for simulate mode
     name: cache.py #name of plugin file, should contain init function

@@ -67,7 +67,7 @@ def warmup(data, out_trace, registries, threads):
     ring = HashRing(nodes = registries)
        
     for request in data:
-        if (request['method']) == 'GET':  #and ('blobs' in request['uri']):
+        if (request['method']) == 'GET':# and ('blobs' in request['uri']):
             uri = request['uri']
             layer_id = uri.split('/')[-1]
             registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
@@ -75,20 +75,25 @@ def warmup(data, out_trace, registries, threads):
             process_data.append((registry_tmp, request))
     print process_data
     print("total requests:", len(process_data))
-    
-    with ProcessPoolExecutor(max_workers=threads) as executor:
-        futures = [executor.submit(send_warmup_thread, req) for req in process_data]
-        for future in as_completed(futures):
-            print(future.result())
-            try:
-                x = future.result()
-                for k in x['trace']:
-                    if x['trace'][k] != 'bad':
-                        trace[k] = x['trace'][k]
+    n = len(process_data)
+    process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
+    for s in process_slices:
+        with ProcessPoolExecutor(max_workers=threads) as executor:
+            futures = [executor.submit(send_warmup_thread, req) for req in s]
+            for future in as_completed(futures):
+                print(future.result())
+                try:
+                    x = future.result()
+                    for k in x['trace']:
+                        if x['trace'][k] != 'bad':
+                            trace[k] = x['trace'][k]
                         
-                results.append(x['result'])    
-            except Exception as e:
-                print('something generated an exception: %s', e)
+                    results.append(x['result'])    
+                except Exception as e:
+                    print('something generated an exception: %s', e)
+        #break     
+        stats(results)
+	#time.sleep(2*60)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)

@@ -23,7 +23,7 @@ from __builtin__ import str
 #from Carbon.Aliases import false
 from sqlitedict import SqliteDict
 
-input_dir = '/home/nannan/dockerimages/hulk1/docker-traces/data_centers/'
+input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
 
 def absoluteFilePaths(directory):
@@ -579,9 +579,13 @@ def clusterClientRepoPull(total_trace):
 
 def repullReqsCal(total_trace):
     fname = os.path.basename(total_trace)
-    clientTOlayerMap = SqliteDict('./'+ fname +'my_repulldb.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict(input_dir+'/usrRepulls/'+ fname +'my_repulldb.sqlite', autocommit=True)
     totallayer_cnt = 0
     repulledlayer_cnt = 0
+    totallayer_ls = 0
+    repulledlayer_ls = 0
+    f = open(input_dir +'usrRepulls/repullClientratiolst/' + fname + '-layers_repulllayers.lst', 'w')
+
     for cli, lst in clientTOlayerMap.iteritems():
         for tup in lst:
             if 0 == tup[1]:
@@ -590,16 +594,24 @@ def repullReqsCal(total_trace):
                 totallayer_cnt += tup[1]
             if tup[1]:
                 repulledlayer_cnt += tup[1]
-
-    print "totallayer_cnt:    " + str(totallayer_cnt)
-    print "repulledlayer_cnt:   " + str(repulledlayer_cnt)
+		repulledlayer_ls += 1
+            totallayer_ls += 1
+	    f.write(str(tup[1])+'\t\n')
+            
+    print "totallayer_reqs cnt:    " + str(totallayer_cnt)
+    print "repulledlayer_reqs cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
+
+    print "totallayer_layers cnt:    " + str(totallayer_ls)
+    print "repulledlayer_layerss cnt:   " + str(repulledlayer_ls)
+    print "ratio:  " + str(1.0*repulledlayer_ls/totallayer_ls)
+
     clientTOlayerMap.close()
 
 
 def repullReqUsr(total_trace):
     fname = os.path.basename(total_trace)
-    clientTOlayerMap = SqliteDict(input_dir+'/usrRepulls/'+ fname +'my_repulldb.sqlite', autocommit=True)
+    clientTOlayerMap = SqliteDict(input_dir+'/usrRepulls/'+ fname +'my_dba.sqlite', autocommit=True)
 
     f = open(input_dir +'usrRepulls/repullClientratiolst/' + fname + '-layers_repulllayers_client.lst', 'w')
     for cli, lst in clientTOlayerMap.iteritems():
