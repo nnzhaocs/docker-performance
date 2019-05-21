@@ -124,7 +124,7 @@ def getSkewness(total_trace):
     getCnt(total_trace, lfname, lfoutname)
     getCnt(total_trace, urfname, urfoutname)
     getCnt(total_trace, ufname, ufoutname) 
-    
+    fname = os.path.basename(total_trace)
     with open(os.path.join(input_dir, fname + '-usr_access_repo_cnt.json'), 'r') as fp:
         usrrepoTOtimedic = json.load(fp)
         
