@@ -584,9 +584,15 @@ def repullReqsCal(total_trace):
     repulledlayer_cnt = 0
     totallayer_ls = 0
     repulledlayer_ls = 0
+    clientrepulllayers_ls = 0
+    totalclientrepullayers_ls = 0
+    
     f = open(input_dir +'usrRepulls/repullClientratiolst/' + fname + '-layers_repulllayers.lst', 'w')
+    fclient = open(input_dir +'usrRepulls/repullClientratiolst/' + fname + '-layers_repulllayers_cnt_client.lst', 'w')
 
     for cli, lst in clientTOlayerMap.iteritems():
+        clientrepulllayers_ls = 0
+        totalclientrepullayers_ls = 0
         for tup in lst:
             if 0 == tup[1]:
                 totallayer_cnt += 1
@@ -594,10 +600,12 @@ def repullReqsCal(total_trace):
                 totallayer_cnt += tup[1]
             if tup[1]:
                 repulledlayer_cnt += tup[1]
-		repulledlayer_ls += 1
+                clientrepulllayers_ls += 1
+                repulledlayer_ls += 1
             totallayer_ls += 1
+            totalclientrepullayers_ls += 1
 	    f.write(str(tup[1])+'\t\n')
-            
+        fclient.write(str(clientrepulllayers_ls)+'\t'+str(totalclientrepullayers_ls)+'\t\n')    
     print "totallayer_reqs cnt:    " + str(totallayer_cnt)
     print "repulledlayer_reqs cnt:   " + str(repulledlayer_cnt)
     print "ratio:  " + str(1.0*repulledlayer_cnt/totallayer_cnt)
@@ -607,8 +615,10 @@ def repullReqsCal(total_trace):
     print "ratio:  " + str(1.0*repulledlayer_ls/totallayer_ls)
 
     clientTOlayerMap.close()
+    fclient.close()
+    f.close()
 
-
+# repull layer cnt / total layer pulls
 def repullReqUsr(total_trace):
     fname = os.path.basename(total_trace)
     clientTOlayerMap = SqliteDict(input_dir+'/usrRepulls/'+ fname +'my_dba.sqlite', autocommit=True)
