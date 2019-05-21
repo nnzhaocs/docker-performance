@@ -166,7 +166,8 @@ def analyze_reusetime(total_trace):
     lfoutname = '-layer-raccessinterval'
     urfoutname = '-usrrepo-raccessinterval'
     ufoutname = '-usr-raccessinterval'
-    
+    getTimestamp(total_trace)
+
     getTimeIntervals(total_trace, lfname, lfoutname)
     getTimeIntervals(total_trace, urfname, urfoutname)
     getTimeIntervals(total_trace, ufname, ufoutname)
@@ -181,7 +182,7 @@ def getTimestamp(total_trace):
     repoToCcntdic = {}
     usrToCcntdic = {}
     
-    usrTorepocntdic = {}  
+    usrTorepocntdic = defaultdict(list)
     
     fname = os.path.basename(total_trace)
     
@@ -209,9 +210,20 @@ def getTimestamp(total_trace):
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             print "layer_id: "+layer_id_or_manifest_id
             layerTOtimedic[layer_id_or_manifest_id].append(timestamp)
-            layerToCcntdic[layer_id_or_manifest_id] += 1
-            repoToCcntdic[repo_name] += 1
-            usrToCcntdic[clientAddr] += 1
+	    try:
+                layerToCcntdic[layer_id_or_manifest_id] += 1
+	    except:
+		layerToCcntdic[layer_id_or_manifest_id] = 0
+	    
+	    try:
+		repoToCcntdic[repo_name] += 1
+	    except:
+                repoToCcntdic[repo_name] = 0
+
+	    try:
+		usrToCcntdic[clientAddr] += 1
+	    except:
+                usrToCcntdic[clientAddr] = 0
             
         if 'GET' == method and 'manifest' in uri:    
             usrrepokey = clientAddr+':'+repo_name
