@@ -35,22 +35,14 @@ def absoluteFilePaths(directory):
     return absFNames
 
 
-####
-# Random match
-####
-
 def get_requests(trace_dir):
     print "walking trace_dir: "+trace_dir
     absFNames = absoluteFilePaths(trace_dir)
     dirname = os.path.basename(trace_dir)
     blob_locations = []
-#     tTOblobdic = {}
-#     blobTOtdic = {}
-    ret = []
-#     i = 0
 
-#     for location in realblob_locations:
-#         absFNames = absoluteFilePaths(location)
+    ret = []
+
     print "Dir: "+trace_dir+" has the following files"
     print "The output file would be: "+trace_dir+dirname+'_total_trace.json'
     print absFNames
@@ -70,23 +62,6 @@ def get_requests(trace_dir):
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
                 size = request['http.response.written']
                 if size > 0:
-#                     timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-#                     duration = request['http.request.duration']
-#                     client = request['http.request.remoteaddr']
-
-#                     for blob in blob_locations:
-#                     if i < len(blob_locations):
-#                         blob = blob_locations[i]
-                        #uri = request['http.request.uri']
-#                         if layer_id in tTOblobdic.keys():
-#                             continue
-#                         if blob in blobTOtdic.keys():
-#                             continue
-
-#                         tTOblobdic[layer_id] = blob
-#                         blobTOtdic[blob] = layer_id
-
-#                         size = os.stat(blob).st_size
 
                         r = {
                             "host": request['host'],
@@ -99,26 +74,26 @@ def get_requests(trace_dir):
                             "http.response.written": size,
                             "id": request['id'],
                             "timestamp": request['timestamp']
-#                             'data': blob
                         }
                         print r
                         ret.append(r)
-#                         i += 1
-#     return ret
+
     ret.sort(key= lambda x: x['timestamp'])
     with open(os.path.join(input_dir, dirname+'_total_trace.json'), 'w') as fp:
         json.dump(ret, fp)
 
 
-def analyze_layerlifetime(total_trace):
+def getTimeIntervals(total_trace, fname2, fnameout):
     interaccess = []
     fname = os.path.basename(total_trace)
-    with open(os.path.join(input_dir, fname + '-layer_access_timestamp.json'), 'r') as fp:
-        layerTOtimedic = json.load(fp)
+    with open(os.path.join(input_dir, fname + fname2), 'r') as fp:
+        usrrepoTOtimedic = json.load(fp)
+        
+    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')
+    
+    for k in sorted(usrrepoTOtimedic, key=lambda k: len(usrrepoTOtimedic[k]), reverse=True):
 
-    for k in sorted(layerTOtimedic, key=lambda k: len(layerTOtimedic[k]), reverse=True):
-
-        lst = layerTOtimedic[k]
+        lst = usrrepoTOtimedic[k]
 
         if 1 == len(lst):
             continue 
@@ -130,16 +105,89 @@ def analyze_layerlifetime(total_trace):
             delta = delta.total_seconds()
             
             interaccess.append(delta)
+            f.write(str(delta)+'\t\n')
 
-    with open(os.path.join(input_dir, fname + 'layeraccessinterval.json'), 'w') as fp:
+    with open(os.path.join(input_dir, fname + fnameout+'.json'), 'w') as fp:
         json.dump(interaccess, fp)
+    f.close()
 
 
-def analyze_requests(total_trace):
-    organized = []
-    layerTOtimedic = defaultdict(list)
+def getSkewness(total_trace):
+    
+    lfname = '-layer_access_cnt.json'
+    urfname = '-repo_access_cnt.json'
+    ufname = '-usr_access_cnt.json'
+    lfoutname = '-layer-layer_access_cnt'
+    urfoutname = '-repo_access_cnt'
+    ufoutname = '-usr_access_cnt'
+    
+    getCnt(total_trace, lfname, lfoutname)
+    getCnt(total_trace, urfname, urfoutname)
+    getCnt(total_trace, ufname, ufoutname) 
+    
+    with open(os.path.join(input_dir, fname + '-usr_access_repo_cnt.json'), 'r') as fp:
+        usrrepoTOtimedic = json.load(fp)
+        
+    f = open(input_dir +'temperalTrend/' + fname + '-usr_access_repo_cnt'+'.lst', 'w') 
+    fratio = open(input_dir +'temperalTrend/' + fname + '-usr_access_repo_cnt_ratio'+'.lst', 'w')       
+    for k in usrrepoTOtimedic:
+        lst = usrrepoTOtimedic[k]
+        val = len(lst)
+        f.write(str(val)+'\t\n')
+        sum = 0
+        for tup in lst:
+            sum += tup[1]
+        for tup in lst:
+            ratio = (tup[1]*1.0)/sum
+            fratio.write(str(ratio)+'\t\n')
+            
+    f.close()
+    fratio.close() 
+
+    
+def getCnt(total_trace, fname2, fnameout):
+    interaccess = []
     fname = os.path.basename(total_trace)
+    with open(os.path.join(input_dir, fname + fname2), 'r') as fp:
+        usrrepoTOtimedic = json.load(fp)
+        
+    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')    
+    for k in usrrepoTOtimedic:
+        val = usrrepoTOtimedic[k]
+        f.write(str(val)+'\t\n')
+    f.close()
+        
+        
+def analyze_reusetime(total_trace):
+    
+    lfname = '-layer_access_timestamp.json'
+    urfname = '-usrrepo_access_timestamp.json'
+    ufname = '-usr_access_timestamp.json'
+    lfoutname = '-layer-raccessinterval'
+    urfoutname = '-usrrepo-raccessinterval'
+    ufoutname = '-usr-raccessinterval'
+    
+    getTimeIntervals(total_trace, lfname, lfoutname)
+    getTimeIntervals(total_trace, urfname, urfoutname)
+    getTimeIntervals(total_trace, ufname, ufoutname)
+    
+    
+def getTimestamp(total_trace):
+    layerTOtimedic = defaultdict(list)
+    usrrepoTOtimedic = defaultdict(list)
+    usrTOtimedic = defaultdict(list)
+    
+    layerToCcntdic = {}
+    repoToCcntdic = {}
+    usrToCcntdic = {}
+    
+    usrTorepocntdic = {}  
+    
+    fname = os.path.basename(total_trace)
+    
     print "the output file would be: " + input_dir + fname + '-layer_access_timestamp.json'
+    print "the output file would be: " + input_dir + fname + '-usrrepo_access_timestamp.json'
+    print "the output file would be: " + input_dir + fname + '-usr_access_timestamp.json'
     
     with open(total_trace, 'r') as f:
         blob = json.load(f)
@@ -147,22 +195,60 @@ def analyze_requests(total_trace):
     for r in blob:
         uri = r['http.request.uri']
         method = r['http.request.method']
-
-        if (method != 'GET') or ('manifest' not in uri):
-            # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
-            layer_id = uri.rsplit('/', 1)[1]
-            timestamp = r['timestamp']
-    #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        clientAddr = r['http.request.remoteaddr']
+        timestamp = r['timestamp']
+        
+        layer_id_or_manifest_id = uri.rsplit('/', 1)[1]
             
-
-            print "layer_id: "+layer_id
-#             print "repo_name: "+repo_name
-#             print "usrname: "+usrname
-
-            layerTOtimedic[layer_id].append(timestamp)
-
+        repo_namepart1 = uri.split('/')[1]
+        repo_namepart2 = uri.split('/')[2] 
+        repo_name = repo_namepart1+'/'+repo_namepart2
+        
+        if 'GET' == method and 'blob' in uri:
+            # uri format: v2/<username>/<repo name>/[blobs/uploads | manifests]/<manifest or layer id>
+    #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            print "layer_id: "+layer_id_or_manifest_id
+            layerTOtimedic[layer_id_or_manifest_id].append(timestamp)
+            layerToCcntdic[layer_id_or_manifest_id] += 1
+            repoToCcntdic[repo_name] += 1
+            usrToCcntdic[clientAddr] += 1
+            
+        if 'GET' == method and 'manifest' in uri:    
+            usrrepokey = clientAddr+':'+repo_name
+            usrrepoTOtimedic[usrrepokey].append(timestamp)
+            usrTOtimedic[clientAddr].append(timestamp)
+            
+            try:
+                lst = usrTorepocntdic[clientAddr]
+                find = 0
+                for tup in lst:
+                    if repo_name == tup[0]:
+                        x = tup[1]
+                        x += 1
+                        lst.remove(tup)
+                        lst.append((tup[0], x))
+                        find = 1
+                if 0 == find:
+                   usrTorepocntdic[clientAddr].append((repo_name, 1)) 
+            except:
+                usrTorepocntdic[clientAddr].append((repo_name, 1)) 
+                        
     with open(os.path.join(input_dir, fname + '-layer_access_timestamp.json'), 'w') as fp:
         json.dump(layerTOtimedic, fp)
+    with open(os.path.join(input_dir, fname + '-usrrepo_access_timestamp.json'), 'w') as fp:
+        json.dump(usrrepoTOtimedic, fp)
+    with open(os.path.join(input_dir, fname + '-usr_access_timestamp.json'), 'w') as fp:
+        json.dump(usrTOtimedic, fp)
+        
+        
+    with open(os.path.join(input_dir, fname + '-layer_access_cnt.json'), 'w') as fp:
+        json.dump(layerToCcntdic, fp)
+    with open(os.path.join(input_dir, fname + '-repo_access_cnt.json'), 'w') as fp:
+        json.dump(repoToCcntdic, fp)
+    with open(os.path.join(input_dir, fname + '-usr_access_cnt.json'), 'w') as fp:
+        json.dump(usrToCcntdic, fp)
+    with open(os.path.join(input_dir, fname + '-usr_access_repo_cnt.json'), 'w') as fp:
+        json.dump(usrTorepocntdic, fp)
 
 
 def analyze_repo_reqs(total_trace):
@@ -1077,26 +1163,15 @@ def main():
 
     print "input dir: "+trace_dir
 
-    #NANNAN
     if args.command == 'get':
-#         if 'realblobs' in inputs['client_info']:
-            #if inputs['client_info']['realblobs'] is True:
-#             realblob_locations = inputs['client_info']['realblobs']
         get_requests(trace_dir)
-        return
-	    #else:
-		#print "please put realblobs!"
-		#return
     elif args.command == 'Alayer':
 #         print "wrong cmd!"
         analyze_requests(trace_dir)
-        return
-    elif args.command == 'layerlifetime':
-        analyze_layerlifetime(trace_dir)
-        return
+    elif args.command == 'reusetime':
+        analyze_reusetime(trace_dir)
     elif args.command == 'map':
         analyze_repo_reqs(trace_dir)
-        return
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
@@ -1119,7 +1194,10 @@ def main():
         clusterClientRepoPull(trace_dir)
     elif args.command == 'repullReqUsr':
         repullReqUsr(trace_dir)
-#repullReqUsr
+    elif args.command == 'getSkewness':
+        getSkewness(trace_dir)
+    else:    
+#repullReqUsr getSkewness(total_trace)
         return
 
 
