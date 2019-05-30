@@ -7,5 +7,5 @@ pip install statistics
 pip install numpy
 pip install -U sqlitedict
 pip install futures
-
+pip install redis-py-cluster
 

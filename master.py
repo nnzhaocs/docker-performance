@@ -481,13 +481,6 @@ def main():
 	    print "please write realblobs in the config files"
 	    return
 
-    if 'redis' not in inputs:
-        print 'please config redis for client!'
-    else:
-        redis_host = inputs['redis']['host']
-        redis_port = inputs['redis']['port']
-        print 'redis: host:'+str(redis_host)+',port:'+str(redis_port)
-
     json_data = get_requests(trace_files, limit_type, limit)
 
     if 'threads' in inputs['warmup']:
@@ -510,7 +503,7 @@ def main():
             client_threads = inputs['client_info']['threads']
             print str(client_threads) + ' client threads'
 
-        config_client(redis_host, redis_port, client_threads, registries) #requests, out_trace, numclients
+        config_client(client_threads, registries) #requests, out_trace, numclients
         
         data = organize(json_data, interm, threads)
         ## Perform GET

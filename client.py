@@ -21,11 +21,6 @@ from uhashring import HashRing
 from rediscluster import StrictRedisCluster
 
 # app = Bottle()
-
-dbNoBlob = 0 
-dbNoFile = 1
-dbNoBFRecipe = 2
-
 ####
 # NANNAN: tar the blobs and send back to master.
 # maybe ignore.
@@ -68,7 +63,7 @@ def redis_stat_bfrecipe_serverips(dgst):
     key = "Blob:File:Recipe::"+dgst
     if not rj_dbNoBFRecipe.exists(key):
         return None
-    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('JSON.GET', key))
+    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     serverIps = []
 #    print("bfrecipe: ", bfrecipe)
     for serverip in bfrecipe['ServerIps']:
