@@ -75,7 +75,8 @@ def warmup(data, out_trace, registries, threads):
             process_data.append((registry_tmp, request))
     print process_data
     print("total requests:", len(process_data))
-    n = len(process_data)
+    #n = len(process_data)
+    n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
     for s in process_slices:
         with ProcessPoolExecutor(max_workers=threads) as executor:
@@ -91,9 +92,9 @@ def warmup(data, out_trace, registries, threads):
                     results.append(x['result'])    
                 except Exception as e:
                     print('something generated an exception: %s', e)
-        #break     
+	#break     
         stats(results)
-	#time.sleep(2*60)
+	time.sleep(6)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)

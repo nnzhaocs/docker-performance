@@ -109,7 +109,7 @@ def get_layer_request(request):
         print 'destination registries for this blob is zero! ERROR!'            
     
     now = time.time()
-    #threads = 1        ##################
+    threads = 1        ##################
     with ProcessPoolExecutor(max_workers = threads) as executor:
         futures = [executor.submit(pull_from_registry, dgst, registry) for registry in registries]
         for future in futures:#.as_completed(timeout=60):

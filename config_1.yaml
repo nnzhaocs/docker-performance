@@ -13,7 +13,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 500
+        amount: 300
 
     output: results.json # only used in run mode, produced output trace with latencies
 
@@ -21,14 +21,14 @@ registry-helpers:
     port: 8082
     
 redis:
-    host: 192.168.0.220 #thor20
+    host: 192.168.0.170 #thor20
     port: 6379
     
 registry:   
     - 192.168.0.170:5000
     - 192.168.0.171:5000
-    - 192.168.0.172:5000
-    - 192.168.0.174:5000
+#    - 192.168.0.172:5000
+#    - 192.168.0.174:5000
 #    - 192.168.0.176:5000
 #    - 192.168.0.177:5000
 #    - 192.168.0.178:5000
