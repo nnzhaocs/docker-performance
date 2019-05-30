@@ -18,6 +18,7 @@ import rejson, redis, json
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from uhashring import HashRing
+from rediscluster import StrictRedisCluster
 
 # app = Bottle()
 
@@ -243,7 +244,7 @@ def send_requests(requests):
     return  results_all     
 
 
-def config_client(redis_host, redis_port, num_client_threads, registries_input): 
+def config_client(num_client_threads, registries_input): 
     global ring
     global rj_dbNoBFRecipe
     global rjpool_dbNoBFRecipe
@@ -253,8 +254,28 @@ def config_client(redis_host, redis_port, num_client_threads, registries_input):
     numthreads = num_client_threads
     ring = HashRing(nodes = registries)
     
-    rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
-    rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
+#     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
+#     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
+    startup_nodes = [{"host": "127.0.0.1", "port": "7000"},
+            {"host": "192.168.0.170", "port": "7000"}, 
+            {"host": "192.168.0.170", "port": "7001"},
+            {"host": "192.168.0.171", "port": "7000"}, 
+            {"host": "192.168.0.171", "port": "7001"},
+            {"host": "192.168.0.172", "port": "7000"}, 
+            {"host": "192.168.0.172", "port": "7001"},
+            {"host": "192.168.0.174", "port": "7000"}, 
+            {"host": "192.168.0.174", "port": "7001"},
+            {"host": "192.168.0.176", "port": "7000"}, 
+            {"host": "192.168.0.176", "port": "7001"},
+            {"host": "192.168.0.177", "port": "7000"}, 
+            {"host": "192.168.0.177", "port": "7001"},
+            {"host": "192.168.0.178", "port": "7000"}, 
+            {"host": "192.168.0.178", "port": "7001"},
+            {"host": "192.168.0.179", "port": "7000"}, 
+            {"host": "192.168.0.179", "port": "7001"},
+            {"host": "192.168.0.180", "port": "7000"},
+            {"host": "192.168.0.180", "port": "7001"}]
+    rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
     
                  
     
