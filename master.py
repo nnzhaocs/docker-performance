@@ -94,7 +94,7 @@ def warmup(data, out_trace, registries, threads):
                     print('something generated an exception: %s', e)
 	#break     
         stats(results)
-	time.sleep(6)
+	time.sleep(600)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
@@ -160,19 +160,23 @@ def stats(responses):
 def get_blobs(data, numclients, out_file):
     results = []
     i = 0
-    with ProcessPoolExecutor(max_workers = numclients) as executor:
-        futures = [executor.submit(send_requests, reqlst) for reqlst in data]
-        for future in as_completed(futures):
-	    print i
-	    i += 1
-            #print future.result()
-            try:
-                x = future.result()
-                results.extend(x)        
-            except Exception as e:
-                print('get_blobs: something generated an exception: %s', e)
-    print "start stats"
-    stats(results)
+    n = 100
+    process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
+    for s in process_slices:
+        with ProcessPoolExecutor(max_workers = numclients) as executor:
+            futures = [executor.submit(send_requests, reqlst) for reqlst in s]
+            for future in as_completed(futures):
+	        print i
+	        i += 1
+                #print future.result()
+                try:
+                    x = future.result()
+                    results.extend(x)        
+                except Exception as e:
+                    print('get_blobs: something generated an exception: %s', e)
+        print "start stats"
+        stats(results)
+	time.sleep(60*2)
     with open(out_file, 'w') as f:
         json.dump(results, f)
        
