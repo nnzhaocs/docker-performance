@@ -239,6 +239,10 @@ def send_requests(requests):
     return  results_all     
 
 
+# def get_res_fromRedis():
+#     global rj_dbNoBFRecipe
+    
+
 def config_client(num_client_threads, registries_input): 
     global ring
     global rj_dbNoBFRecipe
@@ -251,7 +255,7 @@ def config_client(num_client_threads, registries_input):
     
 #     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
 #     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
-    startup_nodes = [{"host": "127.0.0.1", "port": "7000"},
+    startup_nodes = [
             {"host": "192.168.0.170", "port": "7000"}, 
             {"host": "192.168.0.170", "port": "7001"},
             {"host": "192.168.0.171", "port": "7000"}, 
@@ -272,7 +276,33 @@ def config_client(num_client_threads, registries_input):
             {"host": "192.168.0.180", "port": "7001"}]
     rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
     
-                 
+    
+    
+    
+    
+    """
+    {u'SliceSize': 166, u'DurationCP': 0.000751436, u'DurationCMP': 3.7068e-05, u'ServerIp': u'192.168.0.171', u'DurationML': 0.000553802, u'DurationNTT': 3.7041e-05, u'DurationRS': 0.001379347}
+    startup_nodes = [
+             {"host": "192.168.0.170", "port": "7000"}, \
+            {"host": "192.168.0.170", "port": "7001"}, \
+            {"host": "192.168.0.171", "port": "7000"},  \
+            {"host": "192.168.0.171", "port": "7001"}, \
+             {"host": "192.168.0.172", "port": "7000"},  \
+            {"host": "192.168.0.172", "port": "7001"}, \
+            {"host": "192.168.0.174", "port": "7000"}, \
+             {"host": "192.168.0.174", "port": "7001"},\
+             {"host": "192.168.0.176", "port": "7000"}, \
+             {"host": "192.168.0.176", "port": "7001"},\
+             {"host": "192.168.0.177", "port": "7000"}, \
+             {"host": "192.168.0.177", "port": "7001"},\
+             {"host": "192.168.0.178", "port": "7000"}, \
+            {"host": "192.168.0.178", "port": "7001"},\
+             {"host": "192.168.0.179", "port": "7000"}, \
+             {"host": "192.168.0.179", "port": "7001"},\
+            {"host": "192.168.0.180", "port": "7000"},\
+             {"host": "192.168.0.180", "port": "7001"}]
+      
+    """             
     
 
 
