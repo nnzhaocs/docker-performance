@@ -106,6 +106,10 @@ def warmup(data, out_trace, registries, threads):
     print("max threads:", threads)
 
 
+
+# def getResFromRedis(filename):
+
+
 #############
 # NANNAN: change `onTime` for distributed dedup response
 # {'size': size, 'onTime': onTime, 'duration': t}
