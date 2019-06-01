@@ -161,14 +161,14 @@ def stats(responses):
 
  
 ## Get blobs
-def get_blobs(data, numclients, out_file):
+def get_blobs(data, numclients, out_file, testmode):
     results = []
     i = 0
     n = 100
     process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
     for s in process_slices:
         with ProcessPoolExecutor(max_workers = numclients) as executor:
-            futures = [executor.submit(send_requests, reqlst) for reqlst in s]
+            futures = [executor.submit(send_requests, reqlst, testmode) for reqlst in s]
             for future in as_completed(futures):
 	        print i
 	        i += 1
@@ -496,7 +496,15 @@ def main():
     else:
         threads = 1
     print 'warmup threads same as number of clients: ' + str(threads)
-
+    
+    
+    if inputs['testmode']['nodedup'] == True:
+        testmode = 'nodedup'
+    elif inputs['testmode']['traditionaldedup'] == True:
+        testmode = 'traditionaldedup'
+    else:
+        testmode = 'sift'    
+         
     if args.command == 'warmup': 
         print 'warmup mode'
         # NANNAN: not sure why only warmup a single registry, let's warmup all.
@@ -515,7 +523,7 @@ def main():
         
         data = organize(json_data, interm, threads)
         ## Perform GET
-        get_blobs(data, threads, out_file)
+        get_blobs(data, threads, out_file, testmode)
 
 
     elif args.command == 'simulate':

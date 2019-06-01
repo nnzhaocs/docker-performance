@@ -64,7 +64,7 @@ warmup: # required for run and warmup mode
     output: interm-3-5.json # name of file that holds mapping between trace uri's and hashes
     threads: 50 # how many clients used to push/pull blobs to registry
 
-simulate: # required for simulate mode
-    name: cache.py #name of plugin file, should contain init function
-    args: # argument dictionary to be passed into 
-        cache_size: 8 # cache size in GB
+testmode: # required for simulate mode
+    nodedup: False  
+    traditionaldedup: False  
+    sift: False  
