@@ -13,7 +13,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 300
+        amount: 2 
 
     output: results.json # only used in run mode, produced output trace with latencies
 
@@ -21,12 +21,23 @@ registry-helpers:
     port: 8082
     
 redis:
-    host: 192.168.0.170 #thor20
+    host: 192.168.0.220 #thor20
     port: 6379
     
 registry:   
-    - 192.168.0.170:5000
-    - 192.168.0.171:5000
+#beware 205 and 206 (thor6 and thor7) are down
+#    - 192.168.0.200:5000
+#    - 192.168.0.201:5000
+#    - 192.168.0.202:5000
+#    - 192.168.0.203:5000
+    - 192.168.0.204:5000
+    - 192.168.0.205:5000
+#    - 192.168.0.206:5000
+#    - 192.168.0.207:5000
+#    - 192.168.0.208:5000
+#    - 192.168.0.209:5000
+#    - 192.168.0.170:5000
+#    - 192.168.0.171:5000
 #    - 192.168.0.172:5000
 #    - 192.168.0.174:5000
 #    - 192.168.0.176:5000
@@ -37,7 +48,7 @@ registry:
 
 warmup: # required for run and warmup mode
     output: interm-3-5.json # name of file that holds mapping between trace uri's and hashes
-    threads: 10 # how many clients used to push/pull blobs to registry
+    threads: 2 #how many clients used to push/pull blobs to registry
 
 simulate: # required for simulate mode
     name: cache.py #name of plugin file, should contain init function
