@@ -162,23 +162,23 @@ def stats(responses):
 def get_blobs(data, numclients, out_file, testmode):
     results = []
     i = 0
-    n = 100
-    process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
-    for s in process_slices:
-        with ProcessPoolExecutor(max_workers = numclients) as executor:
-            futures = [executor.submit(send_requests, reqlst, testmode) for reqlst in s]
-            for future in as_completed(futures):
-	        #print i
-	        #i += 1
-                #print future.result()
-                try:
-                    x = future.result()
-                    results.extend(x)        
-                except Exception as e:
-                    print('get_blobs: something generated an exception: %s', e)
+    #n = 100
+    #process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
+    #for s in process_slices:
+    with ProcessPoolExecutor(max_workers = numclients) as executor:
+        futures = [executor.submit(send_requests, reqlst, testmode) for reqlst in data]
+        for future in as_completed(futures):
+	    #print i
+	    #i += 1
+            #print future.result()
+            try:
+                x = future.result()
+                results.extend(x)        
+            except Exception as e:
+                print('get_blobs: something generated an exception: %s', e)
         print "start stats"
         stats(results)
-	time.sleep(60*2)
+	#time.sleep(60*2)
     with open(out_file, 'w') as f:
         json.dump(results, f)
        
@@ -496,13 +496,21 @@ def main():
         threads = 1
     print 'warmup threads same as number of clients: ' + str(threads)
     
-    
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
     elif inputs['testmode']['traditionaldedup'] == True:
         testmode = 'traditionaldedup'
     else:
         testmode = 'sift'    
+
+    if 'threads' not in inputs['client_info']:
+        print 'client threads not specified, 1 thread will be used'
+        client_threads = 1
+    else:
+        client_threads = inputs['client_info']['threads']
+        print str(client_threads) + ' client threads'
+
+    config_client(client_threads, registries) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
         print 'warmup mode'
@@ -511,15 +519,6 @@ def main():
 
     elif args.command == 'run':
         print 'run mode'
-        if 'threads' not in inputs['client_info']:
-            print 'client threads not specified, 1 thread will be used'
-            client_threads = 3
-        else:
-            client_threads = inputs['client_info']['threads']
-            print str(client_threads) + ' client threads'
-
-        config_client(client_threads, registries) #requests, out_trace, numclients
-        
         data = organize(json_data, interm, threads)
         ## Perform GET
         get_blobs(data, threads, out_file, testmode)
