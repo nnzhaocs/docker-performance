@@ -96,13 +96,13 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
     return True
 
 
-def get_request_registries(r):
+def get_request_registries(r, testmode):
     global ring
 
     uri = r['uri']
     layer_id = uri.split('/')[-1]
 
-    if r['method'] == 'PUT' or 'manifest' in r['uri']:
+    if r['method'] == 'PUT' or 'manifest' in r['uri'] or testmode == 'nodedup':
         registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
