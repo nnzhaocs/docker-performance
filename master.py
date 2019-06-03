@@ -94,7 +94,7 @@ def warmup(data, out_trace, registries, threads):
                     print('something generated an exception: %s', e)
 	#break     
         stats(results)
-	time.sleep(6)
+	#time.sleep(600)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
@@ -104,6 +104,8 @@ def warmup(data, out_trace, registries, threads):
         json.dump(results, f)
             
     print("max threads:", threads)
+
+# def getResFromRedis(filename):
 
 
 #############
@@ -157,22 +159,26 @@ def stats(responses):
 
  
 ## Get blobs
-def get_blobs(data, numclients, out_file):
+def get_blobs(data, numclients, out_file, testmode):
     results = []
     i = 0
+    #n = 100
+    #process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
+    #for s in process_slices:
     with ProcessPoolExecutor(max_workers = numclients) as executor:
-        futures = [executor.submit(send_requests, reqlst) for reqlst in data]
+        futures = [executor.submit(send_requests, reqlst, testmode) for reqlst in data]
         for future in as_completed(futures):
-	    print i
-	    i += 1
+	    #print i
+	    #i += 1
             #print future.result()
             try:
                 x = future.result()
                 results.extend(x)        
             except Exception as e:
                 print('get_blobs: something generated an exception: %s', e)
-    print "start stats"
-    stats(results)
+        print "start stats"
+        stats(results)
+	#time.sleep(60*2)
     with open(out_file, 'w') as f:
         json.dump(results, f)
        
@@ -418,6 +424,7 @@ def main():
         inputs = yaml.load(config)
     except Exception as inst:
         print 'error reading config file'
+	print inst
         exit(-1)
 
 
@@ -481,13 +488,6 @@ def main():
 	    print "please write realblobs in the config files"
 	    return
 
-    if 'redis' not in inputs:
-        print 'please config redis for client!'
-    else:
-        redis_host = inputs['redis']['host']
-        redis_port = inputs['redis']['port']
-        print 'redis: host:'+str(redis_host)+',port:'+str(redis_port)
-
     json_data = get_requests(trace_files, limit_type, limit)
 
     if 'threads' in inputs['warmup']:
@@ -495,7 +495,23 @@ def main():
     else:
         threads = 1
     print 'warmup threads same as number of clients: ' + str(threads)
+    
+    if inputs['testmode']['nodedup'] == True:
+        testmode = 'nodedup'
+    elif inputs['testmode']['traditionaldedup'] == True:
+        testmode = 'traditionaldedup'
+    else:
+        testmode = 'sift'    
 
+    if 'threads' not in inputs['client_info']:
+        print 'client threads not specified, 1 thread will be used'
+        client_threads = 1
+    else:
+        client_threads = inputs['client_info']['threads']
+        print str(client_threads) + ' client threads'
+
+    config_client(client_threads, registries) #requests, out_trace, numclients   
+         
     if args.command == 'warmup': 
         print 'warmup mode'
         # NANNAN: not sure why only warmup a single registry, let's warmup all.
@@ -503,18 +519,9 @@ def main():
 
     elif args.command == 'run':
         print 'run mode'
-        if 'threads' not in inputs['client_info']:
-            print 'client threads not specified, 1 thread will be used'
-            client_threads = 3
-        else:
-            client_threads = inputs['client_info']['threads']
-            print str(client_threads) + ' client threads'
-
-        config_client(redis_host, redis_port, client_threads, registries) #requests, out_trace, numclients
-        
         data = organize(json_data, interm, threads)
         ## Perform GET
-        get_blobs(data, threads, out_file)
+        get_blobs(data, threads, out_file, testmode)
 
 
     elif args.command == 'simulate':
