@@ -13,14 +13,15 @@ import random
 import pdb
 from multiprocessing import Process, Queue
 from dxf import *
-
+import threading
 import rejson, redis, json
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from uhashring import HashRing
 from rediscluster import StrictRedisCluster
-from scipy.stats.tests.test_stats import TestMode
-
+#from scipy.stats.tests.test_stats import TestMode
+import subprocess
+from pipes import quote
 # app = Bottle()
 ####
 # NANNAN: tar the blobs and send back to master.
@@ -43,7 +44,7 @@ def pull_from_registry(dgst, registry_tmp, newdir):
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
-    f = open(path.join(newdir, dgst))
+    f = open(os.path.join(newdir, dgst), 'w')
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
@@ -186,7 +187,7 @@ def get_layer_request(request):
     
     now = time.time()
     #threads = 1        ##################
-    newdir = path.join(layerdir, threading.currentThread().ident, request['delay'])
+    newdir = os.path.join(layerdir, threading.currentThread().ident, request['delay'])
     with ProcessPoolExecutor(max_workers = threads) as executor:
         futures = [executor.submit(pull_from_registry, dgst, registry, newdir) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
@@ -202,13 +203,13 @@ def get_layer_request(request):
     #print("onTime_l:", onTime_l)        
     #print("results: ", results) 
     
-    dgstdir = path.join(newdir, dgst)
+    dgstdir = os.path.join(newdir, dgst)
      
     now = time.time()
     if len(threads) > 1:
         dgstlst = []
         for x in onTime_l:
-            slicefilelst.append(path.join(newdir, x["digest"]))    
+            slicefilelst.append(os.path.join(newdir, x["digest"]))    
         with ProcessPoolExecutor(max_workers = len(dgstlst)) as executor:
             futures = [executor.submit(decompress_tarball_gunzip, sf, dgstdir) for sf in slicefilelst]
             for future in futures:#.as_completed(timeout=60):
@@ -222,7 +223,7 @@ def get_layer_request(request):
             
     decompress_time = time.time() - now 
     
-    dgstfile = path.join(newdir, dgst+".tar.gz")  
+    dgstfile = os.path.join(newdir, dgst+".tar.gz")  
     now = time.time()       
     compress_tarball_gzip(dgstfile, dgstdir)    
     compress_time = time.time() - now 
@@ -238,7 +239,7 @@ def get_layer_request(request):
 
 
 def push_random_registry(dgst):
-    registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.155:5000']
+    registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
     registry_tmp = random.choice(registries)
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
     try:
@@ -247,11 +248,25 @@ def push_random_registry(dgst):
         print("PUT: dxf object: ", dxf, "file: ", r['data'], "dxf Exception: Got", e.got, "Expected:", e.expected)
     
 
+def mk_dir(newdir):
+    #command = 'ls -l {}'.format(quote(filename))
+    cmd1 = 'mkdir -pv {}'.format(quote(newdir))
+    print('The shell command: %s', cmd1)
+    try:
+        subprocess.check_output(cmd1, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
+    except subprocess.CalledProcessError as e:
+        logging.error('###################%s: %s###################',
+                      newdir, e.output)
+        return False
+    return True
+
 def get_manifest_request(request):
     dgst = request['blob']
     registries = []
     registries.extend(get_request_registries(request))
-    newdir = path.join(layerdir, threading.currentThread().ident, request['delay'])
+    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
+    print newdir
+    mk_dir(newdir)
     return pull_from_registry(dgst, registries[0], newdir)
     
     
@@ -276,13 +291,13 @@ def get_normal_layers_requests(r):
     with ProcessPoolExecutor(max_workers = numthreads) as executor:
         futures = [executor.submit(get_manifest_request(req)) for req in r]
         for future in futures:#.as_completed(timout=60):
-            #print("get_layers_requests: future result: ", future.result())
+            print("get_normal_layers_requests: future result: ", future.result())
             try:
                 x = future.result(timeout=60)
                 results.append(x)
                 #return results
             except Exception as e:
-                print('get_layers_requests: something generated an exception: %s', e)    
+                print('get_normal_requests: something generated an exception: %s', e)    
     
     return results
     

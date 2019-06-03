@@ -94,7 +94,7 @@ def warmup(data, out_trace, registries, threads):
                     print('something generated an exception: %s', e)
 	#break     
         stats(results)
-	time.sleep(600)
+	#time.sleep(600)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
@@ -104,8 +104,6 @@ def warmup(data, out_trace, registries, threads):
         json.dump(results, f)
             
     print("max threads:", threads)
-
-
 
 # def getResFromRedis(filename):
 
@@ -170,8 +168,8 @@ def get_blobs(data, numclients, out_file, testmode):
         with ProcessPoolExecutor(max_workers = numclients) as executor:
             futures = [executor.submit(send_requests, reqlst, testmode) for reqlst in s]
             for future in as_completed(futures):
-	        print i
-	        i += 1
+	        #print i
+	        #i += 1
                 #print future.result()
                 try:
                     x = future.result()
@@ -426,6 +424,7 @@ def main():
         inputs = yaml.load(config)
     except Exception as inst:
         print 'error reading config file'
+	print inst
         exit(-1)
 
 
