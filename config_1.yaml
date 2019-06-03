@@ -26,7 +26,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 5000
+        amount: 7000
 
     output: results.json # only used in run mode, produced output trace with latencies
  

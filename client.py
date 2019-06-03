@@ -51,10 +51,10 @@ def pull_from_registry(dgst, registry_tmp, newdir):
             f.write(chunk)
            # print("dxf object: ", dxf, "size: ", size, "hash: ", dgst)
     except Exception as e:
-        #print("GET: dxf object: ", dxf, "hash: ", dgst, "dxf Exception:", e)
         if "expected digest sha256:" in str(e):
             onTime = 'yes: wrong digest'
         else:
+            print("GET: dxf object: ", dxf, "hash: ", dgst, "dxf Exception:", e)
             onTime = 'failed: '+str(e)
             
     t = time.time() - now
@@ -91,7 +91,7 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
 #     for serverip in bfrecipe['ServerIps']:
 #         serverIps.append(serverip)
     value = json.dumps(bfrecipe)
-    print value
+#     print value
     rj_dbNoBFRecipe.set(key, value)
     return True
 
@@ -183,7 +183,8 @@ def get_layer_request(request):
     threads = len(registries)
     print('registries list', registries)
     if not threads:
-        print 'destination registries for this blob is zero! ERROR!'            
+        print 'destination registries for this blob is zero! ERROR!' 
+        return results           
     
     now = time.time()
     #threads = 1        ##################
@@ -264,8 +265,11 @@ def get_manifest_request(request, testmode):
     dgst = request['blob']
     registries = []
     registries.extend(get_request_registries(request, testmode))
+    if len(registries) == 0:
+        print "get_manifest_request ERROR no registry########################"
+        return {}
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
-    print newdir
+#     print newdir
     mk_dir(newdir)
     return pull_from_registry(dgst, registries[0], newdir)
     
@@ -291,7 +295,7 @@ def get_normal_layers_requests(r, testmode):
     with ProcessPoolExecutor(max_workers = numthreads) as executor:
         futures = [executor.submit(get_manifest_request(req, testmode)) for req in r]
         for future in futures:#.as_completed(timout=60):
-            print("get_normal_layers_requests: future result: ", future.result())
+#             print("get_normal_layers_requests: future result: ", future.result())
             try:
                 x = future.result(timeout=60)
                 results.append(x)
@@ -384,15 +388,15 @@ def send_requests(requests, testmode):
 	#print r
         if 'manifest' in r[0]['uri'] and 'GET' == r[0]['method']:
             print "get repo request: "
-	    print r
+# 	    print r
             results = pull_repo_request(r, testmode)
         elif 'manifest' in r[-1]['uri'] and 'PUT' == r[-1]['method']:
             print "push repo request: "
-	    print r
+# 	    print r
             results = push_repo_request(r)
         else:
             print "weird request: "
-            print r
+#             print r
             continue
     
         results_all.extend(results) 
@@ -436,10 +440,6 @@ def config_client(num_client_threads, registries_input):
             {"host": "192.168.0.180", "port": "7000"},
             {"host": "192.168.0.180", "port": "7001"}]
     rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
-    
-    
-    
-    
     
     """
     {u'SliceSize': 166, u'DurationCP': 0.000751436, u'DurationCMP': 3.7068e-05, u'ServerIp': u'192.168.0.171', u'DurationML': 0.000553802, u'DurationNTT': 3.7041e-05, u'DurationRS': 0.001379347}

@@ -73,7 +73,7 @@ def warmup(data, out_trace, registries, threads):
             registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
             #idx = registries.index(registry_tmp) 
             process_data.append((registry_tmp, request))
-    print process_data
+#     print process_data
     print("total requests:", len(process_data))
     #n = len(process_data)
     n = 100
@@ -82,7 +82,7 @@ def warmup(data, out_trace, registries, threads):
         with ProcessPoolExecutor(max_workers=threads) as executor:
             futures = [executor.submit(send_warmup_thread, req) for req in s]
             for future in as_completed(futures):
-                print(future.result())
+#                 print(future.result())
                 try:
                     x = future.result()
                     for k in x['trace']:
@@ -402,8 +402,8 @@ def organize(requests, out_trace, numclients):
             organized[i%numclients].append(r)
             clientTOThreads[req['client']] = i%numclients
             i += 1     
-            
-        print req
+    print ("number of clients: %s", i)       
+#         print req
 
     return organized
 
