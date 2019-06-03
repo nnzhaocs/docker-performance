@@ -260,10 +260,10 @@ def mk_dir(newdir):
         return False
     return True
 
-def get_manifest_request(request):
+def get_manifest_request(request, testmode):
     dgst = request['blob']
     registries = []
-    registries.extend(get_request_registries(request))
+    registries.extend(get_request_registries(request, testmode))
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
     print newdir
     mk_dir(newdir)
@@ -286,10 +286,10 @@ def get_layers_requests(r):
     return results
 
 
-def get_normal_layers_requests(r):
+def get_normal_layers_requests(r, testmode):
     results = []
     with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(get_manifest_request(req)) for req in r]
+        futures = [executor.submit(get_manifest_request(req, testmode)) for req in r]
         for future in futures:#.as_completed(timout=60):
             print("get_normal_layers_requests: future result: ", future.result())
             try:
@@ -304,14 +304,14 @@ def get_normal_layers_requests(r):
 
 def pull_repo_request(r, testmode): 
     results = []
-    result = get_manifest_request(r[0])
+    result = get_manifest_request(r[0], testmode)
     results.append(result)
     
     if len(r) <= 1:
         return results
     
     if testmode == 'nodedup':
-        result = get_normal_layers_requests(r[1:])
+        result = get_normal_layers_requests(r[1:], testmode)
         results.extend(result)
     else:
         result = get_layers_requests(r[1:])
