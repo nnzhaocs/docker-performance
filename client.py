@@ -188,7 +188,7 @@ def get_layer_request(request):
     
     now = time.time()
     #threads = 1        ##################
-    newdir = os.path.join(layerdir, threading.currentThread().ident, request['delay'])
+    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
     with ProcessPoolExecutor(max_workers = threads) as executor:
         futures = [executor.submit(pull_from_registry, dgst, registry, newdir) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
@@ -252,7 +252,7 @@ def push_random_registry(dgst):
 def mk_dir(newdir):
     #command = 'ls -l {}'.format(quote(filename))
     cmd1 = 'mkdir -pv {}'.format(quote(newdir))
-    print('The shell command: %s', cmd1)
+#     print('The shell command: %s', cmd1)
     try:
         subprocess.check_output(cmd1, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
@@ -267,7 +267,7 @@ def get_manifest_request(request, testmode):
     registries.extend(get_request_registries(request, testmode))
     if len(registries) == 0:
         print "get_manifest_request ERROR no registry########################"
-        return {}
+#         return {}
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
 #     print newdir
     mk_dir(newdir)

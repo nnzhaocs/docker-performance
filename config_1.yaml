@@ -71,6 +71,6 @@ warmup: # required for run and warmup mode
     threads: 50 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: True 
-    traditionaldedup: False  
+    nodedup: False 
+    traditionaldedup: True  
     sift: False  
