@@ -278,6 +278,7 @@ def match(realblob_location_files, trace_files, limit):
                             blob = './config_1.yaml'
                         else:
                             blob = blob_locations[i]
+                            i += 1
                             if layer_id in tTOblobdic.keys():
                                 continue
                             if blob in blobTOtdic.keys():
@@ -304,7 +305,6 @@ def match(realblob_location_files, trace_files, limit):
                         }
                         print r
                         ret.append(r)
-                        i += 1
                         count += 1
                                
         with open(trace_file+'-realblob.json', 'w') as fp:
@@ -510,7 +510,7 @@ def main():
         client_threads = inputs['client_info']['threads']
         print str(client_threads) + ' client threads'
 
-    config_client(client_threads, registries) #requests, out_trace, numclients   
+    config_client(client_threads, registries, testmode) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
         print 'warmup mode'

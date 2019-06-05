@@ -33,7 +33,7 @@ from pipes import quote
 ##
 ###=========== this is ramdisk =============>
 layerdir = "/home/nannan/testing/layers"
-testmode = ""
+Testmode = ""
 
 def pull_from_registry(dgst, registry_tmp, newdir):        
     result = {}
@@ -97,13 +97,13 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
     return True
 
 
-def get_request_registries(r, testmode):
+def get_request_registries(r):
     global ring
 
     uri = r['uri']
     layer_id = uri.split('/')[-1]
 
-    if r['method'] == 'PUT' or 'manifest' in r['uri'] or testmode == 'nodedup':
+    if r['method'] == 'PUT' or 'manifest' in r['uri'] or Testmode == 'nodedup':
         registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
@@ -238,8 +238,6 @@ def get_layer_request(request):
     clear_extracting_dir(newdir)          
     return results
 
-
-
 def push_random_registry(dgst):
     registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
     registry_tmp = random.choice(registries)
@@ -262,10 +260,10 @@ def mk_dir(newdir):
         return False
     return True
 
-def get_manifest_request(request, testmode):
+def get_manifest_request(request):
     dgst = request['blob']
     registries = []
-    registries.extend(get_request_registries(request, testmode))
+    registries.extend(get_request_registries(request))
     if len(registries) == 0:
         print "get_manifest_request ERROR no registry########################"
 #         return {}
@@ -291,10 +289,10 @@ def get_layers_requests(r):
     return results
 
 
-def get_normal_layers_requests(r, testmode):
+def get_normal_layers_requests(r):
     results = []
     with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(get_manifest_request(req, testmode)) for req in r]
+        futures = [executor.submit(get_manifest_request(req)) for req in r]
         for future in futures:#.as_completed(timout=60):
 #             print("get_normal_layers_requests: future result: ", future.result())
             try:
@@ -307,16 +305,16 @@ def get_normal_layers_requests(r, testmode):
     return results
     
 
-def pull_repo_request(r, testmode): 
+def pull_repo_request(r): 
     results = []
-    result = get_manifest_request(r[0], testmode)
+    result = get_manifest_request(r[0])
     results.append(result)
     
     if len(r) <= 1:
         return results
     
-    if testmode == 'nodedup':
-        result = get_normal_layers_requests(r[1:], testmode)
+    if Testmode == 'nodedup':
+        result = get_normal_layers_requests(r[1:])
         results.extend(result)
     else:
         result = get_layers_requests(r[1:])
@@ -380,7 +378,7 @@ def push_repo_request(r):
     return results
         
         
-def send_requests(requests, testmode):
+def send_requests(requests):
     results_all = [] 
     if not len(requests):
 	return results_all
@@ -390,7 +388,7 @@ def send_requests(requests, testmode):
         if 'manifest' in r[0]['uri'] and 'GET' == r[0]['method']:
             print "get repo request: "
 # 	    print r
-            results = pull_repo_request(r, testmode)
+            results = pull_repo_request(r)
         elif 'manifest' in r[-1]['uri'] and 'PUT' == r[-1]['method']:
             print "push repo request: "
 # 	    print r
@@ -418,7 +416,7 @@ def config_client(num_client_threads, registries_input, test_mode):
     registries = registries_input
     numthreads = num_client_threads
     ring = HashRing(nodes = registries)
-    testmode = testmode
+    Testmode = test_mode
     
 #     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
 #     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
