@@ -33,6 +33,7 @@ from pipes import quote
 ##
 ###=========== this is ramdisk =============>
 layerdir = "/home/nannan/testing/layers"
+testmode = ""
 
 def pull_from_registry(dgst, registry_tmp, newdir):        
     result = {}
@@ -408,7 +409,7 @@ def send_requests(requests, testmode):
 #     global rj_dbNoBFRecipe
     
 
-def config_client(num_client_threads, registries_input): 
+def config_client(num_client_threads, registries_input, test_mode): 
     global ring
     global rj_dbNoBFRecipe
     global rjpool_dbNoBFRecipe
@@ -417,6 +418,7 @@ def config_client(num_client_threads, registries_input):
     registries = registries_input
     numthreads = num_client_threads
     ring = HashRing(nodes = registries)
+    testmode = testmode
     
 #     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
 #     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 

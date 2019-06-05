@@ -42,9 +42,9 @@ startup_nodes = [
 # {u'SliceSize': 166, u'DurationCP': 0.000751436, u'DurationCMP': 3.7068e-05, u'ServerIp': u'192.168.0.171', u'DurationML': 0.000553802, u'DurationNTT': 3.7041e-05, u'DurationRS': 0.001379347}
 
 rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
-for key in rj_dbNoBFRecipe.scan_iter("Blob:File:Recipe::sha256*"):
-    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
-    print bfrecipe
+for key in rj_dbNoBFRecipe.scan_iter("*"):
+    #bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
+    print key #bfrecipe
 
 #key = "Blob:File:Recipe::sha256:808442aea3fd7583588e24a7f80b5556070e80326f7964cd32b16dd04f2c42de"
 #bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
