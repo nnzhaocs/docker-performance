@@ -69,10 +69,11 @@ def redis_stat_bfrecipe_serverips(dgst):
     global rj_dbNoBFRecipe
     key = "Blob:File:Recipe::"+dgst
     if not rj_dbNoBFRecipe.exists(key):
+	"cannot find recipe for redis_stat_bfrecipe_serverips"
         return None
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     serverIps = []
-#    print("bfrecipe: ", bfrecipe)
+    print("bfrecipe: ", bfrecipe)
     for serverip in bfrecipe['ServerIps']:
         serverIps.append(serverip)
     return serverIps
@@ -82,13 +83,14 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
     global rj_dbNoBFRecipe
     key = "Blob:File:Recipe::"+dgst
     if not rj_dbNoBFRecipe.exists(key):
+	print "cannot find recipe for redis_set_bfrecipe_performance"
         return None
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     bfrecipe['DurationCMP'] = compress_time
     bfrecipe['DurationDCMP'] = decompress_time  
     bfrecipe['DurationNTT'] = layer_transfer_time    
 #     serverIps = []
-#    print("bfrecipe: ", bfrecipe)
+    print("bfrecipe: ", bfrecipe)
 #     for serverip in bfrecipe['ServerIps']:
 #         serverIps.append(serverip)
     value = json.dumps(bfrecipe)
@@ -126,7 +128,7 @@ def compress_tarball_gzip(dgstfile, dgstdir): #.gz
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        logging.error('###################%s: exit code: %s; %s###################',
+        print('###################%s: exit code: %s; %s###################',
                       dgstdir, e.returncode, e.output)
         return False
 
@@ -144,9 +146,9 @@ def decompress_tarball_gunzip(sf, dgstdir):
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
         if "Unexpected EOF in archive" in e.output:
-            logging.info('###################%s: Pass exit code: %s; %s###################',
+            print('###################%s: Pass exit code: %s; %s###################',
                       dgstdir, e.returncode, e.output)
-        logging.error('###################%s: exit code: %s; %s###################',
+        print('###################%s: exit code: %s; %s###################',
                       sf, e.returncode, e.output)
         return False
 
@@ -163,11 +165,11 @@ def clear_extracting_dir(dir):
 #         return False
 
     cmd4 = 'rm -rf %s' % (dir+'*')
-    logging.debug('The shell command: %s', cmd4)
+    print('The shell command: %s', cmd4)
     try:
         subprocess.check_output(cmd4, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        logging.error('###################%s: exit code: %s; %s###################',
+        print('###################%s: exit code: %s; %s###################',
                       dir, e.returncode, e.output)
         return False
 
@@ -190,6 +192,7 @@ def get_layer_request(request):
     now = time.time()
     #threads = 1        ##################
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
+    mk_dir(newdir)
     with ProcessPoolExecutor(max_workers = threads) as executor:
         futures = [executor.submit(pull_from_registry, dgst, registry, newdir) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
@@ -255,7 +258,7 @@ def mk_dir(newdir):
     try:
         subprocess.check_output(cmd1, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        logging.error('###################%s: %s###################',
+        print('###################%s: %s###################',
                       newdir, e.output)
         return False
     return True
@@ -307,16 +310,19 @@ def get_normal_layers_requests(r):
 
 def pull_repo_request(r): 
     results = []
+    print "get manifest request: "
     result = get_manifest_request(r[0])
     results.append(result)
     
     if len(r) <= 1:
         return results
-    
+    print Testmode
     if Testmode == 'nodedup':
+	print "get normal layer requests: "
         result = get_normal_layers_requests(r[1:])
         results.extend(result)
     else:
+	print "get layer requests: "
         result = get_layers_requests(r[1:])
         results.extend(result)
     return results

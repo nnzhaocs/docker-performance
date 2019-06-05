@@ -166,7 +166,7 @@ def get_blobs(data, numclients, out_file, testmode):
     #process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
     #for s in process_slices:
     with ProcessPoolExecutor(max_workers = numclients) as executor:
-        futures = [executor.submit(send_requests, reqlst, testmode) for reqlst in data]
+        futures = [executor.submit(send_requests, reqlst) for reqlst in data]
         for future in as_completed(futures):
 	    #print i
 	    #i += 1
