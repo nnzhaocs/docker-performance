@@ -33,6 +33,7 @@ from pipes import quote
 ##
 ###=========== this is ramdisk =============>
 layerdir = "/home/nannan/testing/layers"
+Testmode = ""
 
 def pull_from_registry(dgst, registry_tmp, newdir):        
     result = {}
@@ -68,26 +69,30 @@ def redis_stat_bfrecipe_serverips(dgst):
     global rj_dbNoBFRecipe
     key = "Blob:File:Recipe::"+dgst
     if not rj_dbNoBFRecipe.exists(key):
+	"cannot find recipe for redis_stat_bfrecipe_serverips"
         return None
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     serverIps = []
-#    print("bfrecipe: ", bfrecipe)
+    #print("bfrecipe: ", bfrecipe)
     for serverip in bfrecipe['ServerIps']:
         serverIps.append(serverip)
     return serverIps
 
 
 def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_transfer_time):
+    print("redis_set_bfrecipe_performance: %s, %s, %s", str(decompress_time), str(compress_time),
+	str(layer_transfer_time))
     global rj_dbNoBFRecipe
     key = "Blob:File:Recipe::"+dgst
     if not rj_dbNoBFRecipe.exists(key):
+	print "cannot find recipe for redis_set_bfrecipe_performance"
         return None
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     bfrecipe['DurationCMP'] = compress_time
     bfrecipe['DurationDCMP'] = decompress_time  
     bfrecipe['DurationNTT'] = layer_transfer_time    
 #     serverIps = []
-#    print("bfrecipe: ", bfrecipe)
+    #print("bfrecipe: ", bfrecipe)
 #     for serverip in bfrecipe['ServerIps']:
 #         serverIps.append(serverip)
     value = json.dumps(bfrecipe)
@@ -96,13 +101,13 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
     return True
 
 
-def get_request_registries(r, testmode):
+def get_request_registries(r):
     global ring
 
     uri = r['uri']
     layer_id = uri.split('/')[-1]
 
-    if r['method'] == 'PUT' or 'manifest' in r['uri'] or testmode == 'nodedup':
+    if r['method'] == 'PUT' or 'manifest' in r['uri'] or Testmode == 'nodedup':
         registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
@@ -125,7 +130,7 @@ def compress_tarball_gzip(dgstfile, dgstdir): #.gz
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        logging.error('###################%s: exit code: %s; %s###################',
+        print('###################%s: exit code: %s; %s###################',
                       dgstdir, e.returncode, e.output)
         return False
 
@@ -143,9 +148,9 @@ def decompress_tarball_gunzip(sf, dgstdir):
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
         if "Unexpected EOF in archive" in e.output:
-            logging.info('###################%s: Pass exit code: %s; %s###################',
+            print('###################%s: Pass exit code: %s; %s###################',
                       dgstdir, e.returncode, e.output)
-        logging.error('###################%s: exit code: %s; %s###################',
+        print('###################%s: exit code: %s; %s###################',
                       sf, e.returncode, e.output)
         return False
 
@@ -162,11 +167,11 @@ def clear_extracting_dir(dir):
 #         return False
 
     cmd4 = 'rm -rf %s' % (dir+'*')
-    logging.debug('The shell command: %s', cmd4)
+    print('The shell command: %s', cmd4)
     try:
         subprocess.check_output(cmd4, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        logging.error('###################%s: exit code: %s; %s###################',
+        print('###################%s: exit code: %s; %s###################',
                       dir, e.returncode, e.output)
         return False
 
@@ -188,13 +193,16 @@ def get_layer_request(request):
     
     now = time.time()
     #threads = 1        ##################
-    newdir = os.path.join(layerdir, threading.currentThread().ident, request['delay'])
+    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
+    mk_dir(newdir)
+    compresstarsdir = os.path.join(newdir, "compresstarsdir")
+    mk_dir(compresstarsdir)
     with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, newdir) for registry in registries]
+        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_layer_request: future result: ", future.result(timeout=60))
             try:
-                x = future.result(timeout=60)
+                x = future.result()
                 onTime_l.append(x)      
             except Exception as e:
                 print('get_layer_request: something generated an exception: %s', e, dgst)
@@ -204,70 +212,77 @@ def get_layer_request(request):
     #print("onTime_l:", onTime_l)        
     #print("results: ", results) 
     
-    dgstdir = os.path.join(newdir, dgst)
-     
+    decompressdir = os.path.join(newdir, "dgstdir", dgst)
+    mk_dir(decompressdir)
+
+    slicefilelst = []
+    dgstlst = []
     now = time.time()
-    if len(threads) > 1:
-        dgstlst = []
+    if threads > 1:        
         for x in onTime_l:
-            slicefilelst.append(os.path.join(newdir, x["digest"]))    
-        with ProcessPoolExecutor(max_workers = len(dgstlst)) as executor:
-            futures = [executor.submit(decompress_tarball_gunzip, sf, dgstdir) for sf in slicefilelst]
+            slicefilelst.append(os.path.join(compresstarsdir, x["digest"]))    
+        with ProcessPoolExecutor(max_workers = len(slicefilelst)) as executor:
+            futures = [executor.submit(decompress_tarball_gunzip, sf, decompressdir) for sf in slicefilelst]
             for future in futures:#.as_completed(timeout=60):
                 #print("get_layer_request: future result: ", future.result(timeout=60))
                 try:
-                    x = future.result(timeout=60)
+                    x = future.result()
 #                     onTime_l.append(x)      
                 except Exception as e:
                     print('get_layer_request: something generated an exception: %s', e, dgst)
-            print("dgst: ", dgstlst) 
+            print("dgst: ", slicefilelst) 
             
     decompress_time = time.time() - now 
     
-    dgstfile = os.path.join(newdir, dgst+".tar.gz")  
+    dgstcompressdir = os.path.join(newdir, "dgstcompressdir") #dgst+".tar.gz")
+    mk_dir(dgstcompressdir)
+    layerfile = os.path.join(dgstcompressdir, dgst+".tar.gz")
+
     now = time.time()       
-    compress_tarball_gzip(dgstfile, dgstdir)    
+    compress_tarball_gzip(layerfile, decompressdir)    
     compress_time = time.time() - now 
      
     now = time.time()
-    push_random_registry(dgstfile) #dgstdir+tar.zip
+    #print "pushing to registries"
+    push_random_registry(layerfile) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
     redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_transfer_time) 
     clear_extracting_dir(newdir)          
     return results
 
-
-
-def push_random_registry(dgst):
+def push_random_registry(dgstfile):
     registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
     registry_tmp = random.choice(registries)
+    #print "pushing to registry: "+registry_tmp
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    #print "pushing to registry: "+registry_tmp
     try:
         dgst = dxf.push_blob(dgstfile)#fname
+	#print "pushing to registry: "+registry_tmp
     except Exception as e:
-        print("PUT: dxf object: ", dxf, "file: ", r['data'], "dxf Exception: Got", e.got, "Expected:", e.expected)
+        print("PUT: dxf object: ", dxf, "file: ", dgstfile, "dxf Exception: Got", e)
     
 
 def mk_dir(newdir):
     #command = 'ls -l {}'.format(quote(filename))
     cmd1 = 'mkdir -pv {}'.format(quote(newdir))
-    print('The shell command: %s', cmd1)
+#     print('The shell command: %s', cmd1)
     try:
         subprocess.check_output(cmd1, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        logging.error('###################%s: %s###################',
+        print('###################%s: %s###################',
                       newdir, e.output)
         return False
     return True
 
-def get_manifest_request(request, testmode):
+def get_manifest_request(request):
     dgst = request['blob']
     registries = []
-    registries.extend(get_request_registries(request, testmode))
+    registries.extend(get_request_registries(request))
     if len(registries) == 0:
         print "get_manifest_request ERROR no registry########################"
-        return {}
+#         return {}
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
 #     print newdir
     mk_dir(newdir)
@@ -290,10 +305,10 @@ def get_layers_requests(r):
     return results
 
 
-def get_normal_layers_requests(r, testmode):
+def get_normal_layers_requests(r):
     results = []
     with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(get_manifest_request(req, testmode)) for req in r]
+        futures = [executor.submit(get_manifest_request(req)) for req in r]
         for future in futures:#.as_completed(timout=60):
 #             print("get_normal_layers_requests: future result: ", future.result())
             try:
@@ -306,18 +321,21 @@ def get_normal_layers_requests(r, testmode):
     return results
     
 
-def pull_repo_request(r, testmode): 
+def pull_repo_request(r): 
     results = []
-    result = get_manifest_request(r[0], testmode)
+    print "get manifest request: "
+    result = get_manifest_request(r[0])
     results.append(result)
     
     if len(r) <= 1:
         return results
-    
-    if testmode == 'nodedup':
-        result = get_normal_layers_requests(r[1:], testmode)
+    print Testmode
+    if Testmode == 'nodedup':
+	print "get normal layer requests: "
+        result = get_normal_layers_requests(r[1:])
         results.extend(result)
     else:
+	print "get layer requests: "
         result = get_layers_requests(r[1:])
         results.extend(result)
     return results
@@ -379,7 +397,7 @@ def push_repo_request(r):
     return results
         
         
-def send_requests(requests, testmode):
+def send_requests(requests):
     results_all = [] 
     if not len(requests):
 	return results_all
@@ -389,7 +407,7 @@ def send_requests(requests, testmode):
         if 'manifest' in r[0]['uri'] and 'GET' == r[0]['method']:
             print "get repo request: "
 # 	    print r
-            results = pull_repo_request(r, testmode)
+            results = pull_repo_request(r)
         elif 'manifest' in r[-1]['uri'] and 'PUT' == r[-1]['method']:
             print "push repo request: "
 # 	    print r
@@ -408,7 +426,7 @@ def send_requests(requests, testmode):
 #     global rj_dbNoBFRecipe
     
 
-def config_client(num_client_threads, registries_input): 
+def config_client(num_client_threads, registries_input, test_mode): 
     global ring
     global rj_dbNoBFRecipe
     global rjpool_dbNoBFRecipe
@@ -417,6 +435,7 @@ def config_client(num_client_threads, registries_input):
     registries = registries_input
     numthreads = num_client_threads
     ring = HashRing(nodes = registries)
+    Testmode = test_mode
     
 #     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
 #     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
