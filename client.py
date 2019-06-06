@@ -73,13 +73,15 @@ def redis_stat_bfrecipe_serverips(dgst):
         return None
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     serverIps = []
-    print("bfrecipe: ", bfrecipe)
+    #print("bfrecipe: ", bfrecipe)
     for serverip in bfrecipe['ServerIps']:
         serverIps.append(serverip)
     return serverIps
 
 
 def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_transfer_time):
+    print("redis_set_bfrecipe_performance: %s, %s, %s", str(decompress_time), str(compress_time),
+	str(layer_transfer_time))
     global rj_dbNoBFRecipe
     key = "Blob:File:Recipe::"+dgst
     if not rj_dbNoBFRecipe.exists(key):
@@ -90,7 +92,7 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
     bfrecipe['DurationDCMP'] = decompress_time  
     bfrecipe['DurationNTT'] = layer_transfer_time    
 #     serverIps = []
-    print("bfrecipe: ", bfrecipe)
+    #print("bfrecipe: ", bfrecipe)
 #     for serverip in bfrecipe['ServerIps']:
 #         serverIps.append(serverip)
     value = json.dumps(bfrecipe)
@@ -193,12 +195,14 @@ def get_layer_request(request):
     #threads = 1        ##################
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
     mk_dir(newdir)
+    compresstarsdir = os.path.join(newdir, "compresstarsdir")
+    mk_dir(compresstarsdir)
     with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, newdir) for registry in registries]
+        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_layer_request: future result: ", future.result(timeout=60))
             try:
-                x = future.result(timeout=60)
+                x = future.result()
                 onTime_l.append(x)      
             except Exception as e:
                 print('get_layer_request: something generated an exception: %s', e, dgst)
@@ -208,47 +212,56 @@ def get_layer_request(request):
     #print("onTime_l:", onTime_l)        
     #print("results: ", results) 
     
-    dgstdir = os.path.join(newdir, dgst)
-     
+    decompressdir = os.path.join(newdir, "dgstdir", dgst)
+    mk_dir(decompressdir)
+
+    slicefilelst = []
+    dgstlst = []
     now = time.time()
-    if len(threads) > 1:
-        dgstlst = []
+    if threads > 1:        
         for x in onTime_l:
-            slicefilelst.append(os.path.join(newdir, x["digest"]))    
-        with ProcessPoolExecutor(max_workers = len(dgstlst)) as executor:
-            futures = [executor.submit(decompress_tarball_gunzip, sf, dgstdir) for sf in slicefilelst]
+            slicefilelst.append(os.path.join(compresstarsdir, x["digest"]))    
+        with ProcessPoolExecutor(max_workers = len(slicefilelst)) as executor:
+            futures = [executor.submit(decompress_tarball_gunzip, sf, decompressdir) for sf in slicefilelst]
             for future in futures:#.as_completed(timeout=60):
                 #print("get_layer_request: future result: ", future.result(timeout=60))
                 try:
-                    x = future.result(timeout=60)
+                    x = future.result()
 #                     onTime_l.append(x)      
                 except Exception as e:
                     print('get_layer_request: something generated an exception: %s', e, dgst)
-            print("dgst: ", dgstlst) 
+            print("dgst: ", slicefilelst) 
             
     decompress_time = time.time() - now 
     
-    dgstfile = os.path.join(newdir, dgst+".tar.gz")  
+    dgstcompressdir = os.path.join(newdir, "dgstcompressdir") #dgst+".tar.gz")
+    mk_dir(dgstcompressdir)
+    layerfile = os.path.join(dgstcompressdir, dgst+".tar.gz")
+
     now = time.time()       
-    compress_tarball_gzip(dgstfile, dgstdir)    
+    compress_tarball_gzip(layerfile, decompressdir)    
     compress_time = time.time() - now 
      
     now = time.time()
-    push_random_registry(dgstfile) #dgstdir+tar.zip
+    #print "pushing to registries"
+    push_random_registry(layerfile) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
     redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_transfer_time) 
     clear_extracting_dir(newdir)          
     return results
 
-def push_random_registry(dgst):
+def push_random_registry(dgstfile):
     registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
     registry_tmp = random.choice(registries)
+    #print "pushing to registry: "+registry_tmp
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    #print "pushing to registry: "+registry_tmp
     try:
         dgst = dxf.push_blob(dgstfile)#fname
+	#print "pushing to registry: "+registry_tmp
     except Exception as e:
-        print("PUT: dxf object: ", dxf, "file: ", r['data'], "dxf Exception: Got", e.got, "Expected:", e.expected)
+        print("PUT: dxf object: ", dxf, "file: ", dgstfile, "dxf Exception: Got", e)
     
 
 def mk_dir(newdir):
