@@ -2,9 +2,9 @@
 client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
-        - /home/nannan/dockerimages/layers/hulk1_layers_less_50m.lst
+#        - /home/nannan/dockerimages/layers/hulk1_layers_less_50m.lst
 #	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_bigger_2g.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_less_1g.lst
+        - /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_less_1g.lst
 #	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_less_2g.lst
 #	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk4_layers_bigger_2g.lst
 #	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk4_layers_less_1g.lst
@@ -26,7 +26,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 6000
+        amount: 7000
 
     output: results.json # only used in run mode, produced output trace with latencies
  

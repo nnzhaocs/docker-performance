@@ -44,8 +44,8 @@ startup_nodes = [
 rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 for key in rj_dbNoBFRecipe.scan_iter("Blob:File:Recipe::sha256*"):
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
-    print bfrecipe
-
+    #print (bfrecipe["blobdigest"], bfrecipe['LayerDurationCP'], bfrecipe['layerdurationNTT'], bfrecipe'CompressSize'])
+    print "BlobDigest: ", bfrecipe['BlobDigest'], ", LayerDurationCP: ", bfrecipe['LayerDurationCP'], ", LayerDuraionNTT: ", bfrecipe['LayerDurationNTT'], ", CompressSize: ", bfrecipe['CompressSize']
 #key = "Blob:File:Recipe::sha256:808442aea3fd7583588e24a7f80b5556070e80326f7964cd32b16dd04f2c42de"
 #bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
 #print bfrecipe
