@@ -22,6 +22,7 @@ from rediscluster import StrictRedisCluster
 #from scipy.stats.tests.test_stats import TestMode
 import subprocess
 from pipes import quote
+import random
 # app = Bottle()
 ####
 # NANNAN: tar the blobs and send back to master.
@@ -45,7 +46,8 @@ def pull_from_registry(dgst, registry_tmp, newdir):
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
-    f = open(os.path.join(newdir, dgst), 'w')
+    fname = str(random.random())
+    f = open(os.path.join(newdir, fname), 'w')
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
@@ -60,8 +62,8 @@ def pull_from_registry(dgst, registry_tmp, newdir):
             
     t = time.time() - now
     
-    result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": dgst}
-    print("Putting results for: ", dgst, result)
+    result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": fname}
+    print("Putting results for: ", fname, result)
     return result
 
 
@@ -139,15 +141,13 @@ def compress_tarball_gzip(dgstfile, dgstdir): #.gz
     return True
 
 def decompress_tarball_gunzip(sf, dgstdir):
-    # start = time.time()
-    
-    
+    # start = time.time() 
     cmd = 'tar -zxf %s -C %s' % (sf, dgstdir)
     print('The shell command: %s', cmd)
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        if "Unexpected EOF in archive" in e.output:
+        if "Unexpected EOF in archive" in e.output or "ignored" in e.output:
             print('###################%s: Pass exit code: %s; %s###################',
                       dgstdir, e.returncode, e.output)
         print('###################%s: exit code: %s; %s###################',
@@ -193,7 +193,7 @@ def get_layer_request(request):
     
     now = time.time()
     #threads = 1        ##################
-    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
+    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']), str(random.random()))
     mk_dir(newdir)
     compresstarsdir = os.path.join(newdir, "compresstarsdir")
     mk_dir(compresstarsdir)
