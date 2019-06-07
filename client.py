@@ -36,11 +36,10 @@ import random
 layerdir = "/home/nannan/testing/layers"
 Testmode = ""
 
-def pull_from_registry(dgst, registry_tmp, newdir):        
+def pull_from_registry(dgst, registry_tmp, newdir, type):        
     result = {}
     size = 0
-    now = time.time()
-         
+             
     if ":5000" not in registry_tmp:
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
@@ -48,6 +47,7 @@ def pull_from_registry(dgst, registry_tmp, newdir):
     dxf = DXF(registry_tmp, 'test_repo', insecure=True)
     fname = str(random.random())
     f = open(os.path.join(newdir, fname), 'w')
+    now = time.time()
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
@@ -62,7 +62,7 @@ def pull_from_registry(dgst, registry_tmp, newdir):
             
     t = time.time() - now
     
-    result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": fname}
+    result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": fname, "type": type}
     print("Putting results for: ", fname, result)
     return result
 
@@ -81,7 +81,7 @@ def redis_stat_bfrecipe_serverips(dgst):
     return serverIps
 
 
-def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_transfer_time):
+def redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time):
     print("redis_set_bfrecipe_performance: %s, %s, %s", str(decompress_time), str(compress_time),
 	str(layer_transfer_time))
     global rj_dbNoBFRecipe
@@ -92,7 +92,8 @@ def redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_t
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
     bfrecipe['DurationCMP'] = compress_time
     bfrecipe['DurationDCMP'] = decompress_time  
-    bfrecipe['DurationNTT'] = layer_transfer_time    
+    bfrecipe['DurationNTT'] = layer_transfer_time
+    bfrecipe['DurationRS'] = restoretime    
 #     serverIps = []
     #print("bfrecipe: ", bfrecipe)
 #     for serverip in bfrecipe['ServerIps']:
@@ -114,7 +115,6 @@ def get_request_registries(r):
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
     else:
-
         dgst = r['blob'] 
         serverIps = redis_stat_bfrecipe_serverips(dgst)
         #print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
@@ -198,7 +198,7 @@ def get_layer_request(request):
     compresstarsdir = os.path.join(newdir, "compresstarsdir")
     mk_dir(compresstarsdir)
     with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir) for registry in registries]
+        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice") for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_layer_request: future result: ", future.result(timeout=60))
             try:
@@ -207,8 +207,12 @@ def get_layer_request(request):
             except Exception as e:
                 print('get_layer_request: something generated an exception: %s', e, dgst)
 		print("registries: ", registries) 
-    t = time.time() - now   
-    results = {'time': now, 'duration': t, 'onTime': onTime_l}
+    restoretime = time.time() - now 
+    
+    if "sift" == testmode:
+        results = {'time': now, 'duration': restoretime, 'onTime': onTime_l, 'type': 'layer'}     
+        return results
+#     restoretime = t  
     #print("onTime_l:", onTime_l)        
     #print("results: ", results) 
     
@@ -247,8 +251,13 @@ def get_layer_request(request):
     push_random_registry(layerfile) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
-    redis_set_bfrecipe_performance(dgst, decompress_time, compress_time, layer_transfer_time) 
-    clear_extracting_dir(newdir)          
+#     redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time) 
+    clear_extracting_dir(newdir) 
+    
+    results = {'time': now, 'duration': restoretime + decompress_time + compress_time + layer_transfer_time, 'onTime': onTime_l,
+               'restoretime': restoretime, 'decompress_time': decompress_time, 'compress_time': compress_time, 'layer_transfer_time': layer_transfer_time,
+               'type': layer}
+             
     return results
 
 def push_random_registry(dgstfile):
@@ -286,7 +295,13 @@ def get_manifest_request(request):
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
 #     print newdir
     mk_dir(newdir)
-    return pull_from_registry(dgst, registries[0], newdir)
+    type = ''
+    if 'manifest' in request['uri']:
+        type = 'manifest'
+    else:
+        type = 'layer'
+        
+    return pull_from_registry(dgst, registries[0], newdir, type)
     
     
 def get_layers_requests(r):
@@ -362,7 +377,7 @@ def push_layer_request(request):
         
         t = time.time() - now
 
-        result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size}
+        result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'push'}
         return result
         
 
