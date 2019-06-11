@@ -22,7 +22,7 @@ from rediscluster import StrictRedisCluster
 #from scipy.stats.tests.test_stats import TestMode
 import subprocess
 from pipes import quote
-import random
+# import random
 # app = Bottle()
 ####
 # NANNAN: tar the blobs and send back to master.
