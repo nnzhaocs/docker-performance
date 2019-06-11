@@ -42,7 +42,7 @@ def send_warmup_thread(req):
         onTime = 'failed: '+str(e)
         
     t = time.time() - now
-    result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t}
+    result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': 'warmup'}
     #print("Putting results for: ", dgst, result)
 #     return result
     print result
@@ -122,6 +122,8 @@ def stats(responses):
     total = len(responses)
     onTimes = 0
     failed = 0
+    layerlatency = 0
+    totallayer = 0
 
     startTime = responses[0]['time']
     for r in responses:
@@ -145,6 +147,10 @@ def stats(responses):
                 endtime = r['time'] + r['duration']
             latency += r['duration']
             data += r['size']
+        
+        if r['type'] == 'layer':
+            layerlatency += r['duration']
+            totallayer += 1
 
             
     duration = endtime - startTime
@@ -155,6 +161,8 @@ def stats(responses):
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
+    if totallayer > 0:
+        print 'Average layer latency: ' + str(1.*layerlatency/totallayer)
 
  
 ## Get blobs
