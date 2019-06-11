@@ -184,6 +184,14 @@ def get_layer_request(request):
     results = {}
     
     dgst = request['blob']      
+    full_uri = request['uri']
+    #print "---------------BEEP----------------"
+    #print "fulluri: " + full_uri
+    uri_trunks = full_uri.split('/')
+    #print "trunks 1 2: " + uri_trunks[1] + ", " + uri_trunks[2]
+    uri = uri_trunks[1] + uri_trunks[2]
+    #print "uri: " + uri
+    #print "~~~~~~~~~~~~~~~~~zap~~~~~~~~~~~~~~~~"
     registries.extend(get_request_registries(request)) 
     threads = len(registries)
     print('registries list', registries)
@@ -198,7 +206,7 @@ def get_layer_request(request):
     compresstarsdir = os.path.join(newdir, "compresstarsdir")
     mk_dir(compresstarsdir)
     with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice") for registry in registries]
+        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice", uri) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_layer_request: future result: ", future.result(timeout=60))
             try:
@@ -248,7 +256,9 @@ def get_layer_request(request):
      
     now = time.time()
     #print "pushing to registries"
-    uri = request['uri']
+    full_uri = request['uri']
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
     push_random_registry(layerfile, uri) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
@@ -288,7 +298,9 @@ def mk_dir(newdir):
 
 def get_manifest_request(request):
     dgst = request['blob']
-    uri = request['uri']
+    full_uri = request['uri']
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
     registries = []
     registries.extend(get_request_registries(request))
     if len(registries) == 0:
@@ -360,7 +372,9 @@ def pull_repo_request(r):
         
 def push_layer_request(request):
     size = request['size']
-    uri = request['uri']
+    full_uri = request['uri']
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
     registries = []
     result = {}
     onTime = 'yes'

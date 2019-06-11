@@ -26,7 +26,7 @@ trace: # mandatory field
     # entire trace used if limit not speciiied
     limit: 
         type: requests # seconds and requests are supported
-        amount: 7000
+        amount: 500
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -37,7 +37,7 @@ registry:
     - 192.168.0.174:5000
     - 192.168.0.176:5000
     - 192.168.0.177:5000
-    - 192.168.0.178:5000
+#    - 192.168.0.178:5000
     - 192.168.0.179:5000
     - 192.168.0.180:5000
 #    - 192.168.0.200:5000           

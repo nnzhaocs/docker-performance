@@ -31,8 +31,13 @@ def send_warmup_thread(req):
     size = 0
     onTime = 'yes'
     now = time.time()
-    
-    dxf = DXF(registry, 'test_repo', insecure=True)
+    #print "================== req:"
+    #print request
+    full_uri = request['uri']
+    #print full_uri
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
+    dxf = DXF(registry, uri, insecure=True) #DXF(registry, 'test_repo', insecure=True)
     #for request in requests:
     try:
         dgst = dxf.push_blob(request['data'])
