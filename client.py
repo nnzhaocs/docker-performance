@@ -248,7 +248,8 @@ def get_layer_request(request):
      
     now = time.time()
     #print "pushing to registries"
-    push_random_registry(layerfile) #dgstdir+tar.zip
+    uri = request['uri']
+    push_random_registry(layerfile, uri) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
 #     redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time) 
@@ -359,6 +360,7 @@ def pull_repo_request(r):
         
 def push_layer_request(request):
     size = request['size']
+    uri = request['uri']
     registries = []
     result = {}
     onTime = 'yes'
@@ -366,7 +368,7 @@ def push_layer_request(request):
         registries.extend(get_request_registries(request)) 
         registry_tmp = registries[0]
         now = time.time()
-        dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+        dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
         try:
             dgst = dxf.push_blob(request['data'])#fname
         except Exception as e:
