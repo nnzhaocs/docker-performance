@@ -35,7 +35,7 @@ from pipes import quote
 layerdir = "/home/nannan/testing/layers"
 Testmode = ""
 
-def pull_from_registry(dgst, registry_tmp, newdir):        
+def pull_from_registry(dgst, registry_tmp, newdir, uri):        
     result = {}
     size = 0
     now = time.time()
@@ -44,7 +44,7 @@ def pull_from_registry(dgst, registry_tmp, newdir):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
-    dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     f = open(os.path.join(newdir, dgst), 'w')
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
@@ -251,11 +251,11 @@ def get_layer_request(request):
     clear_extracting_dir(newdir)          
     return results
 
-def push_random_registry(dgstfile):
+def push_random_registry(dgstfile, uri):
     registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
     registry_tmp = random.choice(registries)
     #print "pushing to registry: "+registry_tmp
-    dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print "pushing to registry: "+registry_tmp
     try:
         dgst = dxf.push_blob(dgstfile)#fname
@@ -278,6 +278,7 @@ def mk_dir(newdir):
 
 def get_manifest_request(request):
     dgst = request['blob']
+    uri = request['uri']
     registries = []
     registries.extend(get_request_registries(request))
     if len(registries) == 0:
@@ -286,7 +287,7 @@ def get_manifest_request(request):
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
 #     print newdir
     mk_dir(newdir)
-    return pull_from_registry(dgst, registries[0], newdir)
+    return pull_from_registry(dgst, registries[0], newdir, uri)
     
     
 def get_layers_requests(r):

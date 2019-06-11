@@ -1,0 +1,7 @@
+../dockerimages/docker-traces/data_centers/dev-02_total_trace.json
+../dockerimages/docker-traces/data_centers/dev-mon01_total_trace.json
+../dockerimages/docker-traces/data_centers/fra02_total_trace.json
+../dockerimages/docker-traces/data_centers/lon02_total_trace.json
+../dockerimages/docker-traces/data_centers/prestage-mon01_total_trace.json
+../dockerimages/docker-traces/data_centers/stage-dal09_total_trace.json
+../dockerimages/docker-traces/data_centers/syd01_total_trace.json
