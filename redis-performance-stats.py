@@ -48,7 +48,7 @@ for key in rj_dbNoBFRecipe.scan_iter(recipe):
     k = key.split('::')[1]
     #print k
     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
-    #print key
+    print "Key: ", key, ", SliceSize: ", bfrecipe['SliceSize'], ", DurationCP: ", bfrecipe['DurationCP'], ", DurationCMP: ", bfrecipe['DurationCMP'], ", DurationML: ", bfrecipe['DurationML'], ", DuraionNTT: ", bfrecipe['DurationNTT'], ", DurationRS: ", bfrecipe['DurationRS']#"Blobigest: ", bfrecipe['BlobDigest'], ", LayerDurationCP: ", bfrecipe['LayerDurationCP'], ", LayerDuraionNTT: ", bfrecipe['LayerDurationNTT'], ", CompressSize: ", bfrecipe['CompressSize']
     if bfrecipe['DurationCMP'] and bfrecipe['DurationDCMP'] and bfrecipe['DurationNTT']:
     	#print bfrecipe
    	newkeystar = 'Blob:File:Recipe::RestoreTime::'+k+'*'

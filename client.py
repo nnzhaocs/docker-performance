@@ -22,7 +22,7 @@ from rediscluster import StrictRedisCluster
 #from scipy.stats.tests.test_stats import TestMode
 import subprocess
 from pipes import quote
-import random
+# import random
 # app = Bottle()
 ####
 # NANNAN: tar the blobs and send back to master.
@@ -36,7 +36,7 @@ import random
 layerdir = "/home/nannan/testing/layers"
 #global Testmode
 
-def pull_from_registry(dgst, registry_tmp, newdir, type):        
+def pull_from_registry(dgst, registry_tmp, newdir, type, uri):        
     result = {}
     size = 0
              
@@ -44,7 +44,7 @@ def pull_from_registry(dgst, registry_tmp, newdir, type):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'
-    dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     fname = str(random.random())
     f = open(os.path.join(newdir, fname), 'w')
     now = time.time()
@@ -185,6 +185,14 @@ def get_layer_request(request):
     global Testmode
 
     dgst = request['blob']      
+    full_uri = request['uri']
+    #print "---------------BEEP----------------"
+    #print "fulluri: " + full_uri
+    uri_trunks = full_uri.split('/')
+    #print "trunks 1 2: " + uri_trunks[1] + ", " + uri_trunks[2]
+    uri = uri_trunks[1] + uri_trunks[2]
+    #print "uri: " + uri
+    #print "~~~~~~~~~~~~~~~~~zap~~~~~~~~~~~~~~~~"
     registries.extend(get_request_registries(request)) 
     threads = len(registries)
     print('registries list', registries)
@@ -199,7 +207,7 @@ def get_layer_request(request):
     compresstarsdir = os.path.join(newdir, "compresstarsdir")
     mk_dir(compresstarsdir)
     with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice") for registry in registries]
+        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice", uri) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_layer_request: future result: ", future.result(timeout=60))
             try:
@@ -249,7 +257,10 @@ def get_layer_request(request):
      
     now = time.time()
     #print "pushing to registries"
-    push_random_registry(layerfile) #dgstdir+tar.zip
+    full_uri = request['uri']
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
+    push_random_registry(layerfile, uri) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
 #     redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time) 
@@ -261,11 +272,11 @@ def get_layer_request(request):
              
     return results
 
-def push_random_registry(dgstfile):
+def push_random_registry(dgstfile, uri):
     registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
     registry_tmp = random.choice(registries)
     #print "pushing to registry: "+registry_tmp
-    dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+    dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print "pushing to registry: "+registry_tmp
     try:
         dgst = dxf.push_blob(dgstfile)#fname
@@ -289,6 +300,9 @@ def mk_dir(newdir):
 def get_manifest_request(request):
     #print request
     dgst = request['blob']
+    full_uri = request['uri']
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
     registries = []
   
     registries.extend(get_request_registries(request))
@@ -303,10 +317,8 @@ def get_manifest_request(request):
     if 'manifest' in request['uri']:
         t = 'manifest'
     else:
-        t = 'layer'
-        
-    return  pull_from_registry(dgst, registries[0], newdir, t)
-    
+        t = 'layer'       
+    return pull_from_registry(dgst, registries[0], newdir, t, uri)
     
 def get_layers_requests(r):
     results = []
@@ -366,6 +378,9 @@ def pull_repo_request(r):
         
 def push_layer_request(request):
     size = request['size']
+    full_uri = request['uri']
+    uri_trunks = full_uri.split('/')
+    uri = uri_trunks[1] + uri_trunks[2]
     registries = []
     result = {}
     onTime = 'yes'
@@ -373,7 +388,7 @@ def push_layer_request(request):
         registries.extend(get_request_registries(request)) 
         registry_tmp = registries[0]
         now = time.time()
-        dxf = DXF(registry_tmp, 'test_repo', insecure=True)
+        dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
         try:
             dgst = dxf.push_blob(request['data'])#fname
         except Exception as e:
@@ -476,8 +491,8 @@ def config_client(num_client_threads, registries_input, test_mode):
             {"host": "192.168.0.176", "port": "7001"},
             {"host": "192.168.0.177", "port": "7000"}, 
             {"host": "192.168.0.177", "port": "7001"},
-            {"host": "192.168.0.178", "port": "7000"}, 
-            {"host": "192.168.0.178", "port": "7001"},
+            #{"host": "192.168.0.178", "port": "7000"}, 
+            #{"host": "192.168.0.178", "port": "7001"},
             {"host": "192.168.0.179", "port": "7000"}, 
             {"host": "192.168.0.179", "port": "7001"},
             {"host": "192.168.0.180", "port": "7000"},

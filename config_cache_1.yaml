@@ -1,0 +1,25 @@
+trace: # mandatory field
+    location: /home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/dal09 # use a small trace for debugging
+    traces:
+        - prod-dal09-logstash-2017.09.02-0.json
+        - prod-dal09-logstash-2017.09.02-1.json
+        #- dev-02_total_trace.json
+        #- dev-mon01_total_trace.json
+        #- fra02_total_trace.json
+        #- lon02_total_trace.json
+        #- prestage-mon01_total_trace.json
+        #- stage-dal09_total_trace.json
+        #- syd01_total_trace.json
+        # - total_trace_dal09.json
+        #- prod-dal09-logstash-2017.06.20-0.json
+        #- prod-dal09-logstash-2017.06.20-1.json
+        #- prod-dal09-logstash-2017.06.20-2.json
+        #- prod-dal09-logstash-2017.06.20-3.json
+        #- prod-dal09-logstash-2017.06.21-0.json
+        #- prod-dal09-logstash-2017.06.21-1.json
+        #- prod-dal09-logstash-2017.06.21-2.json
+        #- prod-dal09-logstash-2017.06.21-3.json
+    # entire trace used if limit not speciiied
+    limit: 
+        type: requests # seconds and requests are supported
+        amount: 7000
