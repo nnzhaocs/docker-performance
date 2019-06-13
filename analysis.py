@@ -36,7 +36,7 @@ def absoluteFilePaths(directory):
 
 
 def get_requests(trace_dir):
-    print "walking trace_dir: "+trace_dir
+    print "walking trace_dir: "+trace_dir + "and combine them together into a single total json file"
     absFNames = absoluteFilePaths(trace_dir)
     dirname = os.path.basename(trace_dir)
     blob_locations = []
@@ -264,77 +264,80 @@ def getTimestamp(total_trace):
 
 
 def analyze_repo_reqs(total_trace):
-    usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
+#     usrTOrepoTOlayerdic = defaultdict(list) # repoTOlayerdic
     repoTOlayerdic = defaultdict(list)
-    usrTOrepodic = defaultdict(list) # repoTOlayerdic
-
+#     usrTOrepodic = defaultdict(list) # repoTOlayerdic
+    fname = os.path.basename(total_trace)
+    
+    print("the output file is %s", os.path.join(input_dir, fname + '-repo2layersdic.json'))
+    
     with open(total_trace, 'r') as f:
         blob = json.load(f)
 
     for r in blob:
         uri = r['http.request.uri']
-        usrname = uri.split('/')[1]
+#         usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
 
-        if 'blob' in uri:
+        if 'blob' in uri: # only layers
             layer_id = uri.rsplit('/', 1)[1]
-            timestamp = r['timestamp']
+#             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
+            
+            if 'GET' != method:
+                continue
 
-            print "layer_id: "+layer_id
-            print "repo_name: "+repo_name
-            print "usrname: "+usrname
+            print "layer_id: " + layer_id
+            print "repo_name: " + repo_name
+#             print "usrname: "+usrname
 
-            if repo_name in repoTOlayerdic.keys():
-                if layer_id not in repoTOlayerdic[repo_name]:
-                    repoTOlayerdic[repo_name].append(layer_id)
-            else:
-                repoTOlayerdic[repo_name].append(layer_id)
-
-
-#             try:
-#                 lst = repoTOlayerdic[repo_name]
-#                 if layer_id not in lst:
+#             if repo_name in repoTOlayerdic.keys():
+#                 if layer_id not in repoTOlayerdic[repo_name]:
 #                     repoTOlayerdic[repo_name].append(layer_id)
-#             except Exception as e:
-#                 print "repo has not this layer before"
+#             else:
 #                 repoTOlayerdic[repo_name].append(layer_id)
 
-            #if
-
             try:
-                lst = usrTOrepodic[usrname]
-                if repo_name not in lst:
-                    usrTOrepodic[usrname].append(repo_name)
+                lst = repoTOlayerdic[repo_name]
+                if layer_id not in lst:
+                    repoTOlayerdic[repo_name].append(layer_id)
             except Exception as e:
-                print "usrname has not this repo before"
-                usrTOrepodic[usrname].append(repo_name)
+                print "repo has not this layer before or first met his repo"
+                repoTOlayerdic[repo_name].append(layer_id)
+
+#             try:
+#                 lst = usrTOrepodic[usrname]
+#                 if repo_name not in lst:
+#                     usrTOrepodic[usrname].append(repo_name)
+#             except Exception as e:
+#                 print "usrname has not this repo before"
+#                 usrTOrepodic[usrname].append(repo_name)
 #             if layer_id
 
     #         if layer_id in layerTOtimedic.keys():
             #layerTOtimedic[layer_id].append((method, timestamp))
 #             repoTOlayerdic[repo_name].append(layer_id)
 
-    for repo in repoTOlayerdic.keys():
-        jsondata = {
-            ''
-        }
+#     for repo in repoTOlayerdic.keys():
+#         jsondata = {
+#             ''
+#         }
 
-    for usr in usrTOrepodic.keys():
-        for repo in usrTOrepodic[usr]:
-            usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
+#     for usr in usrTOrepodic.keys():
+#         for repo in usrTOrepodic[usr]:
+#             usrTOrepoTOlayerdic[usr].append({repo:repoTOlayerdic[repo]})
+# 
+#     for usr in usrTOrepodic.keys():
+#         jsondata = {
+#             'usr': usr,
+#             'repos': usrTOrepoTOlayerdic[usr]
+# 
+#         }
 
-    for usr in usrTOrepodic.keys():
-        jsondata = {
-            'usr': usr,
-            'repos': usrTOrepoTOlayerdic[usr]
-
-        }
-
-    with open(os.path.join(input_dir, 'usr2repo2layer_map.json'), 'w') as fp:
-        json.dump(usrTOrepoTOlayerdic, fp)
+    with open(os.path.join(input_dir, fname + '-repo2layersdic.json'), 'w') as fp:
+        json.dump(repoTOlayerdic, fp)
 
 
 def analyze_usr_repolifetime():
@@ -1166,50 +1169,51 @@ def repullLayers(total_trace):
 def main():
 
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
-    parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'Input YAML configuration file, should contain all the inputs requried for processing')
-    parser.add_argument('-c', '--command', dest='command', type=str, required=True, help= 'Trace player command. Possible commands: warmup, run, simulate, warmup is used to populate the registry with the layers of the trace, run replays the trace, and simulate is used to test different caching and prefecting policies.')
+    parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'Input trace file basename in the input_dir, trace_dir is in analysis.py as global variable, hardcoded')
+    parser.add_argument('-c', '--command', dest='command', type=str, required=True, help= 'Command.')
 
     args = parser.parse_args()
 
-    trace_dir = input_dir+args.input
-
-    print "input dir: "+trace_dir
+    trace_file = input_dir + args.input
+    trace_dir = input_dir + args.input
+    
+    print "input trace file: " + trace_file
 
     if args.command == 'get':
+        print "input trace dir: " + trace_dir
         get_requests(trace_dir)
     elif args.command == 'Alayer':
 #         print "wrong cmd!"
-        analyze_requests(trace_dir)
+        analyze_requests(trace_file)
     elif args.command == 'reusetime':
-        analyze_reusetime(trace_dir)
-    elif args.command == 'map':
-        analyze_repo_reqs(trace_dir)
+        analyze_reusetime(trace_file)
+    elif args.command == 'repo2layermap':
+        analyze_repo_reqs(trace_file)
     elif args.command == 'repolayer':
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
-        clusterClientReqs(trace_dir)
+        clusterClientReqs(trace_file)
     elif args.command == 'calintervalgetML':
         durationmanifestblobs()
     elif args.command == 'calbatchstats':
         calbatchstats()
     elif args.command == 'repullLayers':
-        repullLayers(trace_dir)
+        repullLayers(trace_file)
     elif args.command == 'storeGetreqs':
-        storeGetreqs(trace_dir)
+        storeGetreqs(trace_file)
     elif args.command == 'getGetManfiests':
-        getGetManfiests(trace_dir)
+        getGetManfiests(trace_file)
     elif args.command == 'repullReqsCal':
-        repullReqsCal(trace_dir)
+        repullReqsCal(trace_file)
     elif args.command == 'clusterClientReqForClients':
-        clusterClientReqForClients(trace_dir)
+        clusterClientReqForClients(trace_file)
     elif args.command == 'clusterClientRepoPull':
-        clusterClientRepoPull(trace_dir)
+        clusterClientRepoPull(trace_file)
     elif args.command == 'repullReqUsr':
-        repullReqUsr(trace_dir)
+        repullReqUsr(trace_file)
     elif args.command == 'getSkewness':
-        getSkewness(trace_dir)
+        getSkewness(trace_file)
     else:    
-#repullReqUsr getSkewness(total_trace)
         return
 
 
