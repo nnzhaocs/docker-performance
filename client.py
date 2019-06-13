@@ -34,7 +34,7 @@ import random
 ##
 ###=========== this is ramdisk =============>
 layerdir = "/home/nannan/testing/layers"
-Testmode = ""
+#global Testmode
 
 def pull_from_registry(dgst, registry_tmp, newdir, type):        
     result = {}
@@ -106,10 +106,10 @@ def redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_
 
 def get_request_registries(r):
     global ring
-
+    global Testmode
     uri = r['uri']
     layer_id = uri.split('/')[-1]
-
+    #print layer_id
     if r['method'] == 'PUT' or 'manifest' in r['uri'] or Testmode == 'nodedup':
         registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
@@ -182,7 +182,8 @@ def get_layer_request(request):
     registries = []
     onTime_l = []
     results = {}
-    
+    global Testmode
+
     dgst = request['blob']      
     registries.extend(get_request_registries(request)) 
     threads = len(registries)
@@ -208,8 +209,8 @@ def get_layer_request(request):
                 print('get_layer_request: something generated an exception: %s', e, dgst)
 		print("registries: ", registries) 
     restoretime = time.time() - now 
-    
-    if "sift" == testmode:
+    #print Testmode
+    if 'sift' == Testmode:
         results = {'time': now, 'duration': restoretime, 'onTime': onTime_l, 'type': 'layer'}     
         return results
 #     restoretime = t  
@@ -256,7 +257,7 @@ def get_layer_request(request):
     
     results = {'time': now, 'duration': restoretime + decompress_time + compress_time + layer_transfer_time, 'onTime': onTime_l,
                'restoretime': restoretime, 'decompress_time': decompress_time, 'compress_time': compress_time, 'layer_transfer_time': layer_transfer_time,
-               'type': layer}
+               'type': 'layer'}
              
     return results
 
@@ -286,22 +287,25 @@ def mk_dir(newdir):
     return True
 
 def get_manifest_request(request):
+    #print request
     dgst = request['blob']
     registries = []
+  
     registries.extend(get_request_registries(request))
     if len(registries) == 0:
         print "get_manifest_request ERROR no registry########################"
 #         return {}
-    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']))
+    #print registries
+    newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']), str(random.random()))
 #     print newdir
     mk_dir(newdir)
-    type = ''
+    t = ''
     if 'manifest' in request['uri']:
-        type = 'manifest'
+        t = 'manifest'
     else:
-        type = 'layer'
+        t = 'layer'
         
-    return pull_from_registry(dgst, registries[0], newdir, type)
+    return  pull_from_registry(dgst, registries[0], newdir, t)
     
     
 def get_layers_requests(r):
@@ -322,12 +326,14 @@ def get_layers_requests(r):
 
 def get_normal_layers_requests(r):
     results = []
+    #print r
     with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(get_manifest_request(req)) for req in r]
+        futures = [executor.submit(get_manifest_request, req) for req in r]
         for future in futures:#.as_completed(timout=60):
 #             print("get_normal_layers_requests: future result: ", future.result())
             try:
-                x = future.result(timeout=60)
+                x = future.result()
+		#print x
                 results.append(x)
                 #return results
             except Exception as e:
@@ -341,13 +347,15 @@ def pull_repo_request(r):
     print "get manifest request: "
     result = get_manifest_request(r[0])
     results.append(result)
-    
+    global Testmode
+
     if len(r) <= 1:
         return results
     print Testmode
     if Testmode == 'nodedup':
 	print "get normal layer requests: "
         result = get_normal_layers_requests(r[1:])
+	#print "get normal: "+result
         results.extend(result)
     else:
 	print "get layer requests: "
@@ -447,11 +455,12 @@ def config_client(num_client_threads, registries_input, test_mode):
     global rjpool_dbNoBFRecipe
     global numthreads
     global registries
+    global Testmode
     registries = registries_input
     numthreads = num_client_threads
     ring = HashRing(nodes = registries)
     Testmode = test_mode
-    
+    print Testmode
 #     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
 #     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
     startup_nodes = [

@@ -167,7 +167,7 @@ def stats(responses):
 
  
 ## Get blobs
-def get_blobs(data, numclients, out_file, testmode):
+def get_blobs(data, numclients, out_file):#, testmode):
     results = []
     i = 0
     #n = 100
@@ -369,23 +369,23 @@ def organize(requests, out_trace, numclients):
         for req in reqs:
             uri = req['uri']
             if req['method'] == 'GET':
-                print 'GET: '+uri
+                #print 'GET: '+uri
                 if 'blobs' in uri:
-                    print 'GET layer:'+uri
+                    #print 'GET layer:'+uri
                     prev.append(req)
                 else:
-                    print 'GET manifest:'+uri
+                    #print 'GET manifest:'+uri
                     cur = []
                     cur.append(req)
                     cli_img_req_group.append(cur)
                     prev = cli_img_req_group[-1]
             else:
-                print 'PUT: '+uri
+                #print 'PUT: '+uri
                 if 'blobs' in uri:
-                    print 'PUT layer:'+uri
+                    #print 'PUT layer:'+uri
                     prev_push.append(req)
                 elif 'manifests' in uri:
-                    print 'PUT manifest:'+uri
+                    #print 'PUT manifest:'+uri
                     prev_push.append(req)
                     cur_push = []
                     cli_img_push_group.append(cur_push)
@@ -393,7 +393,7 @@ def organize(requests, out_trace, numclients):
         
         cli_img_req_group += cli_img_push_group
         cli_img_req_group_new = [x for x in cli_img_req_group if len(x)]
-        print cli_img_req_group_new
+        #print cli_img_req_group_new
         img_req_group += cli_img_req_group_new
         img_req_group.sort(key= lambda x: x[0]['delay'])
 
@@ -529,7 +529,7 @@ def main():
         print 'run mode'
         data = organize(json_data, interm, threads)
         ## Perform GET
-        get_blobs(data, threads, out_file, testmode)
+        get_blobs(data, threads, out_file)#, testmode)
 
 
     elif args.command == 'simulate':
