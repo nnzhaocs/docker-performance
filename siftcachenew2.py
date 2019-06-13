@@ -1,12 +1,13 @@
+from argparse import ArgumentParser
 import datetime
 from collections import defaultdict
 from collections import defaultdict
 from lru import LRU
 import pdb
-
+import yaml
 import json
 
-
+from master import match
 
 rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map_with_size.json"
 
@@ -62,16 +63,22 @@ class siftcache:
 
 
     def prefetch_layers(self, request):
+        print 'entered prefetch layers'
+        print 'self ' + str(self.RLmap) + ', req ' + str(request)
         client = request['client']
         repo = request['repo']
         client_layers = list(self.URLmap[client][repo])
+        print 'layers ' + client_layers
         try:
             repo_layers = self.RLmap[repo].keys()
         except KeyError:
+            print'key error'
             self.RLmap[repo] = {}
             repo_layers = self.RLmap[repo].keys()
 
         prefetchable = set(repo_layers).difference(set(client_layers))
+        print 'prefetchable: ' + str(prefetchable)
+        print 'self buffer: ' + str(self.prefetched_layers_buffer)
         to_prefetch = list(set(prefetchable).difference(set(self.prefetched_layers_buffer.keys())))
         to_prefetch_excluding_putbuffer = list(set(to_prefetch).difference(self.buffer_layer.keys()))
         #nannan
@@ -140,6 +147,7 @@ class siftcache:
                 self.total_evictions += 1
     
     def put(self, request):
+        print 'entered put'
         if request['method'] == 'GET' and request['type'] == 'm': 
             self.prefetch_layers(request)
 
@@ -203,7 +211,7 @@ class siftcache:
             'recent prefetched slice layers': self.recent_prefetched_slicelayers,
             'recent buffered put layers': self.recent_buffered_putlayers,
             'sediments': self.sediments,
-            'sediment hits': ((self.hit - self.recent_buffered_putlayers)*1.0)/
+            'sediment hits': ((self.hit - self.recent_buffered_putlayers)*1.0)
             }
         return data
 
@@ -242,9 +250,7 @@ def extract(data):
         })
     return requests
 
-
 def init(data, portion):
-
     requests = extract(data)
 
     print 'running simulation'
@@ -290,6 +296,8 @@ def init(data, portion):
             print str(count) + '% done'
         i += 1
         j += 1
+        print "req: type" + str(type(request))
+        print request
         siftsize1.put(request)
         siftsize2.put(request)
         siftsize3.put(request)
@@ -341,9 +349,86 @@ def init(data, portion):
     ]
     
     print data
+    print 'trying to write to siftcache_trace_detail.txt'
     f2 = open("siftcache_trace_detail.txt", 'a')
     msg = str(portion)+"% trace\n"
     f2.write(msg)
     for n in data:
         f2.write(str(n) + '\n') 
     f2.close()
+####################################################
+#generate and read in blob json files
+def main():
+    data = []
+    #get config file
+    parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
+    parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'Input YAML configuration file, should contain all the inputs requried for processing')
+    args = parser.parse_args()
+    
+    print 'trying to read config file...'
+    config = file(args.input, 'r')
+    try:
+        inputs = yaml.load(config)
+    except Exception as inst:
+        print 'error reading config file'
+	print inst
+        exit(-1)
+    if 'trace' not in inputs:
+        print 'trace field required in config file'
+        exit(1)
+    print 'config reading successful'
+
+    ##run match
+    print 'perparing for match...'
+    #realblobs
+    realblob_locations = []
+    print 'realblobs successful'
+    if 'realblobs' in inputs['client_info']:
+        realblob_locations = inputs['client_info']['realblobs']
+    else:
+        exit(-1)
+    #trace_files
+    trace_files = []
+
+    if 'location' in inputs['trace']:
+        location = inputs['trace']['location']
+        if '/' != location[-1]:
+            location += '/'
+        for fname in inputs['trace']['traces']:
+            trace_files.append(location + fname)
+    else:
+        trace_files.extend(inputs['trace']['traces'])
+
+    print 'Input traces'
+    for f in trace_files:
+        print f
+
+    print 'trace files successful'
+    #limit
+    limit_type = None
+    limit = 0
+    if 'limit' in inputs['trace']:
+        limit_type = inputs['trace']['limit']['type']
+        if limit_type in ['seconds', 'requests']:
+            limit = inputs['trace']['limit']['amount']
+        else:
+            print 'Invalid trace limit_type: limit_type must be either seconds or requests'
+            exit(1)
+    print 'limit successful'
+    print 'now running match'
+    match(realblob_locations, trace_files, limit)
+    print 'match successful'
+
+    print 'reading in requests...'
+    data = []
+    for filename in trace_files:
+        with open(filename+'-realblob.json', 'r') as f:
+            data.extend(json.load(f))
+    print 'requests read in successfully'
+
+    print 'now running init...'
+    init(data, 10)
+    print 'successful, results written to file'
+
+if __name__ == "__main__":
+    main()

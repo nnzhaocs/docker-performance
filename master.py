@@ -198,14 +198,15 @@ def get_blobs(data, numclients, out_file, testmode):
 ######
 # NANNAN: trace_file+'-realblob.json'
 ######
+#annotated by keren; = init from cache.py
 def get_requests(files, t, limit):
     ret = []
     requests = []
-    for filename in files:
+    for filename in files:#load each layer/request file (usually only 1)
         with open(filename+'-realblob.json', 'r') as f:
-            requests.extend(json.load(f))
+            requests.extend(json.load(f))#append a file
     
-        for request in requests:
+        for request in requests: #load each request
             method = request['http.request.method']
             uri = request['http.request.uri']
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
@@ -225,13 +226,14 @@ def get_requests(files, t, limit):
                         'data': blob
                     }
                     ret.append(r)
-    ret.sort(key= lambda x: x['delay'])
+    ret.sort(key= lambda x: x['delay']) # reorder by delay time
     begin = ret[0]['delay']
 
     for r in ret:
-        r['delay'] = (r['delay'] - begin).total_seconds()
+        r['delay'] = (r['delay'] - begin).total_seconds() # normalize delay time
    
-    if t == 'seconds':
+    if t == 'seconds':# if requested time format is in secs (the only supported one)
+#calculate all, and return 0 to limit
         begin = ret[0]['delay']
         i = 0
         for r in ret:
@@ -250,7 +252,8 @@ def get_requests(files, t, limit):
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
 ####
-
+##########annotation by keren
+#1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
 def match(realblob_location_files, trace_files, limit):
     print realblob_location_files, trace_files
 
@@ -260,6 +263,8 @@ def match(realblob_location_files, trace_files, limit):
     ret = []
     i = 0
     count = 0
+    # for each r_l_file; usually only 1
+    # read in all blob file locations from each r_l_file
     for realblob_location_file in realblob_location_files:
     	print "File: "+realblob_location_file+" has the following blobs"
     
@@ -268,7 +273,7 @@ def match(realblob_location_files, trace_files, limit):
             	print line
             	if line:
                     blob_locations.append(line.replace("\n", ""))
-    
+    #read in all requests from each trace file
     for trace_file in trace_files:
         with open(trace_file, 'r') as f:
             requests = json.load(f)
@@ -278,30 +283,30 @@ def match(realblob_location_files, trace_files, limit):
             uri = request['http.request.uri']
             if len(uri.split('/')) < 3:
                 continue
-            
+            #only interested in GET/pull PUT/push requests
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                layer_id = uri.rsplit('/', 1)[1]
+                layer_id = uri.rsplit('/', 1)[1]#dict[1] == usr name
                 size = request['http.response.written']
                 if size > 0:
                     if count > limit:
                         break
                     if i < len(blob_locations):
-                        if 'manifest' in uri:
-                            blob = './config_1.yaml'
+                        if 'manifest' in uri:# NOT SURE if a proceeding manifest
+                            blob = './config_1.yaml' # NOT SURE
                         else:
-                            blob = blob_locations[i]
+                            blob = blob_locations[i] # temp record the blob
                             i += 1
-                            if layer_id in tTOblobdic.keys():
+                            if layer_id in tTOblobdic.keys():#prevent repeated blob
                                 continue
-                            if blob in blobTOtdic.keys():
+                            if blob in blobTOtdic.keys():#same as above
                                 print "this is not gonna happen"
                                 continue
                             
-                            tTOblobdic[layer_id] = blob
-                            blobTOtdic[blob] = layer_id
+                            tTOblobdic[layer_id] = blob # mark blob as recorded
+                            blobTOtdic[blob] = layer_id # mark as recorded
     
-                            size = os.stat(blob).st_size
-                
+                            size = os.stat(blob).st_size # record blob size
+                # construct a request dict based on corres request/interpret request to http form
                         r = {
                             "host": request['host'],
                             "http.request.duration": request['http.request.duration'],
@@ -419,7 +424,7 @@ def organize(requests, out_trace, numclients):
 
     return organized
 
-
+##########annotation by keren
 def main():
 
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
@@ -428,7 +433,7 @@ def main():
     parser.add_argument('-c', '--command', dest='command', type=str, required=True, help= 'Trace player command. Possible commands: warmup, run, simulate, warmup is used to populate the registry with the layers of the trace, run replays the trace, and simulate is used to test different caching and prefecting policies.')
 
     args = parser.parse_args()
-    
+    #-----try read in config-----
     config = file(args.input, 'r')
     global ring
 
@@ -438,22 +443,22 @@ def main():
         print 'error reading config file'
 	print inst
         exit(-1)
-
-
+    #----------
+    #----read trace (http request) files----
     if 'trace' not in inputs:
         print 'trace field required in config file'
         exit(1)
 
     trace_files = []
-
+    # dir containing traces
     if 'location' in inputs['trace']:
         location = inputs['trace']['location']
         if '/' != location[-1]:
             location += '/'
         for fname in inputs['trace']['traces']:
-            trace_files.append(location + fname)
+            trace_files.append(location + fname) # actual trace file names
     else:
-        trace_files.extend(inputs['trace']['traces'])
+        trace_files.extend(inputs['trace']['traces']) # actual tfn
 
     print 'Input traces'
     for f in trace_files:
@@ -461,7 +466,7 @@ def main():
 
     limit_type = None
     limit = 0
-
+    # test limit specs
     if 'limit' in inputs['trace']:
         limit_type = inputs['trace']['limit']['type']
         if limit_type in ['seconds', 'requests']:
@@ -471,36 +476,37 @@ def main():
             exit(1)
     else:
         print 'limit_type not specified, entirety of trace files will be used will be used.'
-
+    #output file spec
     if 'output' in inputs['trace']:
         out_file = inputs['trace']['output']
     else:
         out_file = 'output.json'
         print 'Output trace not specified, ./output.json will be used'
-
+    #NOT SURE: if not sim, must be warmup/warmmed up before test
     if args.command != 'simulate':
         if "warmup" not in inputs or 'output' not in inputs['warmup']:
             print 'warmup not specified in config, warmup output required. Exiting'
             exit(1)
         else:
             interm = inputs['warmup']['output']
-
+    #machines to be used
     registries = []
     if 'registry' in inputs:
         registries.extend(inputs['registry'])
      
     print(registries)
     #NANNAN
+    #match mode; see detailed in corresponding func
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
-            realblob_locations = inputs['client_info']['realblobs']
+            realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
             match(realblob_locations, trace_files, limit)
             return
 	else:
 	    print "please write realblobs in the config files"
 	    return
 
-    json_data = get_requests(trace_files, limit_type, limit)
+    json_data = get_requests(trace_files, limit_type, limit) # == init in cache.py
 
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
@@ -559,7 +565,9 @@ def main():
         except Exception as inst:
             print 'Error running plugin init!'
             print inst
-
+    #elif args.command == 'cache':
+        #print "running cache test"
+        #cache_run()
 
 if __name__ == "__main__":
     main()
