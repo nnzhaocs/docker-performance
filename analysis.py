@@ -36,7 +36,7 @@ def absoluteFilePaths(directory):
 
 
 def get_requests(trace_dir):
-    print "walking trace_dir: "+trace_dir
+    print "walking trace_dir: "+trace_dir + "and combine them together into a single total json file"
     absFNames = absoluteFilePaths(trace_dir)
     dirname = os.path.basename(trace_dir)
     blob_locations = []
@@ -1175,10 +1175,12 @@ def main():
     args = parser.parse_args()
 
     trace_file = input_dir + args.input
-
+    trace_dir = input_dir + args.input
+    
     print "input trace file: " + trace_file
 
     if args.command == 'get':
+        print "input trace dir: " + trace_dir
         get_requests(trace_dir)
     elif args.command == 'Alayer':
 #         print "wrong cmd!"
