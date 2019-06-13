@@ -8,7 +8,7 @@ from concurrent.futures import ProcessPoolExecutor
 from rediscluster import StrictRedisCluster
 import subprocess
 from utilities import *
-            
+from uhashring import HashRing
 ##
 # NANNAN: fetch the serverips from redis by using layer digest
 ##
