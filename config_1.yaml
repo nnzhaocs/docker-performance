@@ -3,13 +3,13 @@ client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
         - /home/nannan/dockerimages/layers/hulk1_layers_less_50m.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_bigger_2g.lst
-#        - /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_less_1g.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk1_layers_less_2g.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk4_layers_bigger_2g.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk4_layers_less_1g.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk4_layers_less_2g.lst
-#	- /home/nannan/hadoop/dfs_4tb_1/dockerimages/layers/hulk4_layers_less_50m.lst
+        #	- /home/nannan/dockerimages/layers/hulk1_layers_bigger_2g.lst
+        # - /home/nannan/dockerimages/layers/hulk1_layers_less_1g.lst
+        #	- /home/nannan/dockerimages/layers/hulk1_layers_less_2g.lst
+        #	- /home/nannan/dockerimages/layers/hulk4_layers_bigger_2g.lst
+        #	- /home/nannan/dockerimages/layers/hulk4_layers_less_1g.lst
+        #	- /home/nannan/dockerimages/layers/hulk4_layers_less_2g.lst
+        #	- /home/nannan/dockerimages/layers/hulk4_layers_less_50m.lst
 
 trace: # mandatory field
     location: /home/nannan/dockerimages/docker-traces/data_centers/dal09 # use a small trace for debugging
@@ -23,54 +23,49 @@ trace: # mandatory field
         - prod-dal09-logstash-2017.06.21-1.json
         - prod-dal09-logstash-2017.06.21-2.json
         - prod-dal09-logstash-2017.06.21-3.json
-    # entire trace used if limit not speciiied
-    limit: 
+    
+    limit: # entire trace used if limit not speciiied
         type: requests # seconds and requests are supported
         amount: 500
 
     output: results.json # only used in run mode, produced output trace with latencies
  
 registry:   
-    - 192.168.0.170:5000
-    - 192.168.0.171:5000
-    - 192.168.0.172:5000
-    - 192.168.0.174:5000
-    - 192.168.0.176:5000
-    - 192.168.0.177:5000
-#    - 192.168.0.178:5000
-    - 192.168.0.179:5000
-    - 192.168.0.180:5000
-#    - 192.168.0.200:5000           
-#    - 192.168.0.201:5000           
-#    - 192.168.0.202:5000           
-#    - 192.168.0.203:5000           
-#    - 192.168.0.204:5000           
-#    - 192.168.0.205:5000           
-##    - 192.168.0.206:5000           
-##    - 192.168.0.207:5000           
-#    - 192.168.0.208:5000           
-#    - 192.168.0.209:5000           
-#    - 192.168.0.210:5000           
-#    - 192.168.0.211:5000           
-#    - 192.168.0.212:5000           
-#    - 192.168.0.213:5000           
-#    - 192.168.0.214:5000           
-#    - 192.168.0.215:5000           
-#    - 192.168.0.216:5000           
-#    - 192.168.0.217:5000           
-#    - 192.168.0.218:5000           
-#    - 192.168.0.219:5000          
-#    - 192.168.0.220:5000           
-#    - 192.168.0.221:5000           
-#    - 192.168.0.222:5000           
-#    - 192.168.0.223:5000
-
+#    - 192.168.0.170:5000
+#    - 192.168.0.171:5000
+#    - 192.168.0.172:5000
+#    - 192.168.0.174:5000
+#    - 192.168.0.176:5000
+#    - 192.168.0.177:5000
+#    - 192.168.0.179:5000
+#    - 192.168.0.180:5000
+    - 192.168.0.200:5000           
+    - 192.168.0.201:5000           
+    - 192.168.0.202:5000           
+    - 192.168.0.203:5000           
+    - 192.168.0.204:5000           
+    - 192.168.0.205:5000                     
+    - 192.168.0.208:5000           
+    - 192.168.0.209:5000           
+    - 192.168.0.210:5000           
+    - 192.168.0.211:5000           
+    - 192.168.0.212:5000           
+    - 192.168.0.213:5000           
+    - 192.168.0.214:5000           
+    - 192.168.0.215:5000           
+    - 192.168.0.216:5000           
+    - 192.168.0.217:5000           
+    - 192.168.0.218:5000           
+    - 192.168.0.219:5000                    
+    - 192.168.0.221:5000           
+    - 192.168.0.222:5000           
+    - 192.168.0.223:5000
 
 warmup: # required for run and warmup mode
     output: interm-3-5.json # name of file that holds mapping between trace uri's and hashes
-    threads: 5 # how many clients used to push/pull blobs to registry
+    threads: 10 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: False 
-    traditionaldedup: True  
-    sift: False  
+    nodedup: False #True #False 
+    traditionaldedup: True #False  
+    sift: False #True 
