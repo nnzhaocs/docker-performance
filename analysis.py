@@ -269,7 +269,7 @@ def analyze_repo_reqs(total_trace):
 #     usrTOrepodic = defaultdict(list) # repoTOlayerdic
     fname = os.path.basename(total_trace)
     
-    print("the output file is %s", os.path.join(input_dir, fname + '-repo2layersdic.json'))
+    print("the output file is %s", os.path.join(input_dir, fname + '-repo2layersdic-withsize.json'))
     
     with open(total_trace, 'r') as f:
         blob = json.load(f)
@@ -285,6 +285,7 @@ def analyze_repo_reqs(total_trace):
 #             timestamp = r['timestamp']
     #        timestamp = datetime.datetime.strptime(r['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
             method = r['http.request.method']
+            size = r['http.response.written']
             
             if 'GET' != method:
                 continue
@@ -298,14 +299,18 @@ def analyze_repo_reqs(total_trace):
 #                     repoTOlayerdic[repo_name].append(layer_id)
 #             else:
 #                 repoTOlayerdic[repo_name].append(layer_id)
-
+            found = False
+            
             try:
                 lst = repoTOlayerdic[repo_name]
-                if layer_id not in lst:
-                    repoTOlayerdic[repo_name].append(layer_id)
+                for l, _ in lst:
+                    if layer_id == l:
+                        found = True
+                if not found:
+                    repoTOlayerdic[repo_name].append((layer_id, size))
             except Exception as e:
                 print "repo has not this layer before or first met his repo"
-                repoTOlayerdic[repo_name].append(layer_id)
+                repoTOlayerdic[repo_name].append((layer_id, size))
 
 #             try:
 #                 lst = usrTOrepodic[usrname]
@@ -336,7 +341,7 @@ def analyze_repo_reqs(total_trace):
 # 
 #         }
 
-    with open(os.path.join(input_dir, fname + '-repo2layersdic.json'), 'w') as fp:
+    with open(os.path.join(input_dir, fname + '-repo2layersdic-withsize.json'), 'w') as fp:
         json.dump(repoTOlayerdic, fp)
 
 
