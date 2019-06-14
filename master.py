@@ -292,7 +292,7 @@ def match(realblob_location_files, trace_files, limit):
                         break
                     if i < len(blob_locations):
                         if 'manifest' in uri:# NOT SURE if a proceeding manifest
-                            blob = './config_1.yaml' # NOT SURE
+                            blob = '' # NOT SURE
                         else:
                             blob = blob_locations[i] # temp record the blob
                             i += 1
