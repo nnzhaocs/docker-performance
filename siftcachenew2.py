@@ -10,7 +10,7 @@ import json
 from master import match
 
 rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map_with_size.json"
-
+urlmaplocation = "/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/total_trace.json-repo2layersdic.json"
 
 def mean(items):
     return sum(items)*1.0/len(items)
@@ -30,7 +30,9 @@ class siftcache:
                 layerdict[layer] = size
             self.RLmap[repo] = layerdict
 
-        self.URLmap = defaultdict(lambda: defaultdict(set)) # map of {client: {repo1 : [layer1, layer2, layer3...]
+        urlmapfp = open(urlmaplocation)
+        self.URLmap = json.load(urlmapfp)#defaultdict(lambda: defaultdict(set)) # map of {client: {repo1 : [layer1, layer2, layer3...]
+        urlmapfp.close()
                                                             #                  repo2 : [...]
                                                             #                 }
                                                             # updated during the request process
@@ -64,9 +66,14 @@ class siftcache:
 
     def prefetch_layers(self, request):
         print 'entered prefetch layers'
-        print 'self ' + str(self.RLmap) + ', req ' + str(request)
         client = request['client']
         repo = request['repo']
+
+        print '~~~~~~zap'
+        print 'RLMAP ' + str(self.RLmap[repo])
+        print 'beep~~~~'
+        print 'URLMAP' + str(self.URLmap[client])
+        print ' req ' + str(request)
         client_layers = list(self.URLmap[client][repo])
         print 'layers ' + client_layers
         try:

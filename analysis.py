@@ -23,7 +23,7 @@ from __builtin__ import str
 #from Carbon.Aliases import false
 from sqlitedict import SqliteDict
 
-input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
+input_dir = '/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/'
 
 
 def absoluteFilePaths(directory):
@@ -276,7 +276,7 @@ def analyze_repo_reqs(total_trace):
 
     for r in blob:
         uri = r['http.request.uri']
-#         usrname = uri.split('/')[1]
+        usrname = uri.split('/')[1]
         repo_name = uri.split('/')[2]
         repo_name = usrname+'/'+repo_name
 
