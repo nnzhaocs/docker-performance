@@ -10,7 +10,7 @@ import json
 from master import match
 
 rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map_with_size.json"
-urlmaplocation = "/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/total_trace.json-repo2layersdic.json"
+urlmaplocation = "/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/dev-mon01_total_trace.json-repo2layersdic.json"
 
 def mean(items):
     return sum(items)*1.0/len(items)
