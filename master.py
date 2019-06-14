@@ -64,6 +64,9 @@ def send_warmup_thread(req):
 #######################
 
 def warmup(data, out_trace, registries, threads):
+    dedup = {}
+    dup_cnt = 0
+    total_cnt = 0
     trace = {}
     results = []
     process_data = []
@@ -74,6 +77,12 @@ def warmup(data, out_trace, registries, threads):
         if (request['method']) == 'GET':# and ('blobs' in request['uri']):
             uri = request['uri']
             layer_id = uri.split('/')[-1]
+            total_cnt += 1
+            if layer_id in dedup.keys():
+                dup_cnt += 1
+                continue
+            else:
+                dedup[layer_id] = 1
             registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
             #idx = registries.index(registry_tmp) 
             process_data.append((registry_tmp, request))
@@ -106,8 +115,10 @@ def warmup(data, out_trace, registries, threads):
     stats(results)
     with open('warmup_push_performance.json', 'w') as f:
         json.dump(results, f)
-            
+    
     print("max threads:", threads)
+    print 'duplication count: ' + str(dup_cnt)
+    print 'total count: ' + str(total_cnt)
 
 # def getResFromRedis(filename):
 
@@ -260,6 +271,7 @@ def match(realblob_location_files, trace_files, limit):
     blob_locations = []
     tTOblobdic = {}
     blobTOtdic = {}
+    lyrID_dgst_dict = {} #matches between layer ids and digests; should be unique
     ret = []
     i = 0
     count = 0
@@ -285,7 +297,8 @@ def match(realblob_location_files, trace_files, limit):
                 continue
             #only interested in GET/pull PUT/push requests
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                layer_id = uri.rsplit('/', 1)[1]#dict[1] == usr name
+                layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
+                print 'layer id: ' + str(layer_id)
                 size = request['http.response.written']
                 if size > 0:
                     if count > limit:
@@ -323,7 +336,15 @@ def match(realblob_location_files, trace_files, limit):
                         print r
                         ret.append(r)
                         count += 1
-                               
+                              
+                        #make sure 1-1 match f blob-layer id
+                        if layer_id in lyrID_dgst_dict.keys():
+                            if lyrID_dgst_dict[layer_id] != blob:
+                                print 'error, non-matching layer id and blob:' + str(layer_id)
+                                exit(-1)
+                        else:
+                            lyrID_dgst_dict[layer_id] = blob
+
         with open(trace_file+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
         
