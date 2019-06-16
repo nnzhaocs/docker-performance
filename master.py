@@ -57,6 +57,7 @@ def send_warmup_thread(req):
     return all
 
 #######################
+
 # send to registries according to cht 
 # warmup output file is <uri to dgst > map table
 # only consider 'get' requests
@@ -76,10 +77,12 @@ def warmup(data, out_trace, registries, threads):
     for request in data:
         if (request['method']) == 'GET':# and ('blobs' in request['uri']):
             uri = request['uri']
+            print 'uri: ' + uri
             layer_id = uri.split('/')[-1]
             total_cnt += 1
             if layer_id in dedup.keys():
                 dup_cnt += 1
+                dedup[layer_id] += 1
                 continue
             else:
                 dedup[layer_id] = 1
@@ -119,7 +122,8 @@ def warmup(data, out_trace, registries, threads):
     print("max threads:", threads)
     print 'duplication count: ' + str(dup_cnt)
     print 'total count: ' + str(total_cnt)
-
+    print 'dict print: '
+    print dedup
 # def getResFromRedis(filename):
 
 
