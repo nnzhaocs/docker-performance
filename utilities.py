@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pipes import quote
 
 def compress_tarball_gzip(dgstfile, dgstdir): #.gz
     cmd = 'tar -zcvf %s %s' % (dgstfile, dgstdir)
