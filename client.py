@@ -19,7 +19,8 @@ layerdir = "/home/nannan/testing/layers"
 def pull_from_registry(dgst, registry_tmp, newdir, type, uri):        
     result = {}
     size = 0
-             
+    global Testmode
+        
     if ":5000" not in registry_tmp:
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
@@ -31,7 +32,8 @@ def pull_from_registry(dgst, registry_tmp, newdir, type, uri):
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
-            f.write(chunk)
+	    if "sift" != Testmode: 
+            	f.write(chunk)
            # print("dxf object: ", dxf, "size: ", size, "hash: ", dgst)
     except Exception as e:
         if "expected digest sha256:" in str(e):
@@ -384,7 +386,8 @@ def config_client(num_client_threads, registries_input, test_mode):
     print("The testmode is %s\n\n", Testmode)
 #     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
 #     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
-    if "192.168.0.170" in registries:
+    print registries
+    if "192.168.0.170:5000" in registries:
         startup_nodes = startup_nodes_hulks
         print("==========> Testing HULKS <============\n\n%s\n\n", startup_nodes)
     else:    
