@@ -246,7 +246,8 @@ def get_requests(files, t, limit):
 
     for r in ret:
         r['delay'] = (r['delay'] - begin).total_seconds() # normalize delay time
-   
+    print 'ret length: ' + str(len(ret))
+    print ret[0]
     if t == 'seconds':# if requested time format is in secs (the only supported one)
 #calculate all, and return 0 to limit
         begin = ret[0]['delay']
@@ -288,16 +289,18 @@ def match(realblob_location_files, trace_files, limit):
     
     	with open(realblob_location_file, 'r') as f:
             for line in f:
-            	print line
+            	#print line
             	if line:
                     blob_locations.append(line.replace("\n", ""))
     #read in all requests from each trace file
-    fake_blob_loc = blob_locations[0].rsplit('/', 1)[0]
-    fake_blob_cnt = 0
+    print 'blob locations count: ' + str(len(blob_locations))
+    #fake_blob_loc = blob_locations[0].rsplit('/', 1)[0]
+    #fake_blob_cnt = 0
     for trace_file in trace_files:
+        print 'trace file: ' + trace_file
         with open(trace_file, 'r') as f:
             requests = json.load(f)
-            
+            print 'request count: ' + str(len(requests))
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
@@ -305,27 +308,30 @@ def match(realblob_location_files, trace_files, limit):
                 continue
             #only interested in GET/pull PUT/push requests
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                valid_req_count += 1
+                #valid_req_count += 1
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
-                print 'layer id: ' + str(layer_id)
+                #print 'layer id: ' + str(layer_id)
                 size = request['http.response.written']
                 if size > 0:
                     if count > limit:
                         break
+                    valid_req_count +=1
                     if i < len(blob_locations):
                         if 'manifest' in uri:# NOT SURE if a proceeding manifest
-                            if uri['manifest'] == 'manifest':
-                                #create a fake blob with same size
-                                #to the same dir as first valid blob file
+                            blob = ''
+                            """if uri['manifest'] == 'manifest':
                                 fake_blob_cnt += 1
-                                fake_blob_name = str(fake_blob_loc + 'fake_' + str(fake_blob_cnt) + '.blob'
-                                with open(fake_blob_name), 'wb') as f:
-                                    f.seek(size - 9)
-                                    f.write(str(random.getrandbits(64)))
-                                    f.write('\0')
-                                blob = fake_blob_name # NOT SURE
+                                fake_blob_name = str(fake_blob_loc + 'fake_' + str(fake_blob_cnt) + '.blob') 
+                                blob = '' 
+                                with open(fake_blob_name, 'wb') as f:
+                                #with open(out_trace, 'wb') as f:
+                                #fp = open(fake_blob_name, 'w`')
+                                #f.seek(size - 9)
+                                #f.write(str(random.getrandbits(64)))
+                                #f.write('\0')
+                                #blob = fake_blob_name # NOT SURE
                             else:
-                                blob = './config.yaml'
+                                blob = './config.yaml'"""
                         else:
                             blob = blob_locations[i] # temp record the blob
                             i += 1
@@ -353,7 +359,7 @@ def match(realblob_location_files, trace_files, limit):
                             "timestamp": request['timestamp'],
                             'data': blob
                         }
-                        print r
+                        #print r
                         ret.append(r)
                         count += 1
                               
@@ -365,6 +371,8 @@ def match(realblob_location_files, trace_files, limit):
                         else:
                             lyrID_dgst_dict[layer_id] = blob
         print 'valid request count: ' + str(valid_req_count)
+        print 'valid layer count: ' + str(len(blobTOtdic))
+        print str(count) + " count"
         with open(trace_file+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
         
@@ -548,7 +556,10 @@ def main():
 	    return
 
     json_data = get_requests(trace_files, limit_type, limit) # == init in cache.py
-
+    print json_data[0]
+    print json_data[1]
+    print json_data[5]
+    print len(json_data)
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:

@@ -13,6 +13,7 @@ def main():
     lyr_hit = 0
     reqs = []
     lyrs = []
+    empty_count = 0
 
     parser = ArgumentParser(description='chop down a trace file into smaller trunks')
     parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'trace file in')
@@ -34,6 +35,10 @@ def main():
         method = req['http.request.method']
         uri = req['http.request.uri']
         if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
+            size = req['http.response.written']
+            if  size == 0:
+                empty_count += 1
+                continue
             reqs.append(req)
             print uri
             layer_id = uri.split('/')[-1]
@@ -51,7 +56,7 @@ def main():
 
     length = int(total_lyr_count * percentage / 100)
     results = []
-    for i in range (0, 500): #req in reqs:
+    for i in range (0, 1700): #req in reqs:
         #if length == lyr_hit :
         #    break
         #req_count += 1
@@ -61,6 +66,9 @@ def main():
         lyr_hit += 1
         results.append(lyr_id)
     print len(results)
+    results.sort()
+    print len(set(results))
+    print results
     #print 'Extraction complete. It took ' + str(req_count) + ' requests to hit ' + str(lyr_hit) + 'layers'
 
     #print 'writing out results to specified output file...'
