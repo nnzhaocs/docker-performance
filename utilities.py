@@ -155,7 +155,27 @@ startup_nodes_thors = [ #thors
 """             
     
 
-
+# def redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time):
+#     print("redis_set_bfrecipe_performance: %s, %s, %s", str(decompress_time), str(compress_time),
+#     str(layer_transfer_time))
+#     global rj_dbNoBFRecipe
+#     key = "Blob:File:Recipe::"+dgst
+#     if not rj_dbNoBFRecipe.exists(key):
+#     print "cannot find recipe for redis_set_bfrecipe_performance"
+#         return None
+#     bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
+#     bfrecipe['DurationCMP'] = compress_time
+#     bfrecipe['DurationDCMP'] = decompress_time  
+#     bfrecipe['DurationNTT'] = layer_transfer_time
+#     bfrecipe['DurationRS'] = restoretime    
+# #     serverIps = []
+#     #print("bfrecipe: ", bfrecipe)
+# #     for serverip in bfrecipe['ServerIps']:
+# #         serverIps.append(serverip)
+#     value = json.dumps(bfrecipe)
+# #     print value
+#     rj_dbNoBFRecipe.set(key, value)
+#     return True
     
 
 
