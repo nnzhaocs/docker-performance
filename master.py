@@ -276,9 +276,11 @@ def match(realblob_location_files, trace_files, limit):
     tTOblobdic = {}
     blobTOtdic = {}
     lyrID_dgst_dict = {} #matches between layer ids and digests; should be unique
+    valid_req_count = 0
     ret = []
     i = 0
     count = 0
+    
     # for each r_l_file; usually only 1
     # read in all blob file locations from each r_l_file
     for realblob_location_file in realblob_location_files:
@@ -290,6 +292,8 @@ def match(realblob_location_files, trace_files, limit):
             	if line:
                     blob_locations.append(line.replace("\n", ""))
     #read in all requests from each trace file
+    fake_blob_loc = blob_locations[0].rsplit('/', 1)[0]
+    fake_blob_cnt = 0
     for trace_file in trace_files:
         with open(trace_file, 'r') as f:
             requests = json.load(f)
@@ -301,6 +305,7 @@ def match(realblob_location_files, trace_files, limit):
                 continue
             #only interested in GET/pull PUT/push requests
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
+                valid_req_count += 1
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
                 print 'layer id: ' + str(layer_id)
                 size = request['http.response.written']
@@ -309,7 +314,18 @@ def match(realblob_location_files, trace_files, limit):
                         break
                     if i < len(blob_locations):
                         if 'manifest' in uri:# NOT SURE if a proceeding manifest
-                            blob = '' # NOT SURE
+                            if uri['manifest'] == 'manifest':
+                                #create a fake blob with same size
+                                #to the same dir as first valid blob file
+                                fake_blob_cnt += 1
+                                fake_blob_name = str(fake_blob_loc + 'fake_' + str(fake_blob_cnt) + '.blob'
+                                with open(fake_blob_name), 'wb') as f:
+                                    f.seek(size - 9)
+                                    f.write(str(random.getrandbits(64)))
+                                    f.write('\0')
+                                blob = fake_blob_name # NOT SURE
+                            else:
+                                blob = './config.yaml'
                         else:
                             blob = blob_locations[i] # temp record the blob
                             i += 1
@@ -348,7 +364,7 @@ def match(realblob_location_files, trace_files, limit):
                                 exit(-1)
                         else:
                             lyrID_dgst_dict[layer_id] = blob
-
+        print 'valid request count: ' + str(valid_req_count)
         with open(trace_file+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
         
