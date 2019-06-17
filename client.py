@@ -9,10 +9,8 @@ from rediscluster import StrictRedisCluster
 import subprocess
 from utilities import *
 from uhashring import HashRing
-##
-# NANNAN: fetch the serverips from redis by using layer digest
-##
-###=========== this is ramdisk =============>
+
+###=========== this is a temperal directory =============>
 layerdir = "/home/nannan/testing/layers"
 
 
@@ -32,7 +30,7 @@ def pull_from_registry(dgst, registry_tmp, newdir, type, uri):
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
             size += len(chunk)
-	    if "sift" != Testmode: 
+	    if "traditionaldedup" == Testmode: 
             	f.write(chunk)
            # print("dxf object: ", dxf, "size: ", size, "hash: ", dgst)
     except Exception as e:
@@ -61,29 +59,6 @@ def redis_stat_bfrecipe_serverips(dgst):
     for serverip in bfrecipe['ServerIps']:
         serverIps.append(serverip)
     return serverIps
-
-
-def redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time):
-    print("redis_set_bfrecipe_performance: %s, %s, %s", str(decompress_time), str(compress_time),
-	str(layer_transfer_time))
-    global rj_dbNoBFRecipe
-    key = "Blob:File:Recipe::"+dgst
-    if not rj_dbNoBFRecipe.exists(key):
-	print "cannot find recipe for redis_set_bfrecipe_performance"
-        return None
-    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
-    bfrecipe['DurationCMP'] = compress_time
-    bfrecipe['DurationDCMP'] = decompress_time  
-    bfrecipe['DurationNTT'] = layer_transfer_time
-    bfrecipe['DurationRS'] = restoretime    
-#     serverIps = []
-    #print("bfrecipe: ", bfrecipe)
-#     for serverip in bfrecipe['ServerIps']:
-#         serverIps.append(serverip)
-    value = json.dumps(bfrecipe)
-#     print value
-    rj_dbNoBFRecipe.set(key, value)
-    return True
 
 
 def get_request_registries(r):
@@ -125,11 +100,12 @@ def get_layer_request(request):
         return results           
     
     now = time.time()
-    #threads = 1        ##################
+    # get slice requests
     newdir = os.path.join(layerdir, str(threading.currentThread().ident), str(request['delay']), str(random.random()))
     mk_dir(newdir)
     compresstarsdir = os.path.join(newdir, "compresstarsdir")
     mk_dir(compresstarsdir)
+    
     with ProcessPoolExecutor(max_workers = threads) as executor:
         futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice", uri) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
@@ -145,9 +121,6 @@ def get_layer_request(request):
     if 'sift' == Testmode:
         results = {'time': now, 'duration': restoretime, 'onTime': onTime_l, 'type': 'layer'}     
         return results
-#     restoretime = t  
-    #print("onTime_l:", onTime_l)        
-    #print("results: ", results) 
     
     decompressdir = os.path.join(newdir, "dgstdir", dgst)
     mk_dir(decompressdir)
@@ -187,7 +160,6 @@ def get_layer_request(request):
     push_random_registry(layerfile, uri) #dgstdir+tar.zip
     layer_transfer_time = time.time() - now 
     
-#     redis_set_bfrecipe_performance(dgst, restoretime, decompress_time, compress_time, layer_transfer_time) 
     clear_extracting_dir(newdir) 
     
     results = {'time': now, 'duration': restoretime + decompress_time + compress_time + layer_transfer_time, 'onTime': onTime_l,
@@ -197,19 +169,17 @@ def get_layer_request(request):
     return results
 
 def push_random_registry(dgstfile, uri):
-    registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000', '192.168.0.156:5000']
+    registries = ['192.168.0.151:5000', '192.168.0.152:5000', '192.168.0.153:5000', '192.168.0.154:5000']
     registry_tmp = random.choice(registries)
-    #print "pushing to registry: "+registry_tmp
-    dxf = DXF(registry_tmp, uri, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
-    #print "pushing to registry: "+registry_tmp
+    dxf = DXF(registry_tmp, uri, insecure=True) 
+
     try:
         dgst = dxf.push_blob(dgstfile)#fname
-	#print "pushing to registry: "+registry_tmp
     except Exception as e:
         print("PUT: dxf object: ", dxf, "file: ", dgstfile, "dxf Exception: Got", e)
     
 
-def get_manifest_request(request):
+def get_manifest_or_normallayer_request(request):
     #print request
     dgst = request['blob']
     full_uri = request['uri']
@@ -231,60 +201,30 @@ def get_manifest_request(request):
     else:
         t = 'layer'       
     return pull_from_registry(dgst, registries[0], newdir, t, uri)
-    
-def get_layers_requests(r):
-    results = []
-    with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(get_layer_request, glreq) for glreq in r]
-        for future in futures:#.as_completed(timout=60):
-            #print("get_layers_requests: future result: ", future.result())
-            try:
-                x = future.result(timeout=60)
-                results.append(x)
-                #return results
-            except Exception as e:
-                print('get_layers_requests: something generated an exception: %s', e)    
-    
-    return results
-
-
-def get_normal_layers_requests(r):
-    results = []
-    #print r
-    with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(get_manifest_request, req) for req in r]
-        for future in futures:#.as_completed(timout=60):
-#             print("get_normal_layers_requests: future result: ", future.result())
-            try:
-                x = future.result()
-		#print x
-                results.append(x)
-                #return results
-            except Exception as e:
-                print('get_normal_requests: something generated an exception: %s', e)    
-    
-    return results
-    
+   
 
 def pull_repo_request(r): 
     results = []
-    print "get manifest request: "
-    result = get_manifest_request(r[0])
-    results.append(result)
-    global Testmode
-
-    if len(r) <= 1:
-        return results
-    print Testmode
-    if Testmode == 'nodedup':
-	print "get normal layer requests: "
-        result = get_normal_layers_requests(r[1:])
-	#print "get normal: "+result
-        results.extend(result)
+    
+    if 'manifest' in r['uri']:
+        print "get manifest request: "
+        result = get_manifest_or_normallayer_request(r[0])
+        results.append(result)
     else:
-	print "get layer requests: "
-        result = get_layers_requests(r[1:])
-        results.extend(result)
+        global Testmode
+    
+#         if len(r) <= 1:
+#             return results
+        print Testmode
+        if Testmode == 'nodedup':
+            print "get normal layer requests: "
+            result = get_manifest_or_normallayer_request(r)
+    	#print "get normal: "+result
+            results.extend(result)
+        else:
+            print "get layer requests: "
+            result = get_layer_request(r)
+            results.extend(result)
     return results
         
         
@@ -318,31 +258,15 @@ def push_layer_request(request):
 
 def push_manifest_request(request):
     return push_layer_request(request)
-
-        
-def push_layers_requests(r):
-    results = []
-    with ProcessPoolExecutor(max_workers = numthreads) as executor:
-        futures = [executor.submit(push_layer_request, plreq) for plreq in r]
-        for future in futures:#.as_completed(timeout=60):
-            #print(future.result())
-            try:
-                x = future.result(timeout=60)
-                results.append(x)    
-            except Exception as e:
-                print('push_layers_requests: something generated an exception: %s', e)
-    return results     
             
             
 def push_repo_request(r):
     results = []
-    if len(r) > 1:
-        result = push_layers_requests(r[:len(r)-1])
-        results.extend(result)
-        result = push_manifest_request(r[0])
+    if 'manifest' in r['uri']:
+        result = push_manifest_request(r)
         results.append(result)
     else:
-        result = push_manifest_request(r[0])
+        result = push_layer_request(r)
         results.append(result)
     return results
         
@@ -354,11 +278,11 @@ def send_requests(requests):
 
     for r in requests:
 	#print r
-        if 'manifest' in r[0]['uri'] and 'GET' == r[0]['method']:
+        if 'GET' == r['method']:
             print "get repo request: "
 # 	    print r
             results = pull_repo_request(r)
-        elif 'manifest' in r[-1]['uri'] and 'PUT' == r[-1]['method']:
+        elif 'PUT' == r['method']:
             print "push repo request: "
 # 	    print r
             results = push_repo_request(r)
@@ -383,16 +307,15 @@ def config_client(num_client_threads, registries_input, test_mode):
     numthreads = num_client_threads
     ring = HashRing(nodes = registries)
     Testmode = test_mode
-    print("The testmode is %s\n\n", Testmode)
-#     rjpool_dbNoBFRecipe = redis.ConnectionPool(host = redis_host, port = redis_port, db = dbNoBFRecipe)
-#     rj_dbNoBFRecipe = redis.Redis(connection_pool=rjpool_dbNoBFRecipe) 
+    print("The testmode is:", Testmode)
+
     print registries
     if "192.168.0.170:5000" in registries:
         startup_nodes = startup_nodes_hulks
-        print("==========> Testing HULKS <============\n\n%s\n\n", startup_nodes)
+        print("==========> Testing HULKS <============: ", startup_nodes)
     else:    
         startup_nodes = startup_nodes_thors
-        print("==========> Testing THORS <============\n\n%s\n\n", startup_nodes)
+        print("==========> Testing THORS <============: ", startup_nodes)
         
     rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
     

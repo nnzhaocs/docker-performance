@@ -213,10 +213,19 @@ def get_blobs(data, numclients, out_file):#, testmode):
 def get_requests(files, t, limit):
     ret = []
     requests = []
-    for filename in files:#load each layer/request file (usually only 1)
-        with open(filename+'-realblob.json', 'r') as f:
-            requests.extend(json.load(f))#append a file
+    brk = False
     
+    for filename in files:#load each layer/request file (usually only 1)
+        try:
+            with open(filename+'-realblob.json', 'r') as f:
+                requests.extend(json.load(f))#append a file
+        except Exception as e:
+            print('get_requests: something generated an exception: %s', e)
+            brk = True
+            
+        if brk:
+            break
+        
         for request in requests: #load each request
             method = request['http.request.method']
             uri = request['http.request.uri']
@@ -272,9 +281,10 @@ def match(realblob_location_files, trace_files, limit):
     tTOblobdic = {}
     blobTOtdic = {}
     lyrID_dgst_dict = {} #matches between layer ids and digests; should be unique
-    ret = []
+    
     i = 0
     count = 0
+    
     # for each r_l_file; usually only 1
     # read in all blob file locations from each r_l_file
     for realblob_location_file in realblob_location_files:
@@ -290,6 +300,9 @@ def match(realblob_location_files, trace_files, limit):
         with open(trace_file, 'r') as f:
             requests = json.load(f)
             
+        ret = []  
+        fcnt = 0
+          
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
@@ -301,8 +314,9 @@ def match(realblob_location_files, trace_files, limit):
                 print 'layer id: ' + str(layer_id)
                 size = request['http.response.written']
                 if size > 0:
-                    if count > limit:
+                    if count >= limit:
                         break
+                    
                     if i < len(blob_locations):
                         if 'manifest' in uri:# NOT SURE if a proceeding manifest
                             blob = '' # NOT SURE
@@ -336,6 +350,7 @@ def match(realblob_location_files, trace_files, limit):
                         print r
                         ret.append(r)
                         count += 1
+                        fcnt += 1
                               
                         #make sure 1-1 match f blob-layer id
                         if layer_id in lyrID_dgst_dict.keys():
@@ -344,12 +359,12 @@ def match(realblob_location_files, trace_files, limit):
                                 exit(-1)
                         else:
                             lyrID_dgst_dict[layer_id] = blob
-
-        with open(trace_file+'-realblob.json', 'w') as fp:
-            json.dump(ret, fp)      
+        if fcnt:
+            with open(trace_file+'-realblob.json', 'w') as fp:
+                json.dump(ret, fp)      
         
 ##############
-# NANNAN: round_robin is false!
+# NANNAN: add a sleep delay
 # "http.request.duration": 1.005269323, 
 # "http.request.uri": "v2/4715bf52/437c49db/blobs/93054319", 
 # "host": "dc118836", 
@@ -389,59 +404,73 @@ def organize(requests, out_trace, numclients):
             
         clientToReqs[r['client']].append(request)
                 
-    img_req_group = []
-    for cli, reqs in clientToReqs.items():
-        cli_img_req_group = [[]]
-        cli_img_push_group = [[]]
-        prev = cli_img_req_group[-1]
-        prev_push = cli_img_push_group[-1]
-        
-        for req in reqs:
-            uri = req['uri']
-            if req['method'] == 'GET':
-                #print 'GET: '+uri
-                if 'blobs' in uri:
-                    #print 'GET layer:'+uri
-                    prev.append(req)
-                else:
-                    #print 'GET manifest:'+uri
-                    cur = []
-                    cur.append(req)
-                    cli_img_req_group.append(cur)
-                    prev = cli_img_req_group[-1]
-            else:
-                #print 'PUT: '+uri
-                if 'blobs' in uri:
-                    #print 'PUT layer:'+uri
-                    prev_push.append(req)
-                elif 'manifests' in uri:
-                    #print 'PUT manifest:'+uri
-                    prev_push.append(req)
-                    cur_push = []
-                    cli_img_push_group.append(cur_push)
-                    prev_push = cli_img_push_group[-1]
-        
-        cli_img_req_group += cli_img_push_group
-        cli_img_req_group_new = [x for x in cli_img_req_group if len(x)]
-        #print cli_img_req_group_new
-        img_req_group += cli_img_req_group_new
-        img_req_group.sort(key= lambda x: x[0]['delay'])
+#     img_req_group = []
+#     for cli, reqs in clientToReqs.items():
+#         cli_img_req_group = [[]]
+#         cli_img_push_group = [[]]
+#         prev = cli_img_req_group[-1]
+#         prev_push = cli_img_push_group[-1]
+#         
+#         for req in reqs:
+#             uri = req['uri']
+#             if req['method'] == 'GET':
+#                 #print 'GET: '+uri
+#                 if 'blobs' in uri:
+#                     #print 'GET layer:'+uri
+#                     prev.append(req)
+#                 else:
+#                     #print 'GET manifest:'+uri
+#                     cur = []
+#                     cur.append(req)
+#                     cli_img_req_group.append(cur)
+#                     prev = cli_img_req_group[-1]
+#             else:
+#                 #print 'PUT: '+uri
+#                 if 'blobs' in uri:
+#                     #print 'PUT layer:'+uri
+#                     prev_push.append(req)
+#                 elif 'manifests' in uri:
+#                     #print 'PUT manifest:'+uri
+#                     prev_push.append(req)
+#                     cur_push = []
+#                     cli_img_push_group.append(cur_push)
+#                     prev_push = cli_img_push_group[-1]
+#         
+#         cli_img_req_group += cli_img_push_group
+#         cli_img_req_group_new = [x for x in cli_img_req_group if len(x)]
+#         #print cli_img_req_group_new
+#         img_req_group += cli_img_req_group_new
+#         img_req_group.sort(key= lambda x: x[0]['delay'])
 
 #     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'w') as fp:
 #         json.dump(img_req_group, fp)
     
     i = 0
-    for r in img_req_group:
-        req = r[0]
+    for cli in clientToReqs:
+#         req = r[0]
         try:
-            threadid = clientTOThreads[req['client']]
-            organized[threadid].append(r)
+            threadid = clientTOThreads[cli]
+            organized[threadid].append(clientToReqs[cli])
         except Exception as e:
-            organized[i%numclients].append(r)
-            clientTOThreads[req['client']] = i%numclients
+            organized[i%numclients].append(clientToReqs[cli])
+            clientTOThreads[cli] = i%numclients
             i += 1     
-    print ("number of clients: %s", i)       
-#         print req
+    print ("number of clients: %s", i)  
+     
+    before = 0
+    next = 0
+    for cli in organized:
+        organized[cli].sort(key= lambda x: x['delay'])
+        for r in organized[cli]:
+            if 0 == before:
+                continue
+            else:
+                r['sleep'] = (r['delay'] - before).total_seconds()
+                if r['sleep'] <= r['duration']:
+                    r['sleep'] == 0
+                before = r['delay']
+                
+    print organized
 
     return organized
 
