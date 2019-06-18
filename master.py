@@ -26,21 +26,34 @@ from uhashring import HashRing
 def send_warmup_thread(req):
     registry = req[0]
     request = req[1]
+
     all = {}
     trace = {}
-    size = 0
+    size = request['size']
     onTime = 'yes'
+
+    uri = request['uri']
+    parts = uri.split('/')
+    reponame = parts[1] + parts[2]
+    dxf = DXF(registry, reponame, insecure=True) 
+    
+    blobfname = ''
+    f = open(str(os.getpid()), 'wb')
+    f.write('\0')
+    f.close()
+    # manifest: randomly generate some files
+    if not request['data']:
+        with open(str(os.getpid()), 'wb') as f: 
+            f.seek(size - 9)
+            f.write(str(random.getrandbits(64)))
+            f.write('\0')
+        blobfname = str(os.getpid())
+    else:
+        blobfname = request['data']
+
     now = time.time()
-    #print "================== req:"
-    #print request
-    full_uri = request['uri']
-    #print full_uri
-    uri_trunks = full_uri.split('/')
-    uri = uri_trunks[1] + uri_trunks[2]
-    dxf = DXF(registry, uri, insecure=True) #DXF(registry, 'test_repo', insecure=True)
-    #for request in requests:
-    try:
-        dgst = dxf.push_blob(request['data'])
+    try:                     
+        dgst = dxf.push_blob(blobfname)
     except Exception as e:
         print("dxf send exception: ", e, request['data'])
         dgst = 'bad'
@@ -48,16 +61,13 @@ def send_warmup_thread(req):
         
     t = time.time() - now
     result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': 'warmup'}
-    #print("Putting results for: ", dgst, result)
-#     return result
     print result
-    print request['uri'], dgst
+#     print request['uri'], dgst
     trace[request['uri']] = dgst
     all = {'trace': trace, 'result': result}
     return all
 
 #######################
-
 # send to registries according to cht 
 # warmup output file is <uri to dgst > map table
 # only consider 'get' requests
@@ -66,7 +76,7 @@ def send_warmup_thread(req):
 
 def warmup(data, out_trace, registries, threads):
     dedup = {}
-    dup_cnt = 0
+#     dup_cnt = 0
     total_cnt = 0
     trace = {}
     results = []
@@ -331,18 +341,10 @@ def match(realblob_location_files, trace_files, limit):
                     
                     if i < len(blob_locations):
                         if 'manifest' in uri:# NOT SURE if a proceeding manifest
-                            if uri['manifest'] == 'manifest':
+                            #if uri['manifest'] == 'manifest': what is this?
                                 #create a fake blob with same size
-                                #to the same dir as first valid blob file
-                                fake_blob_cnt += 1
-                                fake_blob_name = str(fake_blob_loc + 'fake_' + str(fake_blob_cnt) + '.blob'
-                                with open(fake_blob_name), 'wb') as f:
-                                    f.seek(size - 9)
-                                    f.write(str(random.getrandbits(64)))
-                                    f.write('\0')
-                                blob = fake_blob_name # NOT SURE
-                            else:
-                                blob = './config.yaml'
+                                #to the same dir as first valid blob file 
+                            blob = None
                         else:
                             blob = blob_locations[i] # temp record the blob
                             i += 1
