@@ -255,6 +255,10 @@ def get_requests(files, t, limit):
                     }
                     ret.append(r)
     ret.sort(key= lambda x: x['delay']) # reorder by delay time
+
+    for filename in files:
+	clear_extracting_dir(filename+'-realblob.json')
+
     return ret
 
 ####
@@ -282,13 +286,13 @@ def match(realblob_location_files, trace_files, limit):
             	#print line
             	if line:
                     blob_locations.append(line.replace("\n", ""))
-    print 'blob locations count: ' + str(len(blob_locations))
+    #print 'blob locations count: ' + str(len(blob_locations))
 
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
         with open(trace_file, 'r') as f:
             requests = json.load(f)
-            print 'request count: ' + str(len(requests))
+            #print 'request count: ' + str(len(requests))
 
         ret = []  
         fcnt = 0
@@ -345,7 +349,7 @@ def match(realblob_location_files, trace_files, limit):
 
     print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total requests: ' + str(count) 
-    print 'file cnt requests: ' + str(uniq_layerdataset_size)     
+    print 'unique layer dataset size: ' + str(uniq_layerdataset_size)     
 ##############
 # NANNAN: add a sleep delay
 # "http.request.duration": 1.005269323, 
