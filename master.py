@@ -257,8 +257,11 @@ def get_requests(files, t, limit):
         r['delay'] = (r['delay'] - begin).total_seconds() # normalize delay time
     print 'ret length: ' + str(len(ret))
     print ret[0]
+    print ret[1]
+    print ret[5]
     if t == 'seconds':# if requested time format is in secs (the only supported one)
 #calculate all, and return 0 to limit
+        print 'unit in seconds...'
         begin = ret[0]['delay']
         i = 0
         for r in ret:
