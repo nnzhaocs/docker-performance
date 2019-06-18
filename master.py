@@ -199,7 +199,12 @@ def stats(responses):
 def get_blobs(data, numclients, out_file):#, testmode):
     results = []
     i = 0
-
+    """ # for debugging
+    for reqlst in data:
+	x = send_requests(reqlst)
+	results.extend(x)
+    """
+    #""" # for run
     with ProcessPoolExecutor(max_workers = numclients) as executor:
         futures = [executor.submit(send_requests, reqlst) for reqlst in data]
         for future in as_completed(futures):
@@ -210,6 +215,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
         stats(results)
+    #"""
 
     with open(out_file, 'w') as f:
         json.dump(results, f)
@@ -228,7 +234,7 @@ def get_requests(files, t, limit):
             with open(filename+'-realblob.json', 'r') as f:
                 requests.extend(json.load(f))#append a file
         except Exception as e:
-            print('get_requests: something generated an exception: %s', e)
+            print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
             brk = True
             
         if brk:
@@ -256,8 +262,8 @@ def get_requests(files, t, limit):
                     ret.append(r)
     ret.sort(key= lambda x: x['delay']) # reorder by delay time
 
-    for filename in files:
-	clear_extracting_dir(filename+'-realblob.json')
+    #for filename in files:
+    #	clear_extracting_dir(filename+'-realblob.json')
 
     return ret
 
@@ -350,6 +356,7 @@ def match(realblob_location_files, trace_files, limit):
     print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total requests: ' + str(count) 
     print 'unique layer dataset size: ' + str(uniq_layerdataset_size)     
+
 ##############
 # NANNAN: add a sleep delay
 # "http.request.duration": 1.005269323, 
@@ -371,14 +378,16 @@ def organize(requests, out_trace, numclients):
     
     with open(out_trace, 'r') as f:
         blob = json.load(f)
-            
+    print "load number of unique get requests: " + str(len(blob)) 
+    print "load number of replay requests: " + str(len(requests)) 
+  
     for r in requests:
         request = {
             'delay': r['delay'],
             'duration': r['duration'],
             'data': r['data'],
             'uri': r['uri'],
-	       'client': r['client']
+	    'client': r['client']
         }
         if r['uri'] in blob:
             b = blob[r['uri']]
@@ -392,14 +401,14 @@ def organize(requests, out_trace, numclients):
         clientToReqs[r['client']].append(request)
     
     i = 0
-    for clireqlst in clientToReqs:
-        req = clireqlst[0]
+    for cli in clientToReqs:
+        #req = clireqlst[0]
         try:
-            threadid = clientTOThreads[req['client']]
-            organized[threadid].extend(clireqlst)
+            threadid = clientTOThreads[cli]
+            organized[threadid].extend(clientToReqs[cli])
         except Exception as e:
-            organized[i%numclients].extend(clireqlst)
-            clientTOThreads[req['client']] = i%numclients
+            organized[i%numclients].extend(clientToReqs[cli])
+            clientTOThreads[cli] = i%numclients
             i += 1    
              
     print ("number of client threads/ clients:", i)  
@@ -410,6 +419,7 @@ def organize(requests, out_trace, numclients):
         clireqlst.sort(key= lambda x: x['delay'])
         i = 0
         for r in clireqlst:
+	    #print r
             if 0 == i:
                 r['sleep'] = 0
                 before = r['delay']

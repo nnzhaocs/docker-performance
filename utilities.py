@@ -38,7 +38,7 @@ def clear_extracting_dir(dir):
     """clear the content"""
 
     cmd4 = 'rm -rf %s' % (dir+'*')
-    print('The shell command: %s', cmd4)
+    #print('The shell command: %s', cmd4)
     try:
         subprocess.check_output(cmd4, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:

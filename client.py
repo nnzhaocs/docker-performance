@@ -200,19 +200,19 @@ def pull_repo_request(r):
     
     if 'manifest' in r['uri']:
         print "get manifest request: "
-        result = get_manifest_or_normallayer_request(r[0])
+        result = get_manifest_or_normallayer_request(r)
         results.append(result)
     else:
         global Testmode
-        print Testmode
+        #print Testmode
         if Testmode == 'nodedup':
             print "get normal layer requests: "
             result = get_manifest_or_normallayer_request(r)
-            results.extend(result)
+            results.append(result)
         else:
             print "get layer requests: "
             result = get_layer_request(r)
-            results.extend(result)
+            results.append(result)
     return results
         
         
@@ -225,6 +225,18 @@ def push_layer_request(request):
     registries = []
     result = {}
     onTime = 'yes'
+
+
+    blobfname = ''
+    # manifest: randomly generate some files
+    if not request['data']:
+        with open(str(os.getpid()), 'wb') as f:
+            f.seek(size - 9)
+            f.write(str(random.getrandbits(64)))
+            f.write('\0')
+        blobfname = str(os.getpid())
+    else:
+        blobfname = request['data']
     
     if size > 0:
         registries.extend(get_request_registries(request)) 
@@ -233,16 +245,16 @@ def push_layer_request(request):
         
         now = time.time()
         try:
-            dgst = dxf.push_blob(request['data'])#fname
+            dgst = dxf.push_blob(blobfname)#fname
         except Exception as e:
-            print("PUT: dxf object: ", dxf, "file: ", r['data'], "dxf Exception: Got", e.got, "Expected:", e.expected)
+            print("PUT: dxf object: ", dxf, "file: ", request['data'], e)
             if "expected digest sha256:" in str(e):
                 onTime = 'yes: wrong digest'
             else:
                 onTime = 'failed: ' + str(e)
                 
         t = time.time() - now
-
+        clear_extracting_dir(str(os.getpid()))
         result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'push'}
         return result
         
@@ -272,20 +284,21 @@ def send_requests(requests):
     for r in requests:
         
         if r['sleep'] > prev:
+	    print "sleeping .... .... " + str(r['sleep'] - prev)
             time.sleep(r['sleep'] - prev)
             
         if 'GET' == r['method']:
             print "get repo request: "
             result = pull_repo_request(r)
-        else # 'PUT' == r['method']:
+        else: # 'PUT' == r['method']:
             print "push repo request: "
             result = push_repo_request(r)
 #         else:
 #             print "weird request: "
 #             continue
-    
-        results_all.extend(results) 
-        prev = result['duration']
+        #print result
+        results_all.extend(result) 
+        prev = result[0]['duration']
 	#print results_all
     return  results_all     
     
