@@ -38,9 +38,6 @@ def send_warmup_thread(req):
     dxf = DXF(registry, reponame, insecure=True) 
     
     blobfname = ''
-    f = open(str(os.getpid()), 'wb')
-    f.write('\0')
-    f.close()
     # manifest: randomly generate some files
     if not request['data']:
         with open(str(os.getpid()), 'wb') as f: 
@@ -62,7 +59,9 @@ def send_warmup_thread(req):
     t = time.time() - now
     result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': 'warmup'}
     print result
-#     print request['uri'], dgst
+    
+    clear_extracting_dir(str(os.getpid()))
+
     trace[request['uri']] = dgst
     all = {'trace': trace, 'result': result}
     return all
@@ -132,9 +131,10 @@ def warmup(data, out_trace, registries, threads):
     with open('warmup_push_performance.json', 'w') as f:
         json.dump(results, f)
     
-    print("max threads:", threads)
+    print "max threads:" + str(threads)
     print 'unique count: ' + str(len(dedup))
     print 'total count: ' + str(total_cnt)
+    print "total warmup unique requests: (for get layer/manifest requests)" + str(len(process_data))
 
 
 #############
@@ -396,29 +396,34 @@ def organize(requests, out_trace, numclients):
         req = clireqlst[0]
         try:
             threadid = clientTOThreads[req['client']]
-            organized[threadid].extend(clientToReqs[clireqlst])
+            organized[threadid].extend(clireqlst)
         except Exception as e:
-            organized[i%numclients].extend(clientToReqs[clireqlst])
+            organized[i%numclients].extend(clireqlst)
             clientTOThreads[req['client']] = i%numclients
             i += 1    
              
-    print ("number of client threads: %s", i)  
+    print ("number of client threads/ clients:", i)  
      
     before = 0
-    next = 0
     
     for clireqlst in organized:
         clireqlst.sort(key= lambda x: x['delay'])
+        i = 0
         for r in clireqlst:
-            if 0 == before:
-                continue
+            if 0 == i:
+                r['sleep'] = 0
+                before = r['delay']
+                i += 1
             else:
                 r['sleep'] = (r['delay'] - before).total_seconds()
-                if r['sleep'] <= r['duration']:
-                    r['sleep'] == 0
                 before = r['delay']
+                i += 1
+                
+        print ("number of request for client:", i)
                 
     #print organized
+    totalcnt = sum([len(x) for x in organized])
+    print ("total number of relay requests are: ", totalcnt)
     return organized
 
 ##########annotation by keren
@@ -542,7 +547,6 @@ def main():
         data = organize(json_data, interm, threads)
         ## Perform GET
         get_blobs(data, threads, out_file)#, testmode)
-
     else:
         pass
 #     elif args.command == 'simulate':

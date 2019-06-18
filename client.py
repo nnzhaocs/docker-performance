@@ -265,24 +265,27 @@ def push_repo_request(r):
 def send_requests(requests):
     results_all = [] 
     if not len(requests):
-	return results_all
-
+        print "################# empty request list ##############"
+        return results_all
+    
+    prev = 0
     for r in requests:
-	#print r
+        
+        if r['sleep'] > prev:
+            time.sleep(r['sleep'] - prev)
+            
         if 'GET' == r['method']:
             print "get repo request: "
-# 	    print r
-            results = pull_repo_request(r)
-        elif 'PUT' == r['method']:
+            result = pull_repo_request(r)
+        else # 'PUT' == r['method']:
             print "push repo request: "
-# 	    print r
-            results = push_repo_request(r)
-        else:
-            print "weird request: "
-#             print r
-            continue
+            result = push_repo_request(r)
+#         else:
+#             print "weird request: "
+#             continue
     
         results_all.extend(results) 
+        prev = result['duration']
 	#print results_all
     return  results_all     
     
