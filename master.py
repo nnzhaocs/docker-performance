@@ -85,22 +85,25 @@ def warmup(data, out_trace, registries, threads):
     ring = HashRing(nodes = registries)
        
     for request in data:
-        if (request['method']) == 'GET':# and ('blobs' in request['uri']):
+        unique = True
+        if (request['method']) == 'GET':
             uri = request['uri']
-            print 'uri: ' + uri
             layer_id = uri.split('/')[-1]
             total_cnt += 1
-            if layer_id in dedup.keys():
-                dup_cnt += 1
-                dedup[layer_id] += 1
-                continue
-            else:
+            try:
+                dup_cnt = dedup[layer_id]
+#                 dup_cnt += 1
+#                 dedup[layer_id] += 1
+                unique = False
+            except Exception as e:
                 dedup[layer_id] = 1
-            registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
-            #idx = registries.index(registry_tmp) 
-            process_data.append((registry_tmp, request))
-#     print process_data
-    print("total requests:", len(process_data))
+                
+            if unique:
+                registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
+                process_data.append((registry_tmp, request))
+
+    print("total warmup unique requests:", len(process_data))
+    #split request list into sublists
     #n = len(process_data)
     n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
@@ -117,10 +120,10 @@ def warmup(data, out_trace, registries, threads):
                         
                     results.append(x['result'])    
                 except Exception as e:
-                    print('something generated an exception: %s', e)
-	#break     
+                    print('warmup: something generated an exception: %s', e)
+        #break     
         stats(results)
-	#time.sleep(600)
+        #time.sleep(600)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
@@ -130,11 +133,8 @@ def warmup(data, out_trace, registries, threads):
         json.dump(results, f)
     
     print("max threads:", threads)
-    print 'duplication count: ' + str(dup_cnt)
+    print 'unique count: ' + str(len(dedup))
     print 'total count: ' + str(total_cnt)
-    print 'dict print: '
-    print dedup
-# def getResFromRedis(filename):
 
 
 #############
@@ -195,19 +195,14 @@ def stats(responses):
         print 'Average layer latency: ' + str(1.*layerlatency/totallayer)
 
  
-## Get blobs
+## send out requests to clients and get results
 def get_blobs(data, numclients, out_file):#, testmode):
     results = []
     i = 0
-    #n = 100
-    #process_slices = [data[i:i + n] for i in xrange(0, len(data), n)]
-    #for s in process_slices:
+
     with ProcessPoolExecutor(max_workers = numclients) as executor:
         futures = [executor.submit(send_requests, reqlst) for reqlst in data]
         for future in as_completed(futures):
-	    #print i
-	    #i += 1
-            #print future.result()
             try:
                 x = future.result()
                 results.extend(x)        
@@ -215,15 +210,14 @@ def get_blobs(data, numclients, out_file):#, testmode):
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
         stats(results)
-	#time.sleep(60*2)
+
     with open(out_file, 'w') as f:
         json.dump(results, f)
        
 
 ######
-# NANNAN: trace_file+'-realblob.json'
+# NANNAN: trace_file+'-realblob.json': gathering all the requests from trace files
 ######
-#annotated by keren; = init from cache.py
 def get_requests(files, t, limit):
     ret = []
     requests = []
@@ -261,26 +255,7 @@ def get_requests(files, t, limit):
                     }
                     ret.append(r)
     ret.sort(key= lambda x: x['delay']) # reorder by delay time
-    begin = ret[0]['delay']
-
-    for r in ret:
-        r['delay'] = (r['delay'] - begin).total_seconds() # normalize delay time
-   
-    if t == 'seconds':# if requested time format is in secs (the only supported one)
-#calculate all, and return 0 to limit
-        begin = ret[0]['delay']
-        i = 0
-        for r in ret:
-            if r['delay'] > limit:
-                break
-            i += 1
-        print i 
-        return ret[:i]
-    elif t == 'requests':
-        return ret[:limit]
-    else:
-        return ret
-
+    return ret
 
 ####
 # Random match
@@ -289,38 +264,32 @@ def get_requests(files, t, limit):
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
 def match(realblob_location_files, trace_files, limit):
+    
     print realblob_location_files, trace_files
 
     blob_locations = []
-    tTOblobdic = {}
-    blobTOtdic = {}
-    lyrID_dgst_dict = {} #matches between layer ids and digests; should be unique
-#<<<<<<< HEAD
-    
-#=======
-    valid_req_count = 0
-    #ret = []
-#>>>>>>> b4d3eb3946a74d5b16e597aae7b35807c77ac879
+    lTOblobdic = {}
+        
     i = 0
     count = 0
+    uniq_layerdataset_size = 0
     
-    # for each r_l_file; usually only 1
-    # read in all blob file locations from each r_l_file
     for realblob_location_file in realblob_location_files:
     	print "File: "+realblob_location_file+" has the following blobs"
     
     	with open(realblob_location_file, 'r') as f:
             for line in f:
-            	print line
+            	#print line
             	if line:
                     blob_locations.append(line.replace("\n", ""))
-    #read in all requests from each trace file
-    fake_blob_loc = blob_locations[0].rsplit('/', 1)[0]
-    fake_blob_cnt = 0
+    print 'blob locations count: ' + str(len(blob_locations))
+
     for trace_file in trace_files:
+        print 'trace file: ' + trace_file
         with open(trace_file, 'r') as f:
             requests = json.load(f)
-            
+            print 'request count: ' + str(len(requests))
+
         ret = []  
         fcnt = 0
           
@@ -331,14 +300,12 @@ def match(realblob_location_files, trace_files, limit):
                 continue
             #only interested in GET/pull PUT/push requests
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                valid_req_count += 1
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
-                print 'layer id: ' + str(layer_id)
                 size = request['http.response.written']
                 if size > 0:
                     if count >= limit:
                         break
-                    
+
                     if i < len(blob_locations):
                         if 'manifest' in uri:# NOT SURE if a proceeding manifest
                             #if uri['manifest'] == 'manifest': what is this?
@@ -346,19 +313,15 @@ def match(realblob_location_files, trace_files, limit):
                                 #to the same dir as first valid blob file 
                             blob = None
                         else:
-                            blob = blob_locations[i] # temp record the blob
-                            i += 1
-                            if layer_id in tTOblobdic.keys():#prevent repeated blob
-                                continue
-                            if blob in blobTOtdic.keys():#same as above
-                                print "this is not gonna happen"
-                                continue
-                            
-                            tTOblobdic[layer_id] = blob # mark blob as recorded
-                            blobTOtdic[blob] = layer_id # mark as recorded
-    
-                            size = os.stat(blob).st_size # record blob size
-                # construct a request dict based on corres request/interpret request to http form
+                            try:
+                                blob = lTOblobdic[layer_id]
+                            except Exception as e:     
+                                blob = blob_locations[i] # temp record the blob
+                                lTOblobdic[layer_id] = blob # mark blob as recorded
+                                i += 1
+                                size = os.stat(blob).st_size # record blob size
+                                uniq_layerdataset_size += size
+                        # except size and data, others are same with original reqs
                         r = {
                             "host": request['host'],
                             "http.request.duration": request['http.request.duration'],
@@ -372,28 +335,17 @@ def match(realblob_location_files, trace_files, limit):
                             "timestamp": request['timestamp'],
                             'data': blob
                         }
-                        print r
+                        #print r
                         ret.append(r)
                         count += 1
                         fcnt += 1
-                              
-                        #make sure 1-1 match f blob-layer id
-                        if layer_id in lyrID_dgst_dict.keys():
-                            if lyrID_dgst_dict[layer_id] != blob:
-                                print 'error, non-matching layer id and blob:' + str(layer_id)
-                                exit(-1)
-                        else:
-                            lyrID_dgst_dict[layer_id] = blob
-#<<<<<<< HEAD
         if fcnt:
             with open(trace_file+'-realblob.json', 'w') as fp:
                 json.dump(ret, fp)      
-#=======
-#        print 'valid request count: ' + str(valid_req_count)
-#        with open(trace_file+'-realblob.json', 'w') as fp:
-#            json.dump(ret, fp)      
-#>>>>>>> b4d3eb3946a74d5b16e597aae7b35807c77ac879
-        
+
+    print 'total unique layer count: ' + str(len(lTOblobdic))
+    print 'total requests: ' + str(count) 
+    print 'file cnt requests: ' + str(uniq_layerdataset_size)     
 ##############
 # NANNAN: add a sleep delay
 # "http.request.duration": 1.005269323, 
@@ -422,7 +374,7 @@ def organize(requests, out_trace, numclients):
             'duration': r['duration'],
             'data': r['data'],
             'uri': r['uri'],
-	    'client': r['client']
+	       'client': r['client']
         }
         if r['uri'] in blob:
             b = blob[r['uri']]
@@ -434,65 +386,26 @@ def organize(requests, out_trace, numclients):
             request['method'] = 'PUT'
             
         clientToReqs[r['client']].append(request)
-                
-#     img_req_group = []
-#     for cli, reqs in clientToReqs.items():
-#         cli_img_req_group = [[]]
-#         cli_img_push_group = [[]]
-#         prev = cli_img_req_group[-1]
-#         prev_push = cli_img_push_group[-1]
-#         
-#         for req in reqs:
-#             uri = req['uri']
-#             if req['method'] == 'GET':
-#                 #print 'GET: '+uri
-#                 if 'blobs' in uri:
-#                     #print 'GET layer:'+uri
-#                     prev.append(req)
-#                 else:
-#                     #print 'GET manifest:'+uri
-#                     cur = []
-#                     cur.append(req)
-#                     cli_img_req_group.append(cur)
-#                     prev = cli_img_req_group[-1]
-#             else:
-#                 #print 'PUT: '+uri
-#                 if 'blobs' in uri:
-#                     #print 'PUT layer:'+uri
-#                     prev_push.append(req)
-#                 elif 'manifests' in uri:
-#                     #print 'PUT manifest:'+uri
-#                     prev_push.append(req)
-#                     cur_push = []
-#                     cli_img_push_group.append(cur_push)
-#                     prev_push = cli_img_push_group[-1]
-#         
-#         cli_img_req_group += cli_img_push_group
-#         cli_img_req_group_new = [x for x in cli_img_req_group if len(x)]
-#         #print cli_img_req_group_new
-#         img_req_group += cli_img_req_group_new
-#         img_req_group.sort(key= lambda x: x[0]['delay'])
-
-#     with open(input_dir + fname + '-sorted_reqs_repo_client.lst', 'w') as fp:
-#         json.dump(img_req_group, fp)
     
     i = 0
-    for cli in clientToReqs:
-#         req = r[0]
+    for clireqlst in clientToReqs:
+        req = clireqlst[0]
         try:
-            threadid = clientTOThreads[cli]
-            organized[threadid].append(clientToReqs[cli])
+            threadid = clientTOThreads[req['client']]
+            organized[threadid].extend(clientToReqs[clireqlst])
         except Exception as e:
-            organized[i%numclients].append(clientToReqs[cli])
-            clientTOThreads[cli] = i%numclients
-            i += 1     
-    print ("number of clients: %s", i)  
+            organized[i%numclients].extend(clientToReqs[clireqlst])
+            clientTOThreads[req['client']] = i%numclients
+            i += 1    
+             
+    print ("number of client threads: %s", i)  
      
     before = 0
     next = 0
-    for cli in organized:
-        organized[cli].sort(key= lambda x: x['delay'])
-        for r in organized[cli]:
+    
+    for clireqlst in organized:
+        clireqlst.sort(key= lambda x: x['delay'])
+        for r in clireqlst:
             if 0 == before:
                 continue
             else:
@@ -501,20 +414,22 @@ def organize(requests, out_trace, numclients):
                     r['sleep'] == 0
                 before = r['delay']
                 
-    print organized
-
+    #print organized
     return organized
 
 ##########annotation by keren
 def main():
 
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
-    parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'Input YAML configuration file, should contain all the inputs requried for processing')
-    parser.add_argument('-p', '--port', dest='pppp', type=str, required=False, help = 'identifier')
-    parser.add_argument('-c', '--command', dest='command', type=str, required=True, help= 'Trace player command. Possible commands: warmup, run, simulate, warmup is used to populate the registry with the layers of the trace, run replays the trace, and simulate is used to test different caching and prefecting policies.')
+    parser.add_argument('-i', '--input', dest='input', type=str, required=True, 
+                        help = 'Input YAML configuration file, should contain all the inputs requried for processing')
+    parser.add_argument('-c', '--command', dest='command', type=str, required=True, 
+                        help = 'Trace player command. Possible commands: warmup, run, and simulate, \
+                        warmup is used to populate the registry with the layers of the trace, \
+                        run replays the trace, \
+                        and simulate is not implemented yet.')
 
     args = parser.parse_args()
-    #-----try read in config-----
     config = file(args.input, 'r')
     global ring
 
@@ -524,8 +439,7 @@ def main():
         print 'error reading config file'
 	print inst
         exit(-1)
-    #----------
-    #----read trace (http request) files----
+
     if 'trace' not in inputs:
         print 'trace field required in config file'
         exit(1)
@@ -564,12 +478,12 @@ def main():
         out_file = 'output.json'
         print 'Output trace not specified, ./output.json will be used'
     #NOT SURE: if not sim, must be warmup/warmmed up before test
-    if args.command != 'simulate':
-        if "warmup" not in inputs or 'output' not in inputs['warmup']:
-            print 'warmup not specified in config, warmup output required. Exiting'
-            exit(1)
-        else:
-            interm = inputs['warmup']['output']
+#     if args.command != 'simulate':
+    if "warmup" not in inputs or 'output' not in inputs['warmup']:
+        print 'warmup not specified in config, warmup output required. Exiting'
+        exit(1)
+    else:
+        interm = inputs['warmup']['output']
     #machines to be used
     registries = []
     if 'registry' in inputs:
@@ -584,11 +498,14 @@ def main():
             match(realblob_locations, trace_files, limit)
             return
 	else:
-	    print "please write realblobs in the config files"
+	    print "please put realblobs in the config files"
 	    return
 
     json_data = get_requests(trace_files, limit_type, limit) # == init in cache.py
-
+#     print json_data[0]
+#     print json_data[1]
+#     print json_data[5]
+#     print len(json_data)
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:
@@ -602,14 +519,14 @@ def main():
     else:
         testmode = 'sift'    
 
-    if 'threads' not in inputs['client_info']:
-        print 'client threads not specified, 1 thread will be used'
-        client_threads = 1
-    else:
-        client_threads = inputs['client_info']['threads']
-        print str(client_threads) + ' client threads'
+#     if 'threads' not in inputs['client_info']:
+#         print 'client threads not specified, 1 thread will be used'
+#         client_threads = 1
+#     else:
+#         client_threads = inputs['client_info']['threads']
+#         print str(client_threads) + ' client threads'
 
-    config_client(client_threads, registries, testmode) #requests, out_trace, numclients   
+    config_client(registries, testmode) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
         print 'warmup mode'
@@ -622,30 +539,31 @@ def main():
         ## Perform GET
         get_blobs(data, threads, out_file)#, testmode)
 
-
-    elif args.command == 'simulate':
-        if verbose:
-            print 'simulate mode'
-        if 'simulate' not in inputs:
-            print 'simulate file required in config'
-            exit(1)
-        pi = inputs['simulate']['name']
-        if '.py' in pi:
-            pi = pi[:-3]
-        try:
-            plugin = importlib.import_module(pi)
-        except Exception as inst:
-            print 'Plugin did not work!'
-            print inst
-            exit(1)
-        try:
-            if 'args' in inputs['simulate']:
-                plugin.init(json_data, inputs['simulate']['args'])
-            else:
-                plugin.init(json_data)
-        except Exception as inst:
-            print 'Error running plugin init!'
-            print inst
+    else:
+        pass
+#     elif args.command == 'simulate':
+#         if verbose:
+#             print 'simulate mode'
+#         if 'simulate' not in inputs:
+#             print 'simulate file required in config'
+#             exit(1)
+#         pi = inputs['simulate']['name']
+#         if '.py' in pi:
+#             pi = pi[:-3]
+#         try:
+#             plugin = importlib.import_module(pi)
+#         except Exception as inst:
+#             print 'Plugin did not work!'
+#             print inst
+#             exit(1)
+#         try:
+#             if 'args' in inputs['simulate']:
+#                 plugin.init(json_data, inputs['simulate']['args'])
+#             else:
+#                 plugin.init(json_data)
+#         except Exception as inst:
+#             print 'Error running plugin init!'
+#             print inst
     #elif args.command == 'cache':
         #print "running cache test"
         #cache_run()
