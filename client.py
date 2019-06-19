@@ -77,7 +77,7 @@ def get_layer_request(request):
 
     dgst = request['blob']      
     uri = request['uri']
-    parts = full_uri.split('/')
+    parts = uri.split('/')
     reponame = parts[1] + parts[2]
 
     registries.extend(get_request_registries(request)) 
