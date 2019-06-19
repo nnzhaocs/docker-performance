@@ -1,15 +1,20 @@
 echo "the input directory is:"
 echo $1
 
-cat $1/* > $1/total.log
+cat $1/* > $1/logs
 ### metdata
-awk '/metadata lookup time/{getline;print;}' total.log > data
-grep -v "THIS IS" data > tmp
-awk -F'[", ]' '{print $5}' tmp > metadatalooup.time.lst
+awk '/metadata lookup time/{print}' logs > data
+awk -F'metadata lookup time:' '{print $2}' data > tmp1
+awk -F',' '{print $1}' tmp1 > metadatalookuptime
 ### cp time
-awk '/layer cp time/{print}' total.log > data
-awk -F' ' '{print $7}' data
+awk '/layer cp time/{print}' logs > data
+awk -F'layer cp time:' '{print $2}' data > tmp1
+awk -F',' '{print $1}' tmp1 > layercpiotime
 ### transfer time
-awk '/layer transfer time/{print}' total.log
+awk '/layer transfer time/{print}' logs
+awk -F'layer transfer time:' '{print $2}' data > tmp1
+awk -F',' '{print $1}' tmp1 > layerpreparetransfertime
 
-
+paste -d"\t" metadatalookuptime layercpiotime layerpreparetransfertime > registry_results.lst  
+rm data tmp1 logs metadatalookuptime layercpiotime layerpreparetransfertime
+cp registry_results.lst ../
