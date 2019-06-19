@@ -24,6 +24,7 @@ from os.path import stat
 from uhashring import HashRing
 
 realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
+results_dir = "/home/nannan/testing/results/"
 
 def send_warmup_thread(req):
     registry = req[0]
@@ -194,7 +195,7 @@ def stats(responses):
     print 'Average Latency: ' + str(latency / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
     if totallayer > 0:
-        print 'Average layer latency: ' + str(1.*layerlatency/totallayer)
+        print 'Average layer latency: ' + str(1.*layerlatency/totallayer) + ' seconds/request'
 
  
 ## send out requests to clients and get results
@@ -219,7 +220,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
         stats(results)
     #"""
 
-    with open(out_file, 'w') as f:
+    with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
        
 
