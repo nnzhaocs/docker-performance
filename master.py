@@ -235,7 +235,7 @@ def get_requests(files, t, limit):
     for filename in files:#load each layer/request file (usually only 1)
         try:
             fname = os.path.basename(filename)
-            with open(realblobtrace_dir+'fname'+'-realblob.json', 'r') as f:
+            with open(realblobtrace_dir+fname+'-realblob.json', 'r') as f:
             #with open(filename+'-realblob.json', 'r') as f:
                 requests.extend(json.load(f))#append a file
         except Exception as e:
@@ -356,7 +356,7 @@ def match(realblob_location_files, trace_files, limit):
                         fcnt += 1
         if fcnt:
             fname = os.path.basename(trace_file)
-            with open(realblobtrace_dir+'fname'+'-realblob.json', 'w') as fp:
+            with open(realblobtrace_dir+fname+'-realblob.json', 'w') as fp:
                 json.dump(ret, fp)      
 
     print 'total unique layer count: ' + str(len(lTOblobdic))
