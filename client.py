@@ -279,13 +279,20 @@ def send_requests(requests):
     if not len(requests):
         print "################# empty request list ##############"
         return results_all
-    
+
+    print_cnt = 10
+    totalcnt = len(requests)
+    i = 0
     prev = 0
+    accelerater = 8
+
     for r in requests:
-        
+	i += 1
+        if print_cnt == i:
+	    print ("==============> processed ", i*1.0/totalcnt, " requests! <=============", totalcnt) 
         if r['sleep'] > prev:
-	    print "sleeping .... .... " + str(r['sleep'] - prev)
-            time.sleep(r['sleep'] - prev)
+	    print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(accelerater)
+            time.sleep((r['sleep'] - prev)/accelerater)
             
         if 'GET' == r['method']:
             print "get repo request: "

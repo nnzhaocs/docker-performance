@@ -23,6 +23,8 @@ from client import *
 from os.path import stat
 from uhashring import HashRing
 
+realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
+
 def send_warmup_thread(req):
     registry = req[0]
     request = req[1]
