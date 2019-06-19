@@ -1,3 +1,9 @@
+#! README
+# First, cleanup hulks/thors 
+# Second, RUN containers
+# Third, RUN client match -> warmup -> run
+# Fourth, collect container logs.
+
 
 #! THIS IS AN EXAMPLE SHOWING HOW TO IMPORT CODE TO CONTAINER AND BUILD AS AN IMAGE
 #
