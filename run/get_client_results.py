@@ -61,7 +61,7 @@ def stats(responses):
             if r['time'] + r['duration'] > endtime:
                 endtime = r['time'] + r['duration']
             latency += r['duration']
-            layerlatency.append(duration)
+            layerlatency.append((duration, r['size'])
         except Exception as e:
             if "failed" in r['onTime']:
                 total -= 1
@@ -75,7 +75,7 @@ def stats(responses):
         if r['type'] == 'layer':
             layerlatency += r['duration']
             totallayer += 1
-            layerlatency.append(duration)
+            layerlatency.append((duration, r['size']))
 
             
     duration = endtime - startTime
@@ -90,8 +90,9 @@ def stats(responses):
         print 'Average layer latency: ' + str(1.*layerlatency/totallayer) + ' seconds/request'
     
     with open(os.path.join(results_dir, 'client_layer_duration.lst'), 'w') as fp:
-        for item in layerlatency:
-            f.write("%s\n" % str(item))
+	fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in layerlatency)
+        #for item in layerlatency:
+        #    f.write("%s\n" % str(item))
 
  
 ##########annotation by keren
