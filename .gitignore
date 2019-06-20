@@ -10,3 +10,5 @@ notes.md
 clientrun.log
 *.swo
 *.swp
+*.lst
+*.txt
