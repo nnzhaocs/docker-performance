@@ -1,0 +1,56 @@
+Config_1 results
+match
+total unique layer count: 686
+total requests: 1500
+unique layer dataset size: 4178733031
+
+warmup
+Statistics
+Successful Requests: 715
+Failed Requests: 0
+Duration: 45.5323879719
+Data Transfered: 4169602103 bytes
+Average Latency: 0.447419258598
+Throughput: 15.7031078722 requests/second
+max threads:10
+unique count: 715
+total count: 1407
+total warmup unique requests: (for get layer/manifest requests)715
+
+run
+Statistics
+Successful Requests: 1500
+Failed Requests: 0
+Duration: 662.149935007
+Data Transfered: 5029473328 bytes
+Average Latency: 0.08940157938
+Throughput: 2.26534795323 requests/second
+Average layer latency: 0.0990806307997 seconds/request
+
+Config_amaranth2 results
+match
+total unique layer count: 1254
+total requests: 5000
+unique layer dataset size: 6866248686
+
+warmup
+Successful Requests: 1206
+Failed Requests: 0
+Duration: 10.5073430538
+Data Transfered: 6699754312 bytes
+Average Latency: 0.195256447318
+Throughput: 114.776874974 requests/second
+max threads:100
+unique count: 1206
+total count: 4601
+total warmup unique requests: (for get layer/manifest requests)1206
+
+run
+Successful Requests: 5000
+Failed Requests: 0
+Duration: 2733.02884293
+Data Transfered: 13239158114 bytes
+Average Latency: 0.0989563362598
+Throughput: 1.82947209392 requests/second
+Average layer latency: 0.0984475976801 seconds/request
+
