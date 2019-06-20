@@ -11,3 +11,4 @@ pip install redis-py-cluster
 pip install futures
 pip install uhashring
 pip install pssh 
+sudo apt install sshpass
