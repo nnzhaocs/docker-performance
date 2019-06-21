@@ -44,9 +44,9 @@ def send_warmup_thread(req):
     # manifest: randomly generate some files
     if not request['data']:
         with open(str(os.getpid()), 'wb') as f: 
-            f.seek(size - 9)
+            #f.seek(size - 9)
             f.write(str(random.getrandbits(64)))
-            f.write('\0')
+            f.write('\n')
         blobfname = str(os.getpid())
     else:
         blobfname = request['data']
@@ -85,10 +85,14 @@ def warmup(data, out_trace, registries, threads):
     process_data = []
     global ring
     ring = HashRing(nodes = registries)
-       
+    manifs_cnt = 0
+
     for request in data:
         unique = True
+	manifs = False
         if (request['method']) == 'GET':
+	    if 'manifest' in request['uri']:
+		manifs = True
             uri = request['uri']
             layer_id = uri.split('/')[-1]
             total_cnt += 1
@@ -99,14 +103,18 @@ def warmup(data, out_trace, registries, threads):
                 unique = False
             except Exception as e:
                 dedup[layer_id] = 1
+		if manifs:
+		    manifs_cnt += 1
                 
             if unique:
                 registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
                 process_data.append((registry_tmp, request))
 
     print("total warmup unique requests:", len(process_data))
+    print("unique manifest cnt: ", manifs_cnt)
     #split request list into sublists
     #n = len(process_data)
+
     n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
     for s in process_slices:
@@ -138,6 +146,7 @@ def warmup(data, out_trace, registries, threads):
     print 'unique count: ' + str(len(dedup))
     print 'total count: ' + str(total_cnt)
     print "total warmup unique requests: (for get layer/manifest requests)" + str(len(process_data))
+
 
 
 #############

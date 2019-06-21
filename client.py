@@ -45,7 +45,7 @@ def pull_from_registry(dgst, registry_tmp, newdir, type, reponame):
     
     result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": fname, "type": type}
     
-    print("Putting results for: ", fname, result)
+    print("pull: ", fname, result)
     return result
 
 
@@ -67,6 +67,20 @@ def get_request_registries(r):
             registry_tmp = ring.get_node(layer_id)
             return [registry_tmp]
         return list(set(serverIps))
+
+
+def redis_stat_bfrecipe_serverips(dgst):
+    global rj_dbNoBFRecipe
+    key = "Blob:File:Recipe::"+dgst
+    if not rj_dbNoBFRecipe.exists(key):
+        print "cannot find recipe for redis_stat_bfrecipe_serverips"
+        return None
+    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
+    serverIps = []
+    #print("bfrecipe: ", bfrecipe)
+    for serverip in bfrecipe['ServerIps']:
+        serverIps.append(serverip)
+    return serverIps
 
 
 def get_layer_request(request):
@@ -96,7 +110,7 @@ def get_layer_request(request):
     
     now = time.time()
     with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice", uri) for registry in registries]
+        futures = [executor.submit(pull_from_registry, dgst, registry, compresstarsdir, "slice", reponame) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_layer_request: future result: ", future.result(timeout=60))
             try:
@@ -256,6 +270,7 @@ def push_layer_request(request):
         t = time.time() - now
         clear_extracting_dir(str(os.getpid()))
         result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'push'}
+	print("push: ", blobfname, result)
         return result
         
 
