@@ -26,7 +26,7 @@ trace: # mandatory field
     
     limit: # entire trace used if limit not speciiied
         type: requests # seconds and requests are supported
-        amount: 5000
+        amount: 100
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -69,3 +69,8 @@ testmode: # required for simulate mode
     nodedup: False
     traditionaldedup: False #True #False  
     sift: True 
+
+simulate:
+    testmode: concurrency
+    getonly: True
+    

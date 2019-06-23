@@ -287,7 +287,7 @@ def get_requests(files, t, limit):
 ####
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
-def match(realblob_location_files, trace_files, limit):
+def match(realblob_location_files, trace_files, limit, getonly):
     
     print realblob_location_files, trace_files
 
@@ -327,6 +327,8 @@ def match(realblob_location_files, trace_files, limit):
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
                 size = request['http.response.written']
                 if size > 0:
+		    if 'PUT' == method and True == getonly:
+			continue
                     if count >= limit:
                         break
 
@@ -526,10 +528,13 @@ def main():
     print(registries)
     #NANNAN
     #match mode; see detailed in corresponding func
+    getonly = False
+    if inputs['simulate']['getonly'] = True
+	getonly = True
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
-            match(realblob_locations, trace_files, limit)
+            match(realblob_locations, trace_files, limit, getonly)
             return
 	else:
 	    print "please put realblobs in the config files"
