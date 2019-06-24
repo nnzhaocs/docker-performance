@@ -388,7 +388,7 @@ def match(realblob_location_files, trace_files, limit, getonly):
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
 
-def organize(requests, out_trace, numclients):
+def organize(requests, out_trace, numclients, getonly):
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
     clientToReqs = defaultdict(list)
@@ -412,6 +412,8 @@ def organize(requests, out_trace, numclients):
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
         else:
+	    if True == getonly:
+		continue
             request['size'] = r['size']
             request['method'] = 'PUT'
             
@@ -529,8 +531,9 @@ def main():
     #NANNAN
     #match mode; see detailed in corresponding func
     getonly = False
-    if inputs['simulate']['getonly'] = True
+    if inputs['simulate']['getonly'] == True:
 	getonly = True
+    print("getonly or not?", getonly)
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
@@ -540,7 +543,7 @@ def main():
 	    print "please put realblobs in the config files"
 	    return
 
-    json_data = get_requests(trace_files, limit_type, limit) # == init in cache.py
+    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
 #     print json_data[0]
 #     print json_data[1]
 #     print json_data[5]
@@ -574,7 +577,7 @@ def main():
 
     elif args.command == 'run':
         print 'run mode'
-        data = organize(json_data, interm, threads)
+        data = organize(json_data, interm, threads, getonly)
         ## Perform GET
         get_blobs(data, threads, out_file)#, testmode)
     else:
