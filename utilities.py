@@ -60,20 +60,6 @@ def mk_dir(newdir):
     return True
 
 
-def redis_stat_bfrecipe_serverips(dgst):
-    global rj_dbNoBFRecipe
-    key = "Blob:File:Recipe::"+dgst
-    if not rj_dbNoBFRecipe.exists(key):
-        print "cannot find recipe for redis_stat_bfrecipe_serverips"
-        return None
-    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
-    serverIps = []
-    #print("bfrecipe: ", bfrecipe)
-    for serverip in bfrecipe['ServerIps']:
-        serverIps.append(serverip)
-    return serverIps
-
-
 startup_nodes_hulks = [ #hulks
         {"host": "192.168.0.170", "port": "7000"}, 
         {"host": "192.168.0.170", "port": "7001"},

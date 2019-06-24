@@ -44,9 +44,9 @@ def send_warmup_thread(req):
     # manifest: randomly generate some files
     if not request['data']:
         with open(str(os.getpid()), 'wb') as f: 
-            f.seek(size - 9)
+            #f.seek(size - 9)
             f.write(str(random.getrandbits(64)))
-            f.write('\0')
+            f.write('\n')
         blobfname = str(os.getpid())
     else:
         blobfname = request['data']
@@ -85,10 +85,14 @@ def warmup(data, out_trace, registries, threads):
     process_data = []
     global ring
     ring = HashRing(nodes = registries)
-       
+    manifs_cnt = 0
+
     for request in data:
         unique = True
+	manifs = False
         if (request['method']) == 'GET':
+	    if 'manifest' in request['uri']:
+		manifs = True
             uri = request['uri']
             layer_id = uri.split('/')[-1]
             total_cnt += 1
@@ -99,14 +103,18 @@ def warmup(data, out_trace, registries, threads):
                 unique = False
             except Exception as e:
                 dedup[layer_id] = 1
+		if manifs:
+		    manifs_cnt += 1
                 
             if unique:
                 registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
                 process_data.append((registry_tmp, request))
 
     print("total warmup unique requests:", len(process_data))
+    print("unique manifest cnt: ", manifs_cnt)
     #split request list into sublists
     #n = len(process_data)
+
     n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
     for s in process_slices:
@@ -138,6 +146,7 @@ def warmup(data, out_trace, registries, threads):
     print 'unique count: ' + str(len(dedup))
     print 'total count: ' + str(total_cnt)
     print "total warmup unique requests: (for get layer/manifest requests)" + str(len(process_data))
+
 
 
 #############
@@ -278,7 +287,7 @@ def get_requests(files, t, limit):
 ####
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
-def match(realblob_location_files, trace_files, limit):
+def match(realblob_location_files, trace_files, limit, getonly):
     
     print realblob_location_files, trace_files
 
@@ -318,6 +327,8 @@ def match(realblob_location_files, trace_files, limit):
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
                 size = request['http.response.written']
                 if size > 0:
+		    if 'PUT' == method and True == getonly:
+			continue
                     if count >= limit:
                         break
 
@@ -377,7 +388,7 @@ def match(realblob_location_files, trace_files, limit):
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
 
-def organize(requests, out_trace, numclients):
+def organize(requests, out_trace, numclients, getonly):
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
     clientToReqs = defaultdict(list)
@@ -401,6 +412,8 @@ def organize(requests, out_trace, numclients):
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
         else:
+	    if True == getonly:
+		continue
             request['size'] = r['size']
             request['method'] = 'PUT'
             
@@ -517,16 +530,20 @@ def main():
     print(registries)
     #NANNAN
     #match mode; see detailed in corresponding func
+    getonly = False
+    if inputs['simulate']['getonly'] == True:
+	getonly = True
+    print("getonly or not?", getonly)
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
-            match(realblob_locations, trace_files, limit)
+            match(realblob_locations, trace_files, limit, getonly)
             return
 	else:
 	    print "please put realblobs in the config files"
 	    return
 
-    json_data = get_requests(trace_files, limit_type, limit) # == init in cache.py
+    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
 #     print json_data[0]
 #     print json_data[1]
 #     print json_data[5]
@@ -560,7 +577,7 @@ def main():
 
     elif args.command == 'run':
         print 'run mode'
-        data = organize(json_data, interm, threads)
+        data = organize(json_data, interm, threads, getonly)
         ## Perform GET
         get_blobs(data, threads, out_file)#, testmode)
     else:
