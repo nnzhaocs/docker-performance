@@ -35,7 +35,7 @@ sudo mount 192.168.0.171:/home/nannan/dockerimages/layers hulk1
 sudo mount 192.168.0.172:/home/nannan/dockerimages/docker-traces/data_centers/ data_centers
 
 find $(pwd) -type f > ../hulk1_layers_less_50m.lst
-
+find $(pwd) -type f > ../hulk4_layers_less_50m.lst
 ####:=========== gether docker logs together and extract results =====================
 create a new directory in hulk0 with timestamp
 mkdir $(date +%Y%m%d_%H%M%S)
