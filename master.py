@@ -24,7 +24,7 @@ from organize_requests import *
 from os.path import stat
 from uhashring import HashRing
 
-realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
+#realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 results_dir = "/home/nannan/testing/results/"
 
 def send_warmup_thread(req):
@@ -446,8 +446,8 @@ def main():
         if 'realblobs' in inputs['client_info']:
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
 #             match(realblob_locations, trace_files, limit, getonly)
-            fix_put_id(realblob_locations, trace_files, limit, getonly)
-            match(realblob_locations, trace_files, limit, layeridmap)
+            tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly)
+            match(realblob_locations, tracedata, limit, getonly, layeridmap)
             return
 	else:
 	    print "please put realblobs in the config files"

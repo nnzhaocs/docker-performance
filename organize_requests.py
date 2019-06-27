@@ -10,9 +10,12 @@ import json
 ####
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
+
+realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
+
 def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     
-    print realblob_location_files, trace_files
+    print realblob_location_files #, trace_files
 
     blob_locations = []
     lTOblobdic = {}
@@ -35,10 +38,12 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     fcnt = 0
     put_reqs = 0
     find_puts = 0
-      
+    not_refered_put = 0
+  
     for request in tracedata:
         method = request['http.request.method']
         uri = request['http.request.uri']
+	print uri
         size = request['http.response.written']
         
         if 'PUT' == method and True == getonly:
@@ -51,13 +56,18 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
             put_reqs += 1
             try: 
                 newuri = layeridmap[newid]
-                uri = newuri
+		if newuri != '':
+                    uri = newuri
+		else:
+		    not_refered_put += 0
                 find_puts += 1
             except Exception as e:
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
                 continue
+	else:
+	
             
-        layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
+        layer_id = uri.rsplit('/', 1)[1] #dict[-1] == trailing
 
         if i < len(blob_locations):
             if 'manifest' in uri:# NOT SURE if a proceeding manifest
@@ -90,8 +100,8 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
             count += 1
             fcnt += 1
     if fcnt:
-        fname = os.path.basename(trace_file)
-        with open(realblobtrace_dir+fname+'-realblob.json', 'w') as fp:
+        #fname = os.path.basename(trace_file)
+        with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
 
     print 'total unique layer count: ' + str(len(lTOblobdic))
@@ -99,6 +109,7 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     print 'unique layer dataset size: ' + str(uniq_layerdataset_size) 
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
+    print 'put but no following get reqs: ' + str(not_refered_put)
     print 'total uniq put requests: ' + str(len(layeridmap))      
 
 ######
@@ -147,7 +158,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
                     newid = reponame + '/' + str(size)
                     try:
                         newuri = layeridmap[newid]
-                        if newuri == 0:
+                        if newuri == '':
                             layeridmap[newid] = uri				
                         find_puts += 1
                     except Exception as e:
@@ -160,7 +171,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
                         newuri = layeridmap[newid]
                         continue
                     except Exception as e:
-                        layeridmap[newid] = 0
+                        layeridmap[newid] = ''
                         put_reqs += 1 
                         
                 r = {
@@ -184,6 +195,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'total uniq put requests: ' + str(len(layeridmap))    
+    return ret, layeridmap
 #     if fcnt:
 #         for r in ret:
 #             if 'PUT' == request['http.request.method']:
