@@ -50,8 +50,8 @@ def match(realblob_location_files, trace_files, limit, getonly):
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
                 size = request['http.response.written']
                 if size > 0:
-            if 'PUT' == method and True == getonly:
-            continue
+                    if 'PUT' == method and True == getonly:
+                        continue
                     if count >= limit:
                         break
 
