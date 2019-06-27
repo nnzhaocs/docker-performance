@@ -43,7 +43,7 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     for request in tracedata:
         method = request['http.request.method']
         uri = request['http.request.uri']
-	print uri
+#         print uri
         size = request['http.response.written']
         
         if 'PUT' == method and True == getonly:
@@ -56,17 +56,23 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
             put_reqs += 1
             try: 
                 newuri = layeridmap[newid]
-		if newuri != '':
+                if newuri != '':
                     uri = newuri
-		else:
-		    not_refered_put += 0
-                find_puts += 1
+                else:
+                    not_refered_put += 0
             except Exception as e:
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
                 continue
-	else:
-	
-            
+    	else:
+            parts = uri.split('/')
+            reponame = parts[1] + '/' + parts[2] 
+            newid = reponame + '/' + str(size)
+            try:
+                newuri = layeridmap[newid]               
+                find_puts += 1
+            except Exception as e:
+                pass
+	    
         layer_id = uri.rsplit('/', 1)[1] #dict[-1] == trailing
 
         if i < len(blob_locations):
