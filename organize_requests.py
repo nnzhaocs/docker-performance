@@ -3,6 +3,7 @@ import sys
 #import socket
 import os
 import json
+from audioop import avg
 
 ####
 # Random match
@@ -118,6 +119,59 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     print 'put but no following get reqs: ' + str(not_refered_put)
     print 'total uniq put requests: ' + str(len(layeridmap))      
 
+
+def extract_client_reqs(trace_files, clients, limit):
+    print trace_files
+    
+    layeridmap = {}
+    count = 0
+    ret = []
+    
+    clireqmap = {}
+    avgreqs = limit/clients
+    choseclimap = {}
+    chosesum = 0
+
+    for trace_file in trace_files:
+        print 'trace file: ' + trace_file
+        with open(trace_file, 'r') as f:
+            requests = json.load(f)
+
+        for request in requests:
+            method = request['http.request.method']
+            uri = request['http.request.uri']
+            
+            if len(uri.split('/')) < 5:
+                continue
+
+            if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
+                size = request['http.response.written']
+
+                if size <= 0:
+                    continue
+                
+                cliaddr = request['http.request.remoteaddr']
+                try:
+                    cnt = clireqmap[cliaddr]
+                    clireqmap[cliaddr] += 1
+                except Exception as e:
+                    clireqmap[cliaddr] = 0
+    
+    print 'total unique layer count: ' + str(len(clireqmap))
+                    
+    
+    
+                
+                
+                
+
+
+
+
+
+
+
+
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
 ######
@@ -202,32 +256,44 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
     print 'match put and get requests: ' + str(find_puts)   
     print 'total uniq put requests: ' + str(len(layeridmap))    
     return ret, layeridmap
-#     if fcnt:
-#         for r in ret:
-#             if 'PUT' == request['http.request.method']:
-#                 uri = r['http.request.uri']
-#                 parts = uri.split('/')
-#                 reponame = parts[1] + '/' + parts[2] 
-#                 newid = reponame + '/' + str(size)
-#                 put_reqs += 1
-#                 try: 
-#                     newuri = layeridmap[newid]
-#                     r['http.request.uri'] = newuri
-#                     find_puts += 1
-#                 except Exception as e:
-#                     print "didn't find uri for this PUT req: "+uri
-#                     pass
-#         
-#         fname = os.path.basename(trace_file)
-#         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
-#             json.dump(ret, fp)      
 
-#     print 'total unique layer count: ' + str(len(lTOblobdic))
+
+######
+# NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json': gathering all the requests from trace files
+######
+def get_requests(files, t, limit):
+    ret = []
+    requests = []
     
-#     print 'unique layer dataset size: ' + str(uniq_layerdataset_size)  
+    try:
+        with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'r') as f:
+            requests.extend(json.load(f))#append a file
+    except Exception as e:
+        print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
+    
+    for request in requests: #load each request
+        method = request['http.request.method']
+        uri = request['http.request.uri']
+        size = request['http.response.written']
+        timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        duration = request['http.request.duration']
+        client = request['http.request.remoteaddr']
+        blob = request['data']
+        r = {
+            'delay': timestamp, 
+            'uri': uri, 
+            'size': size, 
+            'method': method, 
+            'duration': duration,
+            'client': client,
+            'data': blob
+        }
+        ret.append(r)
+    ret.sort(key= lambda x: x['delay']) # reorder by delay time
+
+    return ret  
     
    
-
 ##############
 # NANNAN: old organize request function
 # "http.request.duration": 1.005269323, 
@@ -241,4 +307,69 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
 # "http.request.method": "GET", 
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
-
+def organize(requests, out_trace, numclients, getonly):
+    organized = [[] for x in xrange(numclients)]
+    clientTOThreads = {}
+    clientToReqs = defaultdict(list)
+    
+    with open(out_trace, 'r') as f:
+        blob = json.load(f)
+    print "load number of unique get requests: " + str(len(blob)) 
+    print "load number of replay requests: " + str(len(requests)) 
+  
+    for r in requests:
+        request = {
+            'delay': r['delay'],
+            'duration': r['duration'],
+            'data': r['data'],
+            'uri': r['uri'],
+        'client': r['client']
+        }
+        if r['uri'] in blob:
+            b = blob[r['uri']]
+            if b != 'bad':
+                request['blob'] = b # dgest
+                request['method'] = 'GET'
+        else:
+            if True == getonly:
+                continue
+            request['size'] = r['size']
+            request['method'] = 'PUT'
+            
+        clientToReqs[r['client']].append(request)
+    
+    i = 0
+    for cli in clientToReqs:
+        #req = clireqlst[0]
+        try:
+            threadid = clientTOThreads[cli]
+            organized[threadid].extend(clientToReqs[cli])
+        except Exception as e:
+            organized[i%numclients].extend(clientToReqs[cli])
+            clientTOThreads[cli] = i%numclients
+            i += 1    
+             
+    print ("number of client threads/ clients:", i)  
+     
+    before = 0
+    
+    for clireqlst in organized:
+        clireqlst.sort(key= lambda x: x['delay'])
+        i = 0
+        for r in clireqlst:
+        #print r
+            if 0 == i:
+                r['sleep'] = 0
+                before = r['delay']
+                i += 1
+            else:
+                r['sleep'] = (r['delay'] - before).total_seconds()
+                before = r['delay']
+                i += 1
+                
+        print ("number of request for client:", i)
+                
+    #print organized
+    totalcnt = sum([len(x) for x in organized])
+    print ("total number of replay requests are: ", totalcnt)
+    return organized

@@ -234,54 +234,6 @@ def get_blobs(data, numclients, out_file):#, testmode):
         json.dump(results, f)
        
 
-######
-# NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json': gathering all the requests from trace files
-######
-def get_requests(files, t, limit):
-    ret = []
-    requests = []
-    #brk = False
-    
-#     for filename in files:#load each layer/request file (usually only 1)
-    try:
-#         fname = os.path.basename(filename)
-        with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'r') as f:
-        #with open(filename+'-realblob.json', 'r') as f:
-            requests.extend(json.load(f))#append a file
-    except Exception as e:
-        print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
-        #brk = True
-        
-#    if brk:
-#        break
-    
-    for request in requests: #load each request
-        method = request['http.request.method']
-        uri = request['http.request.uri']
-        if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
-            size = request['http.response.written']
-            if size > 0:
-                timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                duration = request['http.request.duration']
-                client = request['http.request.remoteaddr']
-                blob = request['data']
-                r = {
-                    'delay': timestamp, 
-                    'uri': uri, 
-                    'size': size, 
-                    'method': method, 
-                    'duration': duration,
-                    'client': client,
-                    'data': blob
-                }
-                ret.append(r)
-    ret.sort(key= lambda x: x['delay']) # reorder by delay time
-
-    #for filename in files:
-    #	clear_extracting_dir(filename+'-realblob.json')
-
-    return ret
-
 ##############
 # NANNAN: add a sleep delay
 # "http.request.duration": 1.005269323, 
@@ -442,22 +394,7 @@ def main():
     if inputs['simulate']['getonly'] == True:
 	getonly = True
     print("getonly or not?", getonly)
-    if args.command == 'match':    
-        if 'realblobs' in inputs['client_info']:
-            realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
-#             match(realblob_locations, trace_files, limit, getonly)
-            tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly)
-            match(realblob_locations, tracedata, limit, getonly, layeridmap)
-            return
-	else:
-	    print "please put realblobs in the config files"
-	    return
-
-    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
-#     print json_data[0]
-#     print json_data[1]
-#     print json_data[5]
-#     print len(json_data)
+    
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:
@@ -469,7 +406,26 @@ def main():
     elif inputs['testmode']['traditionaldedup'] == True:
         testmode = 'traditionaldedup'
     else:
-        testmode = 'sift'    
+        testmode = 'sift' 
+    
+    if args.command == 'match':    
+        if 'realblobs' in inputs['client_info']:
+            extract_client_reqs(trace_files, threads, limit)
+            
+#             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
+# #             match(realblob_locations, trace_files, limit, getonly)
+#             tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly)
+#             match(realblob_locations, tracedata, limit, getonly, layeridmap)
+            return
+	else:
+	    print "please put realblobs in the config files"
+	    return
+
+    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
+#     print json_data[0]
+#     print json_data[1]
+#     print json_data[5]
+#     print len(json_data)   
 
 #     if 'threads' not in inputs['client_info']:
 #         print 'client threads not specified, 1 thread will be used'
