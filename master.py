@@ -240,7 +240,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
 def get_requests(files, t, limit):
     ret = []
     requests = []
-    brk = False
+    #brk = False
     
 #     for filename in files:#load each layer/request file (usually only 1)
     try:
@@ -250,10 +250,10 @@ def get_requests(files, t, limit):
             requests.extend(json.load(f))#append a file
     except Exception as e:
         print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
-        brk = True
+        #brk = True
         
-    if brk:
-        break
+#    if brk:
+#        break
     
     for request in requests: #load each request
         method = request['http.request.method']

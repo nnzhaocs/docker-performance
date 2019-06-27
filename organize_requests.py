@@ -2,7 +2,7 @@
 import sys
 #import socket
 import os
-
+import json
 
 ####
 # Random match
@@ -50,8 +50,8 @@ def match(realblob_location_files, trace_files, limit, getonly):
                 layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
                 size = request['http.response.written']
                 if size > 0:
-            if 'PUT' == method and True == getonly:
-            continue
+            	    if 'PUT' == method and True == getonly:
+            		continue
                     if count >= limit:
                         break
 
@@ -111,6 +111,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
     print trace_files
     
     layeridmap = {}
+    i = 0
     count = 0
     put_reqs = 0
     find_puts = 0
@@ -124,16 +125,18 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
-            if len(uri.split('/')) < 3:
+	    #print uri
+            if len(uri.split('/')) < 5:
                 continue
             #only interested in GET/pull PUT/push requests
             if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
                 size = request['http.response.written']
+		#print uri
                 if size > 0:
                     if count >= limit:
                         break
 
-                    if i < len(blob_locations):
+                    if i < 2*limit:    #len(blob_locations):
                         if 'GET' == method:
                             parts = uri.split('/')
                             reponame = parts[1] + '/' + parts[2] 
@@ -141,27 +144,30 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
                             try:
                                 newuri = layeridmap[newid]
                                 if newuri == 0:
-                                    layeridmap[newid] = uri
+                                    layeridmap[newid] = uri				
                                 find_puts += 1
                             except Exception as e:
                                 pass
                         else:
-                            put_reqs += 1
                             parts = uri.split('/')
                             reponame = parts[1] + '/' + parts[2] 
                             newid = reponame + '/' + str(size)
                             try:
                                 newuri = layeridmap[newid]
+				continue
+				#print newid
                             except Exception as e:
+				#print newid
                                 layeridmap[newid] = 0
+				put_reqs += 1
                         
                         count += 1
-                        fcnt += 1
+                        #fcnt += 1
     
     print 'total requests: ' + str(count) 
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
-         
+    print 'total uniq put requests: ' + str(len(layeridmap))    
 #     if fcnt:
 #         for r in ret:
 #             if 'PUT' == request['http.request.method']:
