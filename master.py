@@ -244,7 +244,7 @@ def get_requests(files, t, limit):
     
 #     for filename in files:#load each layer/request file (usually only 1)
     try:
-        fname = os.path.basename(filename)
+#         fname = os.path.basename(filename)
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'r') as f:
         #with open(filename+'-realblob.json', 'r') as f:
             requests.extend(json.load(f))#append a file
@@ -447,6 +447,7 @@ def main():
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
 #             match(realblob_locations, trace_files, limit, getonly)
             fix_put_id(realblob_locations, trace_files, limit, getonly)
+            match(realblob_locations, trace_files, limit, layeridmap)
             return
 	else:
 	    print "please put realblobs in the config files"
