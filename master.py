@@ -20,11 +20,12 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from client import *
+from organize_requests import *
 from os.path import stat
 from uhashring import HashRing
 import math
 
-realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
+#realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 results_dir = "/home/nannan/testing/results/"
 
 def send_warmup_thread(req):
@@ -233,147 +234,6 @@ def get_blobs(data, numclients, out_file):#, testmode):
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
        
-
-######
-# NANNAN: trace_file+'-realblob.json': gathering all the requests from trace files
-######
-def get_requests(files, t, limit):
-    ret = []
-    requests = []
-    brk = False
-    
-    for filename in files:#load each layer/request file (usually only 1)
-        try:
-            fname = os.path.basename(filename)
-            with open(realblobtrace_dir+fname+'-realblob.json', 'r') as f:
-            #with open(filename+'-realblob.json', 'r') as f:
-                requests.extend(json.load(f))#append a file
-        except Exception as e:
-            print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
-            brk = True
-            
-        if brk:
-            break
-        
-        for request in requests: #load each request
-            method = request['http.request.method']
-            uri = request['http.request.uri']
-            if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):
-                size = request['http.response.written']
-                if size > 0:
-                    timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                    duration = request['http.request.duration']
-                    client = request['http.request.remoteaddr']
-                    blob = request['data']
-                    r = {
-                        'delay': timestamp, 
-                        'uri': uri, 
-                        'size': size, 
-                        'method': method, 
-                        'duration': duration,
-                        'client': client,
-                        'data': blob
-                    }
-                    ret.append(r)
-    ret.sort(key= lambda x: x['delay']) # reorder by delay time
-
-    #for filename in files:
-    #	clear_extracting_dir(filename+'-realblob.json')
-
-    return ret
-
-####
-# Random match
-# the output file is the last trace filename-realblob.json, which is total trace file.
-####
-##########annotation by keren
-#1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
-def match(realblob_location_files, trace_files, limit, getonly):
-    
-    print realblob_location_files, trace_files
-
-    blob_locations = []
-    lTOblobdic = {}
-        
-    i = 0
-    count = 0
-    uniq_layerdataset_size = 0
-    
-    for realblob_location_file in realblob_location_files:
-    	print "File: "+realblob_location_file+" has the following blobs"
-    
-    	with open(realblob_location_file, 'r') as f:
-            for line in f:
-            	#print line
-            	if line:
-                    blob_locations.append(line.replace("\n", ""))
-    #print 'blob locations count: ' + str(len(blob_locations))
-
-    for trace_file in trace_files:
-        print 'trace file: ' + trace_file
-        with open(trace_file, 'r') as f:
-            requests = json.load(f)
-            #print 'request count: ' + str(len(requests))
-
-        ret = []  
-        fcnt = 0
-          
-        for request in requests:
-            method = request['http.request.method']
-            uri = request['http.request.uri']
-            if len(uri.split('/')) < 3:
-                continue
-            #only interested in GET/pull PUT/push requests
-            if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                layer_id = uri.rsplit('/', 1)[1]#dict[-1] == trailing
-                size = request['http.response.written']
-                if size > 0:
-		    if 'PUT' == method and True == getonly:
-			continue
-                    if count >= limit:
-                        break
-
-                    if i < len(blob_locations):
-                        if 'manifest' in uri:# NOT SURE if a proceeding manifest
-                            #if uri['manifest'] == 'manifest': what is this?
-                                #create a fake blob with same size
-                                #to the same dir as first valid blob file 
-                            blob = None
-                        else:
-                            try:
-                                blob = lTOblobdic[layer_id]
-                            except Exception as e:     
-                                blob = blob_locations[i] # temp record the blob
-                                lTOblobdic[layer_id] = blob # mark blob as recorded
-                                i += 1
-                                size = os.stat(blob).st_size # record blob size
-                                uniq_layerdataset_size += size
-                        # except size and data, others are same with original reqs
-                        r = {
-                            "host": request['host'],
-                            "http.request.duration": request['http.request.duration'],
-                            "http.request.method": request['http.request.method'],
-                            "http.request.remoteaddr": request['http.request.remoteaddr'],
-                            "http.request.uri": request['http.request.uri'],
-                            "http.request.useragent": request['http.request.useragent'],
-                            "http.response.status": request['http.response.status'],
-                            "http.response.written": size,
-                            "id": request['id'],
-                            "timestamp": request['timestamp'],
-                            'data': blob
-                        }
-                        #print r
-                        ret.append(r)
-                        count += 1
-                        fcnt += 1
-        if fcnt:
-            fname = os.path.basename(trace_file)
-            with open(realblobtrace_dir+fname+'-realblob.json', 'w') as fp:
-                json.dump(ret, fp)      
-
-    print 'total unique layer count: ' + str(len(lTOblobdic))
-    print 'total requests: ' + str(count) 
-    print 'unique layer dataset size: ' + str(uniq_layerdataset_size)     
 
 ##############
 # NANNAN: add a sleep delay
@@ -626,22 +486,12 @@ def main():
     #match mode; see detailed in corresponding func
     getonly = False
     if inputs['simulate']['getonly'] == True:
-	getonly = True
-    print("getonly or not?", getonly)
-    if args.command == 'match':    
-        if 'realblobs' in inputs['client_info']:
-            realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
-            match(realblob_locations, trace_files, limit, getonly)
-            return
-	else:
-	    print "please put realblobs in the config files"
-	    return
-
-    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
-#     print json_data[0]
-#     print json_data[1]
-#     print json_data[5]
-#     print len(json_data)
+        getonly = True
+        print("getonly or not?", getonly)
+        
+    tracetype = inputs['simulate']['tracetype']
+    print ("tracetype is ", tracetype)
+    
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:
@@ -653,7 +503,26 @@ def main():
     elif inputs['testmode']['traditionaldedup'] == True:
         testmode = 'traditionaldedup'
     else:
-        testmode = 'sift'    
+        testmode = 'sift' 
+    
+    if args.command == 'match':    
+        if 'realblobs' in inputs['client_info']:
+            choseclis = extract_client_reqs(trace_files, threads, limit, tracetype)
+            
+            realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
+ #            match(realblob_locations, trace_files, limit, getonly)
+            tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly, choseclis)
+            match(realblob_locations, tracedata, limit, getonly, layeridmap)
+            return
+	else:
+	    print "please put realblobs in the config files"
+	    return
+
+    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
+#     print json_data[0]
+#     print json_data[1]
+#     print json_data[5]
+#     print len(json_data)   
 
 #     if 'threads' not in inputs['client_info']:
 #         print 'client threads not specified, 1 thread will be used'

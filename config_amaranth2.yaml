@@ -12,21 +12,27 @@ client_info: # Required for run command
         #	- /home/nannan/dockerimages/layers/hulk4_layers_less_50m.lst
 
 trace: # mandatory field
-    location: /home/nannan/dockerimages/docker-traces/data_centers/dal09 # use a small trace for debugging
+    location: /home/nannan/dockerimages/docker-traces/data_centers/ # use a small trace for debugging
     traces:
-        # - total_trace_dal09.json
-        - prod-dal09-logstash-2017.06.20-0.json
-        - prod-dal09-logstash-2017.06.20-1.json
-        - prod-dal09-logstash-2017.06.20-2.json
-        - prod-dal09-logstash-2017.06.20-3.json
-        - prod-dal09-logstash-2017.06.21-0.json
-        - prod-dal09-logstash-2017.06.21-1.json
-        - prod-dal09-logstash-2017.06.21-2.json
-        - prod-dal09-logstash-2017.06.21-3.json
+#        - dal09_total_trace.json
+#        - dev-mon01_total_trace.json
+#        - fra02_total_trace.json
+#        - lon02_total_trace.json
+        - prestage-mon01_total_trace.json
+#        - stage-dal-09_total_trace.json
+#        - syd01_total_trace.json
+#        - prod-dal09-logstash-2017.06.20-0.json
+#        - prod-dal09-logstash-2017.06.20-1.json
+#        - prod-dal09-logstash-2017.06.20-2.json
+#        - prod-dal09-logstash-2017.06.20-3.json
+#        - prod-dal09-logstash-2017.06.21-0.json
+#        - prod-dal09-logstash-2017.06.21-1.json
+#        - prod-dal09-logstash-2017.06.21-2.json
+#        - prod-dal09-logstash-2017.06.21-3.json
     
     limit: # entire trace used if limit not speciiied
         type: requests # seconds and requests are supported
-        amount: 100
+        amount: 274929 # 5000000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -72,5 +78,6 @@ testmode: # required for simulate mode
 
 simulate:
     testmode: concurrency
-    getonly: True
+    getonly: False
+    tracetype: durationday #topnclients
     
