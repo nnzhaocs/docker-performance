@@ -217,7 +217,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
         return choseclimap
     
     choseday = {}
-    daycnt = 1
+    daycnt = 0
     if tracetype == 'durationday':
         for i, value in sorted(dayclisrequstsmap.items(), key=lambda kv: kv[1], reverse=True):
     	    print((i, value))
@@ -269,33 +269,33 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
             d = timestamp.day
             t = str(m)+'.'+str(d)
             t = float(t)
-        if tracetype == 'topnclients' or tracetype == 'randomsample':
-    	    try:
-                tmpcnt = choseclimap[cli] 
-    	    except Exception as e:
-                continue
-    	    try: 
-                tmpcnt = newcli[cli]
-                newcli[cli] += 1
-    	    except Exception as e:
-                newcli[cli] = 1
-                cntcli += 1
-            try:
-                tmpcnt == newday[t]
-                newday[t] += 1
-            except Exception as e:
-                newday[t] = 1
-                
-        elif tracetype == "durationday":
-            try:
-                tmpcnt = choseclimap[t] 
-            except Exception as e:
-                continue
-            try:
-                tmpcnt == newday[t]
-                newday[t] += 1
-            except Exception as e:
-                newday[t] = 1
+            if tracetype == 'topnclients' or tracetype == 'randomsample':
+        	try:
+                    tmpcnt = choseclimap[cli] 
+        	except Exception as e:
+                    continue
+        	try: 
+                    tmpcnt = newcli[cli]
+                    newcli[cli] += 1
+        	except Exception as e:
+                    newcli[cli] = 1
+                    cntcli += 1
+                try:
+                    tmpcnt == newday[t]
+                    newday[t] += 1
+                except Exception as e:
+                    newday[t] = 1
+                    
+            elif tracetype == "durationday":
+                try:
+                    tmpcnt = choseclimap[t] 
+                except Exception as e:
+                    continue
+                try:
+                    tmpcnt == newday[t]
+                    newday[t] += 1
+                except Exception as e:
+                    newday[t] = 1
             
             if len(uri.split('/')) < 5:
                 continue
