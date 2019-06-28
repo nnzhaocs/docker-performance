@@ -132,49 +132,58 @@ def extract_client_reqs(trace_files, clients, limit):
     choseclimap = {}
     chosesum = 0
 
-    for trace_file in trace_files:
-        print 'trace file: ' + trace_file
-        with open(trace_file, 'r') as f:
-            requests = json.load(f)
-
-        for request in requests:
-            method = request['http.request.method']
-            uri = request['http.request.uri']
-            
-            if len(uri.split('/')) < 5:
-                continue
-
-            if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                size = request['http.response.written']
-
-                if size <= 0:
-                    continue
+    if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst')):
+	print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is not exists"
+	print "Take few minutes to generate ........"
+        for trace_file in trace_files:
+            print 'trace file: ' + trace_file
+            with open(trace_file, 'r') as f:
+                requests = json.load(f)
+    
+            for request in requests:
+                method = request['http.request.method']
+                uri = request['http.request.uri']
                 
-                cliaddr = request['http.request.remoteaddr']
-                try:
-                    cnt = clireqmap[cliaddr]
-                    clireqmap[cliaddr] += 1
-                except Exception as e:
-                    clireqmap[cliaddr] = 1
-   
-    print 'total client count: ' + str(len(clireqmap))
-    for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
-    	print((i, value))                
+                if len(uri.split('/')) < 5:
+                    continue
+    
+                if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
+                    size = request['http.response.written']    
+                    if size <= 0:
+                        continue
+                    
+                    cliaddr = request['http.request.remoteaddr']
+                    try:
+                        cnt = clireqmap[cliaddr]
+                        clireqmap[cliaddr] += 1
+                    except Exception as e:
+                        clireqmap[cliaddr] = 1
+       
+        print 'total client count: ' + str(len(clireqmap))
+        for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
+            print((i, value))                
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'w') as fp:
+    	    json.dump(clireqmap, fp)
+    else:
+	print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is already exists"
+	with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
+	    clireqmap = json.load(fp)
     
     #while chosesum < limit or chosesum > limit + 600:
-    """	
+    	
     randkeys = random.sample(clireqmap.keys(), clients)
     chosesum = 0
     for i in randkeys:
         chosesum += clireqmap[i]
 
     print 'total chosen client requsts: ' + str(chosesum)
+    print 'total chosen clients: ' + str(len(clireqmap))
     for i in randkeys:
 	choseclimap[i] = clireqmap[i]
 
     for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
         print((i, value))
-    """
+    
     return clireqmap  # choseclimap
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
@@ -274,7 +283,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'total uniq put requests: ' + str(len(layeridmap))    
-    print 'total num of clients: ' + str(cntcli)
+    print 'total num of clients: ' + str(len(newcli))
     #newcli = {}))
     return ret, layeridmap
 

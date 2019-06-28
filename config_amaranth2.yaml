@@ -14,7 +14,7 @@ client_info: # Required for run command
 trace: # mandatory field
     location: /home/nannan/dockerimages/docker-traces/data_centers/ # use a small trace for debugging
     traces:
-        - dal09_total_trace.json.json
+        - dal09_total_trace.json
 #        - dev-mon01_total_trace.json
 #        - fra02_total_trace.json
 #        - lon02_total_trace.json
@@ -32,7 +32,7 @@ trace: # mandatory field
     
     limit: # entire trace used if limit not speciiied
         type: requests # seconds and requests are supported
-        amount: 500000000
+        amount: 5000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
