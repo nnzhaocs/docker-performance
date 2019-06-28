@@ -186,7 +186,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
         
         return choseclimap    
     
-    if tracetype == 'randomsample'     
+    if tracetype == 'randomsample':     
         # randomly based        
         randkeys = random.sample(clireqmap.keys(), clients)
         chosesum = 0
@@ -195,7 +195,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
     
         print 'total chosen client requsts: ' + str(chosesum)
         for i in randkeys:
-    	choseclimap[i] = clireqmap[i]
+	    choseclimap[i] = clireqmap[i]
         print 'total chosen clients: ' + str(len(choseclimap))
         for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
             print((i, value))
@@ -203,8 +203,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
         return choseclimap
 
 
-def extract_client_reqs(trace_files, clients, limit):
-
+#def extract_client_reqs(trace_files, clients, limit):
 
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
