@@ -417,7 +417,7 @@ def main():
             
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
  #            match(realblob_locations, trace_files, limit, getonly)
-            tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly, choseclis)
+            tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly, choseclis, tracetype)
             match(realblob_locations, tracedata, limit, getonly, layeridmap)
             return
 	else:
