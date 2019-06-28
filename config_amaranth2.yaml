@@ -79,4 +79,5 @@ testmode: # required for simulate mode
 simulate:
     testmode: concurrency
     getonly: False
+    tracetype: topnclients
     

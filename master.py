@@ -392,8 +392,11 @@ def main():
     #match mode; see detailed in corresponding func
     getonly = False
     if inputs['simulate']['getonly'] == True:
-	getonly = True
-    print("getonly or not?", getonly)
+        getonly = True
+        print("getonly or not?", getonly)
+        
+    tracetype = inputs['simulate']['tracetype']
+    print ("tracetype is ", tracetype)
     
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
@@ -410,7 +413,7 @@ def main():
     
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
-            choseclis = extract_client_reqs(trace_files, threads, limit)
+            choseclis = extract_client_reqs(trace_files, threads, limit, tracetype)
             
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
  #            match(realblob_locations, trace_files, limit, getonly)
