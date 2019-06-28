@@ -120,7 +120,7 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     print 'total uniq put requests: ' + str(len(layeridmap))      
 
 
-def extract_client_reqs(trace_files, clients, limit):
+def extract_client_reqs(trace_files, clients, limit, tracetype):
     print trace_files
     
     layeridmap = {}
@@ -131,6 +131,8 @@ def extract_client_reqs(trace_files, clients, limit):
     avgreqs = limit/clients
     choseclimap = {}
     chosesum = 0
+    
+    dayclisrequstsmap = {}
 
     if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst')):
 	print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is not exists"
@@ -143,6 +145,8 @@ def extract_client_reqs(trace_files, clients, limit):
             for request in requests:
                 method = request['http.request.method']
                 uri = request['http.request.uri']
+                timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%d')
+                print timestamp
                 
                 if len(uri.split('/')) < 5:
                     continue
@@ -169,21 +173,39 @@ def extract_client_reqs(trace_files, clients, limit):
 	with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
 	    clireqmap = json.load(fp)
     
-    #while chosesum < limit or chosesum > limit + 600:
-    	
-    randkeys = random.sample(clireqmap.keys(), clients)
-    chosesum = 0
-    for i in randkeys:
-        chosesum += clireqmap[i]
-
-    print 'total chosen client requsts: ' + str(chosesum)
-    for i in randkeys:
-	choseclimap[i] = clireqmap[i]
-    print 'total chosen clients: ' + str(len(choseclimap))
-    for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
-        print((i, value))
+    # for top 100 clients
+    if tracetype == 'topnclients':
+        clicnt = 0
+        topnci = clients
+        for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
+            print((i, value))
+            clicnt += 1
+            choseclimap[i] = clireqmap[i]
+            if clicnt > topnci:
+                break
+        
+        return choseclimap    
     
-    return choseclimap
+    if tracetype == 'randomsample'     
+        # randomly based        
+        randkeys = random.sample(clireqmap.keys(), clients)
+        chosesum = 0
+        for i in randkeys:
+            chosesum += clireqmap[i]
+    
+        print 'total chosen client requsts: ' + str(chosesum)
+        for i in randkeys:
+    	choseclimap[i] = clireqmap[i]
+        print 'total chosen clients: ' + str(len(choseclimap))
+        for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
+            print((i, value))
+        
+        return choseclimap
+
+
+def extract_client_reqs(trace_files, clients, limit):
+
+
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
 ######
