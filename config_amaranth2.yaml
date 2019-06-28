@@ -63,7 +63,7 @@ registry:
 
 warmup: # required for run and warmup mode
     output: interm.json # name of file that holds mapping between trace uri's and hashes
-    threads: 100 # how many clients used to push/pull blobs to registry
+    threads: 8 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
     nodedup: False
