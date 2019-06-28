@@ -4,7 +4,7 @@ import sys
 import os
 import json
 from audioop import avg
-
+import random
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -113,7 +113,7 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
 
     print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total requests: ' + str(count) 
-    print 'unique layer dataset size: ' + str(uniq_layerdataset_size) 
+    print 'unique layer dataset size: ' + str(uniq_layerdataset_size/1024/1024/1024) + ' GB'
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
@@ -155,23 +155,27 @@ def extract_client_reqs(trace_files, clients, limit):
                     cnt = clireqmap[cliaddr]
                     clireqmap[cliaddr] += 1
                 except Exception as e:
-                    clireqmap[cliaddr] = 0
+                    clireqmap[cliaddr] = 1
+   
+    print 'total client count: ' + str(len(clireqmap))
+    for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
+    	print((i, value))                
     
-    print 'total unique layer count: ' + str(len(clireqmap))
-                    
-    
-    
-                
-                
-                
+    #while chosesum < limit or chosesum > limit + 600:
+    """	
+    randkeys = random.sample(clireqmap.keys(), clients)
+    chosesum = 0
+    for i in randkeys:
+        chosesum += clireqmap[i]
 
+    print 'total chosen client requsts: ' + str(chosesum)
+    for i in randkeys:
+	choseclimap[i] = clireqmap[i]
 
-
-
-
-
-
-
+    for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
+        print((i, value))
+    """
+    return clireqmap  # choseclimap
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
 ######
@@ -181,7 +185,7 @@ def extract_client_reqs(trace_files, clients, limit):
 ####
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
-def fix_put_id(realblob_location_files, trace_files, limit, getonly):
+def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap):
     
     print trace_files
     
@@ -191,6 +195,8 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
     put_reqs = 0
     find_puts = 0
     ret = []
+    cntcli = 0
+    newcli = {}
 
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
@@ -200,6 +206,17 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
+	    cli = request['http.request.remoteaddr']
+	    try:
+		tmpcnt = choseclimap[cli] 
+	    except Exception as e:
+		continue
+	    try: 
+		tmpcnt = newcli[cli]
+		newcli[cli] += 1
+	    except Exception as e:
+		newcli[cli] = 1
+		cntcli += 1
             
             if len(uri.split('/')) < 5:
                 continue
@@ -250,11 +267,15 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly):
                 ret.append(r)
                 count += 1
 
-    
+    for i, value in sorted(newcli.items(), key=lambda kv: kv[1], reverse=True):
+        print((i, value))
+
     print 'total requests: ' + str(count) 
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'total uniq put requests: ' + str(len(layeridmap))    
+    print 'total num of clients: ' + str(cntcli)
+    #newcli = {}))
     return ret, layeridmap
 
 

@@ -410,12 +410,12 @@ def main():
     
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
-            extract_client_reqs(trace_files, threads, limit)
+            choseclis = extract_client_reqs(trace_files, threads, limit)
             
-#             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
-# #             match(realblob_locations, trace_files, limit, getonly)
-#             tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly)
-#             match(realblob_locations, tracedata, limit, getonly, layeridmap)
+            realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
+ #            match(realblob_locations, trace_files, limit, getonly)
+            tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly, choseclis)
+            match(realblob_locations, tracedata, limit, getonly, layeridmap)
             return
 	else:
 	    print "please put realblobs in the config files"

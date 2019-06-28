@@ -16,17 +16,17 @@ trace: # mandatory field
     traces:
         # - total_trace_dal09.json
         - prod-dal09-logstash-2017.06.20-0.json
-        - prod-dal09-logstash-2017.06.20-1.json
-        - prod-dal09-logstash-2017.06.20-2.json
-        - prod-dal09-logstash-2017.06.20-3.json
-        - prod-dal09-logstash-2017.06.21-0.json
-        - prod-dal09-logstash-2017.06.21-1.json
-        - prod-dal09-logstash-2017.06.21-2.json
-        - prod-dal09-logstash-2017.06.21-3.json
+#        - prod-dal09-logstash-2017.06.20-1.json
+#        - prod-dal09-logstash-2017.06.20-2.json
+#        - prod-dal09-logstash-2017.06.20-3.json
+#        - prod-dal09-logstash-2017.06.21-0.json
+#        - prod-dal09-logstash-2017.06.21-1.json
+#        - prod-dal09-logstash-2017.06.21-2.json
+#        - prod-dal09-logstash-2017.06.21-3.json
     
     limit: # entire trace used if limit not speciiied
         type: requests # seconds and requests are supported
-        amount: 5000
+        amount: 500000000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
