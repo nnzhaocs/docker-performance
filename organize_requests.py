@@ -5,6 +5,7 @@ import os
 import json
 from audioop import avg
 import random
+import datetime
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -145,9 +146,18 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
             for request in requests:
                 method = request['http.request.method']
                 uri = request['http.request.uri']
-                timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%d')
-                print timestamp
-                
+                timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+		m = timestamp.month
+		d = timestamp.day
+		t = str(m)+'.'+str(d)
+		t = float(t)
+                #print (timestamp, float(t))
+		try:
+                    tmpcnt = dayclisrequstsmap[t]
+		    dayclisrequstsmap[t] += 1
+		except Exception as e:
+		    dayclisrequstsmap[t] = 1
+
                 if len(uri.split('/')) < 5:
                     continue
     
@@ -202,6 +212,10 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
         
         return choseclimap
 
+    if tracetype == 'durationday':
+	for i, value in sorted(dayclisrequstsmap.items(), key=lambda kv: kv[1], reverse=True):
+	    print((i, value))
+	return dayclisrequstsmap
 
 #def extract_client_reqs(trace_files, clients, limit):
 
