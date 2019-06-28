@@ -178,10 +178,14 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
             print((i, value))                
         with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'w') as fp:
     	    json.dump(clireqmap, fp)
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'w') as fp:
+            json.dump(dayclisrequstsmap, fp)
     else:
 	print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is already exists"
 	with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
 	    clireqmap = json.load(fp)
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'r') as fp:
+            dayclisrequstsmap = json.load(fp)
     
     # for top 100 clients
     if tracetype == 'topnclients':
@@ -211,11 +215,20 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
             print((i, value))
         
         return choseclimap
-
+    
+    choseday = {}
+    daycnt = 1
     if tracetype == 'durationday':
-	for i, value in sorted(dayclisrequstsmap.items(), key=lambda kv: kv[1], reverse=True):
-	    print((i, value))
-	return dayclisrequstsmap
+        for i, value in sorted(dayclisrequstsmap.items(), key=lambda kv: kv[1], reverse=True):
+    	    print((i, value))
+            if daycnt >= 1:
+                continue
+            choseday[i] = value
+            daycnt += 1
+    
+    print "chose following day"
+    print choseday    
+    return choseday
 
 #def extract_client_reqs(trace_files, clients, limit):
 
@@ -228,7 +241,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
 ####
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
-def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap):
+def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap, tracetype):
     
     print trace_files
     
@@ -240,6 +253,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
     ret = []
     cntcli = 0
     newcli = {}
+    newday = {}
 
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
@@ -249,17 +263,39 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
-	    cli = request['http.request.remoteaddr']
-	    try:
-		tmpcnt = choseclimap[cli] 
-	    except Exception as e:
-		continue
-	    try: 
-		tmpcnt = newcli[cli]
-		newcli[cli] += 1
-	    except Exception as e:
-		newcli[cli] = 1
-		cntcli += 1
+            cli = request['http.request.remoteaddr']
+            timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            m = timestamp.month
+            d = timestamp.day
+            t = str(m)+'.'+str(d)
+            t = float(t)
+        if tracetype == 'topnclients' or tracetype == 'randomsample':
+    	    try:
+                tmpcnt = choseclimap[cli] 
+    	    except Exception as e:
+                continue
+    	    try: 
+                tmpcnt = newcli[cli]
+                newcli[cli] += 1
+    	    except Exception as e:
+                newcli[cli] = 1
+                cntcli += 1
+            try:
+                tmpcnt == newday[t]
+                newday[t] += 1
+            except Exception as e:
+                newday[t] = 1
+                
+        elif tracetype == "durationday":
+            try:
+                tmpcnt = choseclimap[t] 
+            except Exception as e:
+                continue
+            try:
+                tmpcnt == newday[t]
+                newday[t] += 1
+            except Exception as e:
+                newday[t] = 1
             
             if len(uri.split('/')) < 5:
                 continue
@@ -318,6 +354,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
     print 'match put and get requests: ' + str(find_puts)   
     print 'total uniq put requests: ' + str(len(layeridmap))    
     print 'total num of clients: ' + str(len(newcli))
+    print 'duration of days: ' + str(len(newday))
     #newcli = {}))
     return ret, layeridmap
 
