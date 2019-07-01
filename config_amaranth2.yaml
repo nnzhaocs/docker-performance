@@ -14,11 +14,11 @@ client_info: # Required for run command
 trace: # mandatory field
     location: /home/nannan/dockerimages/docker-traces/data_centers/ # use a small trace for debugging
     traces:
-#        - dal09_total_trace.json
+        - dal09_total_trace.json
 #        - dev-mon01_total_trace.json
 #        - fra02_total_trace.json
 #        - lon02_total_trace.json
-        - prestage-mon01_total_trace.json
+#        - prestage-mon01_total_trace.json
 #        - stage-dal-09_total_trace.json
 #        - syd01_total_trace.json
 #        - prod-dal09-logstash-2017.06.20-0.json
@@ -68,7 +68,7 @@ registry:
 
 warmup: # required for run and warmup mode
     output: interm.json # name of file that holds mapping between trace uri's and hashes
-    threads: 8 # how many clients used to push/pull blobs to registry
+    threads: 100 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
     nodedup: False
@@ -77,6 +77,6 @@ testmode: # required for simulate mode
 
 simulate:
     testmode: concurrency
-    getonly: False
+    getonly: True
     tracetype: first1tracefile # durationday #topnclients # first1tracefile
     

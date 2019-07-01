@@ -6,7 +6,7 @@ import json
 from audioop import avg
 import random
 import datetime
-from objc._objc import NULL
+
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -17,7 +17,7 @@ from objc._objc import NULL
 realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 
 def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
-    
+    print "match ... "
     print realblob_location_files #, trace_files
 
     blob_locations = []
@@ -104,7 +104,7 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
                 "timestamp": request['timestamp'],
                 'data': blob
             }
-            #print r
+            print r
             ret.append(r)
             count += 1
             fcnt += 1
@@ -123,6 +123,7 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
 
 
 def extract_client_reqs(trace_files, clients, limit, tracetype):
+    print "extract_client_reqs ... "
     print trace_files
     
     layeridmap = {}
@@ -249,7 +250,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
 def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap, tracetype):
-    
+    print "fix_put_id ... "
     print trace_files
     
     layeridmap = {}
@@ -393,7 +394,8 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json': gathering all the requests from trace files
 ######
-def get_requests(files, t, limit):
+def get_requests(files, limit):
+    print "get_requests ... "
     ret = []
     requests = []
     
@@ -481,8 +483,7 @@ def organize(requests, out_trace, numclients, getonly):
             clientTOThreads[cli] = i%numclients
             i += 1    
              
-    print ("number of client threads/ clients:", i)  
-     
+    print ("number of client threads/ clients:", i)      
     before = 0
     
     for clireqlst in organized:

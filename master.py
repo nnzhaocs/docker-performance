@@ -507,7 +507,7 @@ def main():
 	    print "please put realblobs in the config files"
 	    return
 
-    json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
+    json_data = get_requests(trace_files, limit)#, getonly) # == init in cache.py
     config_client(registries, testmode) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
