@@ -260,6 +260,7 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
         with open(trace_file, 'r') as f:
             requests = json.load(f)
 
+	print tracetype
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
@@ -268,7 +269,8 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
             m = timestamp.month
             d = timestamp.day
             t = str(m)+'.'+str(d)
-            t = float(t)
+            #t = float(t)
+	    #print choseclimap
             if tracetype == 'topnclients' or tracetype == 'randomsample':
         	try:
                     tmpcnt = choseclimap[cli] 
@@ -296,7 +298,14 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
                     newday[t] += 1
                 except Exception as e:
                     newday[t] = 1
-            
+
+		try:
+                    tmpcnt = newcli[cli]
+                    newcli[cli] += 1
+                except Exception as e:
+                    newcli[cli] = 1
+                    cntcli += 1
+
             if len(uri.split('/')) < 5:
                 continue
 
