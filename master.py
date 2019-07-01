@@ -409,7 +409,6 @@ def organize(requests, out_trace, numclients, getonly):
     print ("total number of relay requests are: ", totalcnt)
     return organized
 
-##########annotation by keren
 def main():
 
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
@@ -437,7 +436,6 @@ def main():
         exit(1)
 
     trace_files = []
-    # dir containing traces
     if 'location' in inputs['trace']:
         location = inputs['trace']['location']
         if '/' != location[-1]:
@@ -451,39 +449,32 @@ def main():
     for f in trace_files:
         print f
 
-    limit_type = None
     limit = 0
-    # test limit specs
+
     if 'limit' in inputs['trace']:
-        limit_type = inputs['trace']['limit']['type']
-        if limit_type in ['seconds', 'requests']:
-            limit = inputs['trace']['limit']['amount']
-        else:
-            print 'Invalid trace limit_type: limit_type must be either seconds or requests'
-            exit(1)
+        limit = inputs['trace']['limit']['amount']
     else:
-        print 'limit_type not specified, entirety of trace files will be used will be used.'
-    #output file spec
+        print 'limit not set! please set replay request limit!'
+        exit(1)
+
     if 'output' in inputs['trace']:
         out_file = inputs['trace']['output']
     else:
         out_file = 'output.json'
         print 'Output trace not specified, ./output.json will be used'
-    #NOT SURE: if not sim, must be warmup/warmmed up before test
-#     if args.command != 'simulate':
+        
     if "warmup" not in inputs or 'output' not in inputs['warmup']:
         print 'warmup not specified in config, warmup output required. Exiting'
         exit(1)
     else:
         interm = inputs['warmup']['output']
-    #machines to be used
+        
     registries = []
     if 'registry' in inputs:
         registries.extend(inputs['registry'])
      
     print(registries)
-    #NANNAN
-    #match mode; see detailed in corresponding func
+ 
     getonly = False
     if inputs['simulate']['getonly'] == True:
         getonly = True
@@ -507,10 +498,8 @@ def main():
     
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
-            choseclis = extract_client_reqs(trace_files, threads, limit, tracetype)
-            
+            choseclis = extract_client_reqs(trace_files, threads, limit, tracetype)            
             realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
- #            match(realblob_locations, trace_files, limit, getonly)
             tracedata, layeridmap = fix_put_id(realblob_locations, trace_files, limit, getonly, choseclis, tracetype)
             match(realblob_locations, tracedata, limit, getonly, layeridmap)
             return
@@ -519,58 +508,18 @@ def main():
 	    return
 
     json_data = get_requests(trace_files, limit_type, limit)#, getonly) # == init in cache.py
-#     print json_data[0]
-#     print json_data[1]
-#     print json_data[5]
-#     print len(json_data)   
-
-#     if 'threads' not in inputs['client_info']:
-#         print 'client threads not specified, 1 thread will be used'
-#         client_threads = 1
-#     else:
-#         client_threads = inputs['client_info']['threads']
-#         print str(client_threads) + ' client threads'
-
     config_client(registries, testmode) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
         print 'warmup mode'
-        # NANNAN: not sure why only warmup a single registry, let's warmup all.
         warmup(json_data, interm, registries, threads)
 
     elif args.command == 'run':
         print 'run mode'
         data = organize(json_data, interm, threads, getonly)
-        ## Perform GET
-        #get_blobs(data, threads, out_file)#, testmode)
     else:
         pass
-#     elif args.command == 'simulate':
-#         if verbose:
-#             print 'simulate mode'
-#         if 'simulate' not in inputs:
-#             print 'simulate file required in config'
-#             exit(1)
-#         pi = inputs['simulate']['name']
-#         if '.py' in pi:
-#             pi = pi[:-3]
-#         try:
-#             plugin = importlib.import_module(pi)
-#         except Exception as inst:
-#             print 'Plugin did not work!'
-#             print inst
-#             exit(1)
-#         try:
-#             if 'args' in inputs['simulate']:
-#                 plugin.init(json_data, inputs['simulate']['args'])
-#             else:
-#                 plugin.init(json_data)
-#         except Exception as inst:
-#             print 'Error running plugin init!'
-#             print inst
-    #elif args.command == 'cache':
-        #print "running cache test"
-        #cache_run()
+
 
 if __name__ == "__main__":
     main()

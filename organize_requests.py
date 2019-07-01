@@ -6,6 +6,7 @@ import json
 from audioop import avg
 import random
 import datetime
+from objc._objc import NULL
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -125,19 +126,22 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
     print trace_files
     
     layeridmap = {}
-    count = 0
-    ret = []
+#     count = 0
+#     ret = []
     
     clireqmap = {}
-    avgreqs = limit/clients
+#     avgreqs = limit/clients
     choseclimap = {}
     chosesum = 0
     
     dayclisrequstsmap = {}
+    
+    if tracetype == 'first1tracefile':
+        return None
 
     if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst')):
-	print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is not exists"
-	print "Take few minutes to generate ........"
+        print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is not exists"
+        print "Take few minutes to generate ........"
         for trace_file in trace_files:
             print 'trace file: ' + trace_file
             with open(trace_file, 'r') as f:
@@ -147,16 +151,17 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
                 method = request['http.request.method']
                 uri = request['http.request.uri']
                 timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-		m = timestamp.month
-		d = timestamp.day
-		t = str(m)+'.'+str(d)
-		t = float(t)
+                
+                m = timestamp.month
+                d = timestamp.day
+                t = str(m)+'.'+str(d)
+                t = float(t)
                 #print (timestamp, float(t))
-		try:
+                try:
                     tmpcnt = dayclisrequstsmap[t]
-		    dayclisrequstsmap[t] += 1
-		except Exception as e:
-		    dayclisrequstsmap[t] = 1
+                    dayclisrequstsmap[t] += 1
+                except Exception as e:
+                    dayclisrequstsmap[t] = 1
 
                 if len(uri.split('/')) < 5:
                     continue
@@ -175,15 +180,16 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
        
         print 'total client count: ' + str(len(clireqmap))
         for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
-            print((i, value))                
+            print((i, value))
+#         if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'))                
         with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'w') as fp:
     	    json.dump(clireqmap, fp)
         with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'w') as fp:
             json.dump(dayclisrequstsmap, fp)
     else:
-	print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is already exists"
-	with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
-	    clireqmap = json.load(fp)
+        print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is already exists"
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
+	       clireqmap = json.load(fp)
         with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'r') as fp:
             dayclisrequstsmap = json.load(fp)
     
@@ -209,7 +215,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
     
         print 'total chosen client requsts: ' + str(chosesum)
         for i in randkeys:
-	    choseclimap[i] = clireqmap[i]
+            choseclimap[i] = clireqmap[i]
         print 'total chosen clients: ' + str(len(choseclimap))
         for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
             print((i, value))
@@ -229,6 +235,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
     print "chose following day"
     print choseday    
     return choseday
+    
 
 #def extract_client_reqs(trace_files, clients, limit):
 
@@ -260,7 +267,8 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
         with open(trace_file, 'r') as f:
             requests = json.load(f)
 
-	print tracetype
+        print tracetype
+        
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
@@ -269,17 +277,16 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
             m = timestamp.month
             d = timestamp.day
             t = str(m)+'.'+str(d)
-            #t = float(t)
-	    #print choseclimap
+
             if tracetype == 'topnclients' or tracetype == 'randomsample':
-        	try:
+            	try:
                     tmpcnt = choseclimap[cli] 
-        	except Exception as e:
+            	except Exception as e:
                     continue
-        	try: 
+            	try: 
                     tmpcnt = newcli[cli]
                     newcli[cli] += 1
-        	except Exception as e:
+            	except Exception as e:
                     newcli[cli] = 1
                     cntcli += 1
                 try:
@@ -299,12 +306,27 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
                 except Exception as e:
                     newday[t] = 1
 
-		try:
+                try:
                     tmpcnt = newcli[cli]
                     newcli[cli] += 1
                 except Exception as e:
                     newcli[cli] = 1
                     cntcli += 1
+                    
+            elif tracetype == 'first1tracefile':
+                try:
+                    tmpcnt == newday[t]
+                    newday[t] += 1
+                except Exception as e:
+                    newday[t] = 1
+                
+                try:
+                    tmpcnt = newcli[cli]
+                    newcli[cli] += 1
+                except Exception as e:
+                    newcli[cli] = 1
+                    cntcli += 1
+        
 
             if len(uri.split('/')) < 5:
                 continue

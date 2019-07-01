@@ -31,8 +31,7 @@ trace: # mandatory field
 #        - prod-dal09-logstash-2017.06.21-3.json
     
     limit: # entire trace used if limit not speciiied
-        type: requests # seconds and requests are supported
-        amount: 274929 # 5000000
+        amount: 5000 # 5000000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -79,5 +78,5 @@ testmode: # required for simulate mode
 simulate:
     testmode: concurrency
     getonly: False
-    tracetype: durationday #topnclients
+    tracetype: first1tracefile # durationday #topnclients # first1tracefile
     
