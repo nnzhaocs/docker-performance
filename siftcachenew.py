@@ -4,11 +4,13 @@ from collections import defaultdict
 from lru import LRU
 import pdb
 
+from argparse import ArgumentParser
 import json
+import yaml
 
+from master import match
 
-
-rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map_with_size.json"
+rlmaplocation = "/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/dev-mon01_total_trace.json-repo2layersdic-withsize.json"
 
 
 def mean(items):
@@ -326,3 +328,87 @@ def init(data, portion):
     for n in data:
         f2.write(str(n) + '\n') 
     f2.close()
+
+def main():
+
+    parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
+    parser.add_argument('-i', '--input', dest='input', type=str, required=True, help = 'Input YAML configuration file, should contain all the inputs requried for processing')
+    args = parser.parse_args()
+
+    config = file(args.input, 'r')
+
+    try:
+        inputs = yaml.load(config)
+    except Exception as inst:
+        print 'error reading config file'
+        print inst
+        exit(-1)
+
+    verbose = False
+
+    if 'verbose' in inputs:
+        if inputs['verbose'] is True:
+            verbose = True
+            print 'Verbose Mode'
+
+    if 'trace' not in inputs:
+        print 'trace field required in config file'
+        exit(1)
+
+    trace_files = []
+
+    if 'location' in inputs['trace']:
+        location = inputs['trace']['location']
+        if '/' != location[-1]:
+            location += '/'
+        for fname in inputs['trace']['traces']:
+            trace_files.append(location + fname)
+    else:
+        trace_files.extend(inputs['trace']['traces'])
+
+    if verbose:
+        print 'Input traces'
+        for f in trace_files:
+            print f
+
+    limit_type = None
+    limit = 0
+
+    if 'limit' in inputs['trace']:
+        limit_type = inputs['trace']['limit']['type']
+        if limit_type in ['seconds', 'requests']:
+            limit = inputs['trace']['limit']['amount']
+        else:
+            print 'Invalid trace limit_type: limit_type must be either seconds or requests'
+            print exit(1)
+    elif verbose:
+        print 'limit_type not specified, entirety of trace files will be used will be used.'
+
+    if 'realblobs' in inputs['client_info']:
+        #if inputs['client_info']['realblobs'] is True:
+        realblob_locations = inputs['client_info']['realblobs']
+        match(realblob_locations, trace_files)
+        return
+        #else:
+            #print "please put realblobs!"
+            #return
+    else:
+        print "please write realblobs in the config files"
+        return
+
+    json_data = get_requests(trace_files, limit_type, limit)
+
+    try:
+        if 'args' in inputs['simulate']:
+            init(json_data, inputs['simulate']['args'])
+        else:
+            init(json_data)
+    except Exception as inst:
+        print 'Error running plugin init!'
+        print inst
+
+
+if __name__ == "__main__":
+    main()
+
+
