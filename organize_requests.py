@@ -16,7 +16,7 @@ import datetime
 
 realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 
-def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
+def match(realblob_location_files, tracedata, layeridmap):
     print "match ... "
     print realblob_location_files #, trace_files
 
@@ -48,9 +48,6 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
         uri = request['http.request.uri']
 #         print uri
         size = request['http.response.written']
-        
-        if 'PUT' == method and True == getonly:
-            continue
         
         if 'PUT' == method:
             parts = uri.split('/')
@@ -121,125 +118,6 @@ def match(realblob_location_files, tracedata, limit, getonly, layeridmap):
     print 'put but no following get reqs: ' + str(not_refered_put)
     print 'total uniq put requests: ' + str(len(layeridmap))      
 
-
-def extract_client_reqs(trace_files, clients, limit, tracetype):
-    print "extract_client_reqs ... "
-    print trace_files
-    
-    layeridmap = {}
-#     count = 0
-#     ret = []
-    
-    clireqmap = {}
-#     avgreqs = limit/clients
-    choseclimap = {}
-    chosesum = 0
-    
-    dayclisrequstsmap = {}
-    
-    if tracetype == 'first1tracefile':
-        return None
-
-    if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst')):
-        print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is not exists"
-        print "Take few minutes to generate ........"
-        for trace_file in trace_files:
-            print 'trace file: ' + trace_file
-            with open(trace_file, 'r') as f:
-                requests = json.load(f)
-    
-            for request in requests:
-                method = request['http.request.method']
-                uri = request['http.request.uri']
-                timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                
-                m = timestamp.month
-                d = timestamp.day
-                t = str(m)+'.'+str(d)
-                t = float(t)
-                #print (timestamp, float(t))
-                try:
-                    tmpcnt = dayclisrequstsmap[t]
-                    dayclisrequstsmap[t] += 1
-                except Exception as e:
-                    dayclisrequstsmap[t] = 1
-
-                if len(uri.split('/')) < 5:
-                    continue
-    
-                if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
-                    size = request['http.response.written']    
-                    if size <= 0:
-                        continue
-                    
-                    cliaddr = request['http.request.remoteaddr']
-                    try:
-                        cnt = clireqmap[cliaddr]
-                        clireqmap[cliaddr] += 1
-                    except Exception as e:
-                        clireqmap[cliaddr] = 1
-       
-        print 'total client count: ' + str(len(clireqmap))
-        for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
-            print((i, value))
-#         if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'))                
-        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'w') as fp:
-    	    json.dump(clireqmap, fp)
-        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'w') as fp:
-            json.dump(dayclisrequstsmap, fp)
-    else:
-        print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is already exists"
-        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
-	       clireqmap = json.load(fp)
-        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'r') as fp:
-            dayclisrequstsmap = json.load(fp)
-    
-    # for top 100 clients
-    if tracetype == 'topnclients':
-        clicnt = 0
-        topnci = clients
-        for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
-            print((i, value))
-            clicnt += 1
-            choseclimap[i] = clireqmap[i]
-            if clicnt > topnci:
-                break
-        
-        return choseclimap    
-    
-    if tracetype == 'randomsample':     
-        # randomly based        
-        randkeys = random.sample(clireqmap.keys(), clients)
-        chosesum = 0
-        for i in randkeys:
-            chosesum += clireqmap[i]
-    
-        print 'total chosen client requsts: ' + str(chosesum)
-        for i in randkeys:
-            choseclimap[i] = clireqmap[i]
-        print 'total chosen clients: ' + str(len(choseclimap))
-        for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
-            print((i, value))
-        
-        return choseclimap
-    
-    choseday = {}
-    daycnt = 0
-    if tracetype == 'durationday':
-        for i, value in sorted(dayclisrequstsmap.items(), key=lambda kv: kv[1], reverse=True):
-    	    print((i, value))
-            if daycnt >= 1:
-                continue
-            choseday[i] = value
-            daycnt += 1
-    
-    print "chose following day"
-    print choseday    
-    return choseday
-    
-
-#def extract_client_reqs(trace_files, clients, limit):
-
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
 ######
@@ -249,7 +127,7 @@ def extract_client_reqs(trace_files, clients, limit, tracetype):
 ####
 ##########annotation by keren
 #1 process the blob/layers 2 interpret each request/trace into http request form, then write out the results into a single "*-realblob.json" file
-def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap, tracetype):
+def fix_put_id(trace_files, limit):
     print "fix_put_id ... "
     print trace_files
     
@@ -259,75 +137,15 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
     put_reqs = 0
     find_puts = 0
     ret = []
-    cntcli = 0
-    newcli = {}
-    newday = {}
 
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
         with open(trace_file, 'r') as f:
             requests = json.load(f)
-
-        print tracetype
         
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
-            cli = request['http.request.remoteaddr']
-            timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-            m = timestamp.month
-            d = timestamp.day
-            t = str(m)+'.'+str(d)
-
-            if tracetype == 'topnclients' or tracetype == 'randomsample':
-            	try:
-                    tmpcnt = choseclimap[cli] 
-            	except Exception as e:
-                    continue
-            	try: 
-                    tmpcnt = newcli[cli]
-                    newcli[cli] += 1
-            	except Exception as e:
-                    newcli[cli] = 1
-                    cntcli += 1
-                try:
-                    tmpcnt == newday[t]
-                    newday[t] += 1
-                except Exception as e:
-                    newday[t] = 1
-                    
-            elif tracetype == "durationday":
-                try:
-                    tmpcnt = choseclimap[t] 
-                except Exception as e:
-                    continue
-                try:
-                    tmpcnt == newday[t]
-                    newday[t] += 1
-                except Exception as e:
-                    newday[t] = 1
-
-                try:
-                    tmpcnt = newcli[cli]
-                    newcli[cli] += 1
-                except Exception as e:
-                    newcli[cli] = 1
-                    cntcli += 1
-                    
-            elif tracetype == 'first1tracefile':
-                try:
-                    tmpcnt == newday[t]
-                    newday[t] += 1
-                except Exception as e:
-                    newday[t] = 1
-                
-                try:
-                    tmpcnt = newcli[cli]
-                    newcli[cli] += 1
-                except Exception as e:
-                    newcli[cli] = 1
-                    cntcli += 1
-        
 
             if len(uri.split('/')) < 5:
                 continue
@@ -373,7 +191,6 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
                         "http.response.written": size,
                         "id": request['id'],
                         "timestamp": request['timestamp'],
-#                             'data': blob
                     }
                 ret.append(r)
                 count += 1
@@ -387,14 +204,13 @@ def fix_put_id(realblob_location_files, trace_files, limit, getonly, choseclimap
     print 'total uniq put requests: ' + str(len(layeridmap))    
     print 'total num of clients: ' + str(len(newcli))
     print 'duration of days: ' + str(len(newday))
-    #newcli = {}))
     return ret, layeridmap
 
 
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json': gathering all the requests from trace files
 ######
-def get_requests(files, limit):
+def get_requests():
     print "get_requests ... "
     ret = []
     requests = []
@@ -426,38 +242,114 @@ def get_requests(files, limit):
     ret.sort(key= lambda x: x['delay']) # reorder by delay time
 
     return ret  
+
+
+############
+# NANNAN: construct_repo
+############
+
+#assume numclients is always power of 2
+def bi_load_balance(numclients, client_reqCount, clientToReqs):
+    # source: https://www.geeksforgeeks.org/partition-a-set-into-two-subsets-such-that-the-difference-of-subset-sums-is-minimum/
+    def split_req(c_rCount):
+        results = [[],[]]
+        #reqCnt = [x[1] for x in c_rCount]
+        #print c_rCount[0]
+        #print reqCnt[0]
+        summed = sum([x[1] for x in c_rCount])
+        n = len(c_rCount)
+        dp =[[[False, []] for i in range(summed + 1)] for j in xrange(n + 1)]
+        
+        for row in dp:
+            row[0][0] = True
+        
+        for i in range(n + 1):
+            for j in range(summed + 1):
+                
+                dp[i][j][0] = dp[i - 1][j][0]
+                if dp[i - 1][j][0]:
+                    dp[i][j][1].extend(dp[i - 1][j][1])
+                    #print 'i - 1:'
+                    #print dp[i - 1][j][1]
+                
+                if (dp[i][j][0] == False) and (c_rCount[i - 1][1] <= j):
+                    dp[i][j][0] |= dp[i - 1][j - c_rCount[i - 1][1]][0]
+                    if dp[i - 1][j - c_rCount[i - 1][1]][0] == True:
+                        #in this combination, client i is selected
+                        dp[i][j][1].append(c_rCount[i - 1])
+                        dp[i][j][1].extend(dp[i - 1][j - c_rCount[i - 1][1]][1])
+        for j in reversed(range(int(summed / 2 + 1))):
+            if dp[n][j][0]:
+                results[0] = dp[n][j][1]
+                #print len(dp[n][j][1])
+                #print dp[n][j]
+                break
+        if len(results[0]) > 0:
+            clients = [x[0] for x in results[0]]
+            for rec in c_rCount:
+                if rec[0] not in clients:
+                    results[1].append(rec)
+        else:
+            print 'bipartitioning failed, exiting'
+            exit(-1)
+        print 'bi-partition result:'
+        print '[1]: ' + str(sum([x[1] for x in results[0]]))
+        print '[2]: ' + str(sum([x[1] for x in results[1]]))
+        return results
     
-   
-##############
-# NANNAN: old organize request function
-# "http.request.duration": 1.005269323, 
-# "http.request.uri": "v2/4715bf52/437c49db/blobs/93054319", 
-# "host": "dc118836", 
-# "http.request.useragent": "docker/17.03.1-ce go/go1.7.5 git-commit/c6d412e kernel/4.4.0-78-generic os/linux arch/amd64 UpstreamClient(Docker-Client/17.03.1-ce \\(linux\\))", 
-# "timestamp": "2017-06-20T02:41:18.399Z", 
-# "id": "ed29d65dbd", 
-# "http.response.written": 9576, 
-# "http.response.status": 200, 
-# "http.request.method": "GET", 
-# "http.request.remoteaddr": "0ee76ffa"
-##############
-def organize(requests, out_trace, numclients, getonly):
+    res = [[] for x in xrange(numclients)]
+    res[0] = client_reqCount
+
+    folds = int(math.log(numclients) / math.log(2))
+    step = numclients * 2
+    for i in range(0, folds):
+        step = step / 2
+        for j in range(0, 2**i):
+            results = split_req(res[j * step])
+            res[j * step] = results[0]
+            res[j * step + int(step / 2)] = results[1]
+            #res = results
+    #with open('test.txt', 'w') as f:
+    #    for item in res:
+    #        f.write("%s\n" % item)
+    #        f.write("\n")
+    print 'final work split:'
+
+    i = -1
+    ret = [[] for j in range(0, numclients)]
+    print len(res)
+    print i
+    #print ret[numclients - 1]
+    for elem in res:
+        print i
+        print len(elem)
+        #print elem
+        i += 1
+        print i
+        for cli in elem:
+            #print cli[0]
+            #print clientToReqs[cli[0]]
+            ret[i].extend(clientToReqs[cli[0]])
+           
+    return ret
+    
+def organize(requests, out_trace, numclients):
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
     clientToReqs = defaultdict(list)
-    
+     
     with open(out_trace, 'r') as f:
         blob = json.load(f)
     print "load number of unique get requests: " + str(len(blob)) 
     print "load number of replay requests: " + str(len(requests)) 
-  
+   
     for r in requests:
         request = {
             'delay': r['delay'],
             'duration': r['duration'],
             'data': r['data'],
             'uri': r['uri'],
-        'client': r['client']
+            'client': r['client']
         }
         if r['uri'] in blob:
             b = blob[r['uri']]
@@ -465,27 +357,27 @@ def organize(requests, out_trace, numclients, getonly):
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
         else:
-            if True == getonly:
-                continue
             request['size'] = r['size']
             request['method'] = 'PUT'
-            
-        clientToReqs[r['client']].append(request)
-    
-    i = 0
-    for cli in clientToReqs:
-        #req = clireqlst[0]
-        try:
-            threadid = clientTOThreads[cli]
-            organized[threadid].extend(clientToReqs[cli])
-        except Exception as e:
-            organized[i%numclients].extend(clientToReqs[cli])
-            clientTOThreads[cli] = i%numclients
-            i += 1    
              
-    print ("number of client threads/ clients:", i)      
-    before = 0
+        clientToReqs[r['client']].append(request)
+     
+    i = 0
+         
+    print ("number of clients:", len(clientToReqs)) 
     
+    client_reqCount = []
+    for k, v in clientToReqs.iteritems():
+        client_reqCount.append([k, len(v)])
+    #print clientToReqs[client_reqCount[0][0]]
+    #print client_reqCount[0]
+    organized = bi_load_balance(numclients, client_reqCount, clientToReqs)
+    print 'bi-partitioned...printing each thread...'
+    for elem in organized:
+        print 'length: ' + str(len(elem))
+     
+    before = 0
+     
     for clireqlst in organized:
         clireqlst.sort(key= lambda x: x['delay'])
         i = 0
@@ -499,10 +391,86 @@ def organize(requests, out_trace, numclients, getonly):
                 r['sleep'] = (r['delay'] - before).total_seconds()
                 before = r['delay']
                 i += 1
-                
+                 
         print ("number of request for client:", i)
-                
+                 
     #print organized
     totalcnt = sum([len(x) for x in organized])
-    print ("total number of replay requests are: ", totalcnt)
-    return organized
+    print ("total number of relay requests are: ", totalcnt)
+    return organized   
+##############
+# NANNAN: old organize request function
+# "http.request.duration": 1.005269323, 
+# "http.request.uri": "v2/4715bf52/437c49db/blobs/93054319", 
+# "host": "dc118836", 
+# "http.request.useragent": "docker/17.03.1-ce go/go1.7.5 git-commit/c6d412e kernel/4.4.0-78-generic os/linux arch/amd64 UpstreamClient(Docker-Client/17.03.1-ce \\(linux\\))", 
+# "timestamp": "2017-06-20T02:41:18.399Z", 
+# "id": "ed29d65dbd", 
+# "http.response.written": 9576, 
+# "http.response.status": 200, 
+# "http.request.method": "GET", 
+# "http.request.remoteaddr": "0ee76ffa"
+##############
+# def organize(requests, out_trace, numclients):
+#     organized = [[] for x in xrange(numclients)]
+#     clientTOThreads = {}
+#     clientToReqs = defaultdict(list)
+#     
+#     with open(out_trace, 'r') as f:
+#         blob = json.load(f)
+#     print "load number of unique get requests: " + str(len(blob)) 
+#     print "load number of replay requests: " + str(len(requests)) 
+#   
+#     for r in requests:
+#         request = {
+#             'delay': r['delay'],
+#             'duration': r['duration'],
+#             'data': r['data'],
+#             'uri': r['uri'],
+#             'client': r['client']
+#         }
+#         if r['uri'] in blob:
+#             b = blob[r['uri']]
+#             if b != 'bad':
+#                 request['blob'] = b # dgest
+#                 request['method'] = 'GET'
+#         else:
+#             request['size'] = r['size']
+#             request['method'] = 'PUT'
+#             
+#         clientToReqs[r['client']].append(request)
+#     
+#     i = 0
+#     for cli in clientToReqs:
+#         #req = clireqlst[0]
+#         try:
+#             threadid = clientTOThreads[cli]
+#             organized[threadid].extend(clientToReqs[cli])
+#         except Exception as e:
+#             organized[i%numclients].extend(clientToReqs[cli])
+#             clientTOThreads[cli] = i%numclients
+#             i += 1    
+#              
+#     print ("number of client threads/ clients:", i)      
+#     before = 0
+#     
+#     for clireqlst in organized:
+#         clireqlst.sort(key= lambda x: x['delay'])
+#         i = 0
+#         for r in clireqlst:
+#         #print r
+#             if 0 == i:
+#                 r['sleep'] = 0
+#                 before = r['delay']
+#                 i += 1
+#             else:
+#                 r['sleep'] = (r['delay'] - before).total_seconds()
+#                 before = r['delay']
+#                 i += 1
+#                 
+#         print ("number of request for client:", i)
+#                 
+#     #print organized
+#     totalcnt = sum([len(x) for x in organized])
+#     print ("total number of replay requests are: ", totalcnt)
+#     return organized
