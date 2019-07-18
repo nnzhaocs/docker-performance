@@ -6,7 +6,7 @@ import json
 from audioop import avg
 import random
 import datetime
-
+import math
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -112,7 +112,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 
     print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total requests: ' + str(count) 
-    print 'unique layer dataset size: ' + str(uniq_layerdataset_size/1024/1024/1024) + ' GB'
+    print 'unique layer dataset size: ' + str(uniq_layerdataset_size)#/1024/1024/1024) + ' GB'
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
@@ -195,15 +195,15 @@ def fix_put_id(trace_files, limit):
                 ret.append(r)
                 count += 1
 
-    for i, value in sorted(newcli.items(), key=lambda kv: kv[1], reverse=True):
-        print((i, value))
+    #for i, value in sorted(newcli.items(), key=lambda kv: kv[1], reverse=True):
+    #    print((i, value))
 
     print 'total requests: ' + str(count) 
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'total uniq put requests: ' + str(len(layeridmap))    
-    print 'total num of clients: ' + str(len(newcli))
-    print 'duration of days: ' + str(len(newday))
+    #print 'total num of clients: ' + str(len(newcli))
+    #print 'duration of days: ' + str(len(newday))
     return ret, layeridmap
 
 

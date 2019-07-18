@@ -23,7 +23,7 @@ from client import *
 from organize_requests import *
 from os.path import stat
 from uhashring import HashRing
-import math
+
 
 #realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 results_dir = "/home/nannan/testing/results/"
