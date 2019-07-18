@@ -8,21 +8,19 @@ server_file = os.getcwd() + "/run/remotehostthors.txt"
 
 def chop(traces, servers):
     print 'the chopping has started...'
-    trunk_size = len(traces) / len(servers) / 5
-    print 'each trunk will have size of ' + str(trunk_size)
+    chunk_size = len(traces) / len(servers) / 5
+    print 'each chunk will have size of ' + str(chunk_size)
     # chopping original data into chunks;
     i = 0
     lister = range(len(traces))
     for server in servers:
-       #for i in range(1, 5):
        print 'chopping for ' + server
        for j in range(1, 5):
-           #print lister[i:i+trunk_size]
-           chunk = traces[i:i+trunk_size]
+           chunk = traces[i:i+chunk_size]
            with open(realblobtrace_dir+server+str(j)+'.json', 'w') as f:
                json.dump(chunk, f)
-           i += trunk_size
-           #chunk = traces[i : i + trunk_size]
+           i += chunk_size
+
 def main():
     global realblobtrace_dir
     global server_file
