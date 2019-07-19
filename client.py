@@ -8,7 +8,6 @@ from concurrent.futures import ProcessPoolExecutor
 import subprocess
 from utilities import *
 from uhashring import HashRing
-from numpy.numarray.numerictypes import getType
 
 ###=========== this is a temperal directory =============>
 layerdir = "/home/nannan/testing/layers"
