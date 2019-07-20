@@ -23,8 +23,8 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
     newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
-    dxf = DXF(registry_tmp, newreponame, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
-       
+    dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
+    #print("newreponame: ", newreponame)   
     now = time.time()
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
@@ -180,7 +180,7 @@ def push_layer_request(request):
         type = 'LAYER'
 
     newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    
+    #print("newreponame: ", newreponame)
     blobfname = ''
     # manifest: randomly generate some files
     if not request['data']:
@@ -195,7 +195,7 @@ def push_layer_request(request):
     if size > 0:
         registries.extend(get_request_registries(request)) 
         registry_tmp = registries[0]
-        dxf = DXF(registry_tmp, newreponame, insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
+        dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
         
         now = time.time()
         try:
@@ -275,7 +275,7 @@ def config_client(registries_input, testmode, gettype, wait):
     
     registries = registries_input
     ring = HashRing(nodes = registries)
-    Testmode = test_mode
+    Testmode = testmode
     Gettype = gettype
     Wait = wait
     

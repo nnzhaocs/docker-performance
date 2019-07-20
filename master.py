@@ -28,7 +28,7 @@ from uhashring import HashRing
 #realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 results_dir = "/home/nannan/testing/results/"
 
-# TYPE XXX USRADDR XXX REPONAME XXX
+# TYPE XXX USRADDR XXX REPONAME XXX ; lowcases!!!!
 """
 /*
 //TYPE XXX USRADDR XXX REPONAME XXX
@@ -61,8 +61,8 @@ def send_warmup_thread(req):
         type = 'LAYER'
     
     newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    
-    dxf = DXF(registry, newreponame, insecure=True) 
+    #print("newreponame: ", newreponame)   
+    dxf = DXF(registry, newreponame.lower(), insecure=True) 
     
     blobfname = ''
     # manifest: randomly generate some files

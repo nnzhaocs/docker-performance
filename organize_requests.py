@@ -7,6 +7,7 @@ from audioop import avg
 import random
 import datetime
 import math
+from collections import defaultdict
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -112,7 +113,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 
     print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total requests: ' + str(count) 
-    print 'unique layer dataset size: ' + str(uniq_layerdataset_size)#/1024/1024/1024) + ' GB'
+    print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024)
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)

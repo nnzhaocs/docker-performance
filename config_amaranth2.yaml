@@ -68,7 +68,7 @@ registry:
 
 warmup: # required for run and warmup mode
     output: warmup_output.json # name of file that holds mapping between trace uri's and hashes
-    threads: 100 # how many clients used to push/pull blobs to registry
+    threads: 64 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
     nodedup: False
