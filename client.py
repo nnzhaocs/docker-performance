@@ -40,7 +40,7 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
     
     result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": dgst, "type": type}
     
-    print("pull: ", fname, result)
+    print("pull: ", result)
     return result
 
 

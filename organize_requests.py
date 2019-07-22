@@ -416,7 +416,7 @@ def organize(requests, out_trace, numclients):
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
     clientToReqs = defaultdict(list)
-    threadsize = {x: 0 for x in range(0,len(numclients))}
+    threadsize = {x: 0 for x in range(0,numclients)}
      
     with open(out_trace, 'r') as f:
         blob = json.load(f)
@@ -441,7 +441,7 @@ def organize(requests, out_trace, numclients):
             request['method'] = 'PUT'
              
         clientToReqs[r['client']].append(request)
-     
+    i = 0 
     for cli in sorted(clientToReqs, key=lambda k: len(clientToReqs[k]), reverse=True):
         #req = clireqlst[0]
         try:
@@ -449,12 +449,13 @@ def organize(requests, out_trace, numclients):
             organized[threadid].extend(clientToReqs[cli])
             threadsize[threadid] += len(clientToReqs[cli])
         except Exception as e:
+	    i += 1
             threadid = min(threadsize, key=threadsize.get)
             organized[threadid].extend(clientToReqs[cli])
             clientTOThreads[cli] = threadid
             threadsize[threadid] += len(clientToReqs[cli])   
               
-    print ("number of client threads/ clients:", i)      
+    print ("number of real clients:", i)      
     before = 0
      
     for clireqlst in organized:

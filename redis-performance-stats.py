@@ -40,19 +40,22 @@ startup_nodes = [
              {"host": "192.168.0.180", "port": "7001"}]
 
 # {u'SliceSize': 166, u'DurationCP': 0.000751436, u'DurationCMP': 3.7068e-05, u'ServerIp': u'192.168.0.171', u'DurationML': 0.000553802, u'DurationNTT': 3.7041e-05, u'DurationRS': 0.001379347}
-slicerecipe = 'Blob:File:Recipe::sha256*::*'
+slicerecipe = 'Layer:Recipe::sha256*::*'
 recipe = 'Blob:File:Recipe::sha256*'
 f = 'files::sha256:6f2f13f86bfea7c594335e7040a9c5890ecf44170e10e4ee9f5e82ef8598e5f2'
-
+ulmap = 'ULMap::*'
+rlmap = 'RLMap::*'
 rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 
-bfrecipe = rj_dbNoBFRecipe.execute_command('GET', f)
-print bfrecipe
+#bfrecipe = rj_dbNoBFRecipe.execute_command('GET', f)
+#print bfrecipe
 
-#for key in rj_dbNoBFRecipe.scan_iter(recipe):
-#    k = key.split('::')[1]
-#    #print k
-#    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
+for key in rj_dbNoBFRecipe.scan_iter(rlmap):
+    k = key.split('::')[1]
+    #print k
+    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
+    print(k, bfrecipe)
+
 #    try:
 #	dt = bfrecipe['SliceSizeMap']
 #	#print dt

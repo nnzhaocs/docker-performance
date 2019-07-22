@@ -31,7 +31,7 @@ trace: # mandatory field
 #        - prod-dal09-logstash-2017.06.21-3.json
     
     limit: # entire trace used if limit not speciiied
-        amount: 100 # 5000000
+        amount: 2  # 5000000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -68,7 +68,7 @@ registry:
 
 warmup: # required for run and warmup mode
     output: warmup_output.json # name of file that holds mapping between trace uri's and hashes
-    threads: 64 # how many clients used to push/pull blobs to registry
+    threads: 6 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
     nodedup: False
