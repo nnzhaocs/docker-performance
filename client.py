@@ -47,37 +47,43 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
 def get_request_registries(r):
     global ring
     global Testmode
-    global Gettype
-    
+        
     uri = r['uri']
     layer_id = uri.split('/')[-1]
     
-    if (r['method'] == 'PUT') or ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Gettype == 'layer'):
+    if (r['method'] == 'PUT') or ('manifest' in r['uri']) or (Testmode == 'nodedup'):
         registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
     else:
         dgst = r['blob'] 
-        serverIps = redis_stat_bfrecipe_serverips(dgst)
+        serverIps = redis_stat_recipe_serverips(dgst)
         #print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
         if not serverIps:
             registry_tmp = ring.get_node(layer_id)
             return [registry_tmp]
         return list(set(serverIps))
 
+#key = 'Slice:Recipe::'+dgst
+def redis_stat_recipe_serverips(dgst, tp):
+    global rediscli_dbrecipe
+    global Gettype
 
-def redis_stat_bfrecipe_serverips(dgst):
-    global rj_dbNoBFRecipe
-    key = "Layer:Recipe::"+dgst
-    if not rj_dbNoBFRecipe.exists(key):
-        print "cannot find recipe for redis_stat_bfrecipe_serverips"
+    key = "Layer:Recipe::"+dgst    
+    if not rediscli_dbrecipe.exists(key):
+        print "cannot find recipe for redis_stat_recipe_serverips"
         return None
-    bfrecipe = json.loads(rj_dbNoBFRecipe.execute_command('GET', key))
+    recipe = json.loads(rediscli_dbrecipe.execute_command('GET', key))
     serverIps = []
-    #print("bfrecipe: ", bfrecipe)
-    for serverip in bfrecipe['HostServerIps']:
-        serverIps.append(serverip)
-    return serverIps
+    if "layer" == Gettype:
+        return serverIps.append(recipe['MasterIp'])
+    #print("recipe: ", recipe)
+    elif 'slice' == Gettype:  
+        for serverip in recipe['HostServerIps']:
+            serverIps.append(serverip)
+        return serverIps
+    else:
+        return serverIps
 
 
 def get_slice_request(request):
@@ -265,7 +271,7 @@ def send_requests(requests):
 
 def config_client(registries_input, testmode, gettype, wait): 
     global ring
-    global rj_dbNoBFRecipe
+    global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
 
     global registries
@@ -291,7 +297,7 @@ def config_client(registries_input, testmode, gettype, wait):
         startup_nodes = startup_nodes_thors
         print("==========> Testing THORS <============: ", startup_nodes)
         
-    rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+    rediscli_dbrecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
     
 
 
