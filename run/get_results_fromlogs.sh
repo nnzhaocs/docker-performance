@@ -19,11 +19,15 @@ awk -F',' '{print $1}' tmp1 > layercompressiontime
 awk -F'transfer time:' '{print $2}' data > tmp1
 awk -F',' '{print $1}' tmp1 > layerpreparetransfertime
 
-### size
-awk -F'size:' '{print $2}' data > tmp1
-awk -F'\' '{print $1}' tmp1 > layersize
+### compressed size
+awk -F'slice compressed size:' '{print $2}' data > tmp1
+awk -F',' '{print $1}' tmp1 > comprslayersize
 
-paste -d"\t" metadatalookuptime layercpiotime layercompressiontime layerpreparetransfertime layersize > $1/registry_results.lst  
-rm data tmp1 metadatalookuptime layercpiotime layercompressiontime layerpreparetransfertime layersize
+### size
+awk -F'slice uncompressed size%!\(EXTRA int64=' '{print $2}' data > tmp1
+awk -F'\)' '{print $1}' tmp1 > uncomprslayersize
+
+paste -d"\t" metadatalookuptime layercpiotime layercompressiontime layerpreparetransfertime comprslayersize uncomprslayersize > $1/registry_results.lst  
+rm data tmp1 metadatalookuptime layercpiotime layercompressiontime layerpreparetransfertime comprslayersize uncomprslayersize
 cd $1
 cp registry_results.lst ../

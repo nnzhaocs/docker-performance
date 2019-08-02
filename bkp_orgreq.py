@@ -1,3 +1,4 @@
+
 import sys
 #import socket
 import os
@@ -5,8 +6,12 @@ import json
 from audioop import avg, reverse
 import random
 import datetime
+<<<<<<< HEAD
+import traceback
+=======
 import math
 from collections import defaultdict
+>>>>>>> fffe4e36a2abe5a1710a8aa889ae13386f1fbbc4
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -19,6 +24,7 @@ realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 def match(realblob_location_files, tracedata, layeridmap):
     print "match ... "
     print realblob_location_files #, trace_files
+    
 
     blob_locations = []
     lTOblobdic = {}
@@ -29,13 +35,13 @@ def match(realblob_location_files, tracedata, layeridmap):
     
     for realblob_location_file in realblob_location_files:
         print "File: "+realblob_location_file+" has the following blobs"
-    
+        print 'omitted printing here for debugging...'
         with open(realblob_location_file, 'r') as f:
             for line in f:
                 #print line
                 if line:
                     blob_locations.append(line.replace("\n", ""))
-    #print 'blob locations count: ' + str(len(blob_locations))
+    print 'trace data size: ' + str(len(tracedata))
 
     ret = []  
     fcnt = 0
@@ -105,7 +111,8 @@ def match(realblob_location_files, tracedata, layeridmap):
             ret.append(r)
             count += 1
             fcnt += 1
-    if fcnt:
+    print "ret size: " + str(len(ret))
+    '''if fcnt:
         #fname = os.path.basename(trace_file)
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
@@ -117,6 +124,128 @@ def match(realblob_location_files, tracedata, layeridmap):
     print 'match put and get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
     print 'total uniq put requests: ' + str(len(layeridmap))      
+<<<<<<< HEAD
+'''
+
+def extract_client_reqs(trace_files, clients, limit, tracetype):
+    print "extract_client_reqs ... "
+    print trace_files
+    
+    layeridmap = {}
+#     count = 0
+#     ret = []
+    
+    clireqmap = {}
+#     avgreqs = limit/clients
+    choseclimap = {}
+    chosesum = 0
+    
+    dayclisrequstsmap = {}
+    
+    if tracetype == 'first1tracefile':
+        return None
+
+    if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst')):
+        print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is not exists"
+        print "Take few minutes to generate ........"
+        for trace_file in trace_files:
+            print 'trace file: ' + trace_file
+            with open(trace_file, 'r') as f:
+                requests = json.load(f)
+    
+            for request in requests:
+                method = request['http.request.method']
+                uri = request['http.request.uri']
+                timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                
+                m = timestamp.month
+                d = timestamp.day
+                t = str(m)+'.'+str(d)
+                t = float(t)
+                #print (timestamp, float(t))
+                try:
+                    tmpcnt = dayclisrequstsmap[t]
+                    dayclisrequstsmap[t] += 1
+                except Exception as e:
+                    dayclisrequstsmap[t] = 1
+
+                if len(uri.split('/')) < 5:
+                    continue
+    
+                if (('GET' == method) or ('PUT' == method)) and (('manifest' in uri) or ('blobs' in uri)):# we only map layers not manifest; ('manifest' in uri) or 
+                    size = request['http.response.written']    
+                    if size <= 0:
+                        continue
+                    
+                    cliaddr = request['http.request.remoteaddr']
+                    try:
+                        cnt = clireqmap[cliaddr]
+                        clireqmap[cliaddr] += 1
+                    except Exception as e:
+                        clireqmap[cliaddr] = 1
+       
+        print 'total client count: ' + str(len(clireqmap))
+        for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
+            print((i, value))
+#         if not os.path.exists(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'))                
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'w') as fp:
+    	    json.dump(clireqmap, fp)
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'w') as fp:
+            json.dump(dayclisrequstsmap, fp)
+    else:
+        print "File: " + os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst') + " is already exists"
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-client2reqcntdic.lst'), 'r') as fp:
+	       clireqmap = json.load(fp)
+        with open(os.path.join(realblobtrace_dir, os.path.basename(trace_files[-1])+'-day2reqcntdic.lst'), 'r') as fp:
+            dayclisrequstsmap = json.load(fp)
+    
+    # for top 100 clients
+    if tracetype == 'topnclients':
+        clicnt = 0
+        topnci = clients
+        for i, value in sorted(clireqmap.items(), key=lambda kv: kv[1], reverse=True):
+            print((i, value))
+            clicnt += 1
+            choseclimap[i] = clireqmap[i]
+            if clicnt > topnci:
+                break
+        
+        return choseclimap    
+    
+    if tracetype == 'randomsample':     
+        # randomly based        
+        randkeys = random.sample(clireqmap.keys(), clients)
+        chosesum = 0
+        for i in randkeys:
+            chosesum += clireqmap[i]
+    
+        print 'total chosen client requsts: ' + str(chosesum)
+        for i in randkeys:
+            choseclimap[i] = clireqmap[i]
+        print 'total chosen clients: ' + str(len(choseclimap))
+        for i, value in sorted(choseclimap.items(), key=lambda kv: kv[1], reverse=True):
+            print((i, value))
+        
+        return choseclimap
+    
+    choseday = {}
+    daycnt = 0
+    if tracetype == 'durationday':
+        for i, value in sorted(dayclisrequstsmap.items(), key=lambda kv: kv[1], reverse=True):
+    	    print((i, value))
+            if daycnt >= 1:
+                continue
+            choseday[i] = value
+            daycnt += 1
+    
+    print "chose following day"
+    print choseday    
+    return choseday
+    
+
+#def extract_client_reqs(trace_files, clients, limit):
+=======
+>>>>>>> fffe4e36a2abe5a1710a8aa889ae13386f1fbbc4
 
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
@@ -130,6 +259,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 def fix_put_id(trace_files, limit):
     print "fix_put_id ... "
     print trace_files
+    print "limit: " + str(limit)
     
     layeridmap = {}
     i = 0
@@ -137,15 +267,98 @@ def fix_put_id(trace_files, limit):
     put_reqs = 0
     find_puts = 0
     ret = []
+<<<<<<< HEAD
+    cntcli = 0
+    newcli = {}
+    newday = {}
+    put_exiting_uri = 0
+    repeated_putter = {}
+=======
 
+>>>>>>> fffe4e36a2abe5a1710a8aa889ae13386f1fbbc4
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
         with open(trace_file, 'r') as f:
             requests = json.load(f)
+<<<<<<< HEAD
+
+        print tracetype
+        print 'num of requests loaded: ' + str(len(requests))
+        print 'valid blobs requests:' + str(sum(
+        [1 for i in requests if 'blobs' in i['http.request.uri']
+        and len(i['http.request.uri'].split('/')) >= 5
+        and (('GET' == i['http.request.method']) or ('PUT' == i['http.request.method']))
+        and i['http.response.written'] > 0]))
+        print 'valid manifest requests:' + str(sum(
+        [1 for i in requests if 'manifest' in i['http.request.uri']
+        and len(i['http.request.uri'].split('/')) >= 5
+        and (('GET' == i['http.request.method']) or ('PUT' == i['http.request.method']))
+        and i['http.response.written'] > 0]))
+
+        for request in requests:
+            method = request['http.request.method']
+            uri = request['http.request.uri']
+            cli = request['http.request.remoteaddr']
+            timestamp = datetime.datetime.strptime(request['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            m = timestamp.month
+            d = timestamp.day
+            t = str(m)+'.'+str(d)
+
+            if tracetype == 'topnclients' or tracetype == 'randomsample':
+            	try:
+                    tmpcnt = choseclimap[cli] 
+            	except Exception as e:
+                    continue
+            	try: 
+                    tmpcnt = newcli[cli]
+                    newcli[cli] += 1
+            	except Exception as e:
+                    newcli[cli] = 1
+                    cntcli += 1
+                try:
+                    tmpcnt == newday[t]
+                    newday[t] += 1
+                except Exception as e:
+                    newday[t] = 1
+                    
+            elif tracetype == "durationday":
+                try:
+                    tmpcnt = choseclimap[t] 
+                except Exception as e:
+                    continue
+                try:
+                    tmpcnt == newday[t]
+                    newday[t] += 1
+                except Exception as e:
+                    newday[t] = 1
+
+                try:
+                    tmpcnt = newcli[cli]
+                    newcli[cli] += 1
+                except Exception as e:
+                    newcli[cli] = 1
+                    cntcli += 1
+                    
+            elif tracetype == 'first1tracefile':
+                try:
+                    tmpcnt = newday[t]
+                    newday[t] += 1
+                except Exception as e:
+                    newday[t] = 1
+                
+                try:
+                    tmpcnt = newcli[cli]
+                    newcli[cli] += 1
+                except Exception as e:
+                    newcli[cli] = 1
+                    cntcli += 1
+        
+=======
         
         for request in requests:
             method = request['http.request.method']
             uri = request['http.request.uri']
+>>>>>>> fffe4e36a2abe5a1710a8aa889ae13386f1fbbc4
 
             if len(uri.split('/')) < 5:
                 continue
@@ -161,20 +374,29 @@ def fix_put_id(trace_files, limit):
                 if 'GET' == method:
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
-                    newid = reponame + '/' + str(size)
+                    newid = reponame + '/' + str(size) + '/' + request['http.request.remoteaddr']
                     try:
                         newuri = layeridmap[newid]
                         if newuri == '':
                             layeridmap[newid] = uri				
                         find_puts += 1
                     except Exception as e:
+                        #print Exception
+                        #print newid
+                        #print layeridmap
+                        #traceback.print_exc()
+                        #exit(-1)
                         pass
+                        #layeridmap[newid] = uri
                 else:
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
-                    newid = reponame + '/' + str(size)
+                    newid = reponame + '/' + str(size) + '/' + request['http.request.remoteaddr']
                     try:
                         newuri = layeridmap[newid]
+                        put_exiting_uri += 1
+                        repeated_putter.add(request)
+                        #8/2/19 Keren: why a continue here? commented out for now
                         continue
                     except Exception as e:
                         layeridmap[newid] = ''
@@ -199,11 +421,22 @@ def fix_put_id(trace_files, limit):
     #    print((i, value))
 
     print 'total requests: ' + str(count) 
+    print 'actual total requests(should match): ' + str(len(ret))
     print 'total put requests: ' + str(put_reqs)
     print 'match put and get requests: ' + str(find_puts)   
+<<<<<<< HEAD
+    print 'total uniq put requests(should match total put): ' + str(len(layeridmap))    
+    print 'total num of clients: ' + str(len(newcli))
+    print 'duration of days: ' + str(len(newday))
+    print 'layer id map size: ' + str(len(layeridmap))
+    #print layeridmap
+    print 'put_exiting_uri: ' + str(put_exiting_uri)
+    #newcli = {}))
+=======
     print 'total uniq put requests: ' + str(len(layeridmap))    
     #print 'total num of clients: ' + str(len(newcli))
     #print 'duration of days: ' + str(len(newday))
+>>>>>>> fffe4e36a2abe5a1710a8aa889ae13386f1fbbc4
     return ret, layeridmap
 
 
@@ -214,13 +447,13 @@ def get_requests():
     print "get_requests ... "
     ret = []
     requests = []
-    
+    print files
     try:
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'r') as f:
             requests.extend(json.load(f))#append a file
     except Exception as e:
         print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
-    
+    print 'organize requests, req length: ' + str(len(requests))
     for request in requests: #load each request
         method = request['http.request.method']
         uri = request['http.request.uri']

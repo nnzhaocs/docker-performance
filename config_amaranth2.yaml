@@ -22,7 +22,7 @@ trace: # mandatory field
 #        - prestage-mon01_total_trace.json
 #        - stage-dal-09_total_trace.json
 #        - syd01_total_trace.json
-#        - prod-dal09-logstash-2017.06.20-0.json
+###        - prod-dal09-logstash-2017.06.20-0.json
 #        - prod-dal09-logstash-2017.06.20-1.json
 #        - prod-dal09-logstash-2017.06.20-2.json
 #        - prod-dal09-logstash-2017.06.20-3.json
@@ -32,7 +32,7 @@ trace: # mandatory field
 #        - prod-dal09-logstash-2017.06.21-3.json
     
     limit: # entire trace used if limit not speciiied
-        amount: 5000 # 5000000
+        amount: 2  # 5000000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -68,8 +68,8 @@ registry:
 #    - 192.168.0.223:5000
 
 warmup: # required for run and warmup mode
-    output: interm.json # name of file that holds mapping between trace uri's and hashes
-    threads: 100 # how many clients used to push/pull blobs to registry
+    output: warmup_output.json # name of file that holds mapping between trace uri's and hashes
+    threads: 6 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
     nodedup: False
@@ -77,7 +77,8 @@ testmode: # required for simulate mode
     sift: True 
 
 simulate:
-    testmode: concurrency
-    getonly: True
-    tracetype: first1tracefile # durationday #topnclients # first1tracefile
+    wait: False # or no delay
+#    getonly: False
+    gettype: layer
+#    tracetype: first1tracefile # durationday #topnclients # first1tracefile
     
