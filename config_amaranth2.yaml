@@ -12,9 +12,10 @@ client_info: # Required for run command
         #	- /home/nannan/dockerimages/layers/hulk4_layers_less_50m.lst
 
 trace: # mandatory field
-    location: /home/nannan/dockerimages/docker-traces/data_centers/ # use a small trace for debugging
+    location: /home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/ # use a small trace for debugging
     traces:
-        - dal09_total_trace.json
+        - dev-mon01/dev-mon01-logstash-2017.07.13-1.json
+#        - dal09_total_trace.json
 #        - dev-mon01_total_trace.json
 #        - fra02_total_trace.json
 #        - lon02_total_trace.json

@@ -1,3 +1,5 @@
+import traceback
+
 import sys
 #import socket
 import os
@@ -248,167 +250,169 @@ def get_blobs(data, numclients, out_file):#, testmode):
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
 #assume numclients is always power of 2
-# def bi_load_balance(numclients, client_reqCount, clientToReqs):
-#     # source: https://www.geeksforgeeks.org/partition-a-set-into-two-subsets-such-that-the-difference-of-subset-sums-is-minimum/
-#     def split_req(c_rCount):
-#         results = [[],[]]
-#         #reqCnt = [x[1] for x in c_rCount]
-#         #print c_rCount[0]
-#         #print reqCnt[0]
-#         summed = sum([x[1] for x in c_rCount])
-#         n = len(c_rCount)
-#         dp =[[[False, []] for i in range(summed + 1)] for j in xrange(n + 1)]
-#         
-#         for row in dp:
-#             row[0][0] = True
-#         
-#         for i in range(n + 1):
-#             for j in range(summed + 1):
-#                 
-#                 dp[i][j][0] = dp[i - 1][j][0]
-#                 if dp[i - 1][j][0]:
-#                     dp[i][j][1].extend(dp[i - 1][j][1])
-#                     #print 'i - 1:'
-#                     #print dp[i - 1][j][1]
-#                 
-#                 if (dp[i][j][0] == False) and (c_rCount[i - 1][1] <= j):
-#                     dp[i][j][0] |= dp[i - 1][j - c_rCount[i - 1][1]][0]
-#                     if dp[i - 1][j - c_rCount[i - 1][1]][0] == True:
-#                         #in this combination, client i is selected
-#                         dp[i][j][1].append(c_rCount[i - 1])
-#                         dp[i][j][1].extend(dp[i - 1][j - c_rCount[i - 1][1]][1])
-#         for j in reversed(range(int(summed / 2 + 1))):
-#             if dp[n][j][0]:
-#                 results[0] = dp[n][j][1]
-#                 #print len(dp[n][j][1])
-#                 #print dp[n][j]
-#                 break
-#         if len(results[0]) > 0:
-#             clients = [x[0] for x in results[0]]
-#             for rec in c_rCount:
-#                 if rec[0] not in clients:
-#                     results[1].append(rec)
-#         else:
-#             print 'bipartitioning failed, exiting'
-#             exit(-1)
-#         print 'bi-partition result:'
-#         print '[1]: ' + str(sum([x[1] for x in results[0]]))
-#         print '[2]: ' + str(sum([x[1] for x in results[1]]))
-#         return results
-#     
-#     res = [[] for x in xrange(numclients)]
-#     res[0] = client_reqCount
-# 
-#     folds = int(math.log(numclients) / math.log(2))
-#     step = numclients * 2
-#     for i in range(0, folds):
-#         step = step / 2
-#         for j in range(0, 2**i):
-#             results = split_req(res[j * step])
-#             res[j * step] = results[0]
-#             res[j * step + int(step / 2)] = results[1]
-#             #res = results
-#     #with open('test.txt', 'w') as f:
-#     #    for item in res:
-#     #        f.write("%s\n" % item)
-#     #        f.write("\n")
-#     print 'final work split:'
-# 
-#     i = -1
-#     ret = [[] for j in range(0, numclients)]
-#     print len(res)
-#     print i
-#     #print ret[numclients - 1]
-#     for elem in res:
-#         print i
-#         print len(elem)
-#         #print elem
-#         i += 1
-#         print i
-#         for cli in elem:
-#             #print cli[0]
-#             #print clientToReqs[cli[0]]
-#             ret[i].extend(clientToReqs[cli[0]])
-#            
-#     return ret
+def bi_load_balance(numclients, client_reqCount, clientToReqs):
+    # source: https://www.geeksforgeeks.org/partition-a-set-into-two-subsets-such-that-the-difference-of-subset-sums-is-minimum/
+    print 'num O clients: ' + str(numclients)
+    print 'client req count: ' + str(client_reqCount)
+    def split_req(c_rCount):
+        results = [[],[]]
+        #reqCnt = [x[1] for x in c_rCount]
+        #print c_rCount[0]
+        #print reqCnt[0]
+        summed = sum([x[1] for x in c_rCount])
+        n = len(c_rCount)
+        dp =[[[False, []] for i in range(summed + 1)] for j in xrange(n + 1)]
+        
+        for row in dp:
+            row[0][0] = True
+        
+        for i in range(n + 1):
+            for j in range(summed + 1):
+                
+                dp[i][j][0] = dp[i - 1][j][0]
+                if dp[i - 1][j][0]:
+                    dp[i][j][1].extend(dp[i - 1][j][1])
+                    #print 'i - 1:'
+                    #print dp[i - 1][j][1]
+                
+                if (dp[i][j][0] == False) and (c_rCount[i - 1][1] <= j):
+                    dp[i][j][0] |= dp[i - 1][j - c_rCount[i - 1][1]][0]
+                    if dp[i - 1][j - c_rCount[i - 1][1]][0] == True:
+                        #in this combination, client i is selected
+                        dp[i][j][1].append(c_rCount[i - 1])
+                        dp[i][j][1].extend(dp[i - 1][j - c_rCount[i - 1][1]][1])
+        for j in reversed(range(int(summed / 2 + 1))):
+            if dp[n][j][0]:
+                results[0] = dp[n][j][1]
+                #print len(dp[n][j][1])
+                #print dp[n][j]
+                break
+        if len(results[0]) > 0:
+            clients = [x[0] for x in results[0]]
+            for rec in c_rCount:
+                if rec[0] not in clients:
+                    results[1].append(rec)
+        else:
+            print 'spliting failed, the length of first half split result is 0. exiting'
+            exit(-1)
+        print 'bi-partition result:'
+        print '[1]: ' + str(sum([x[1] for x in results[0]]))
+        print '[2]: ' + str(sum([x[1] for x in results[1]]))
+        return results
+    
+    res = [[] for x in xrange(numclients)]
+    res[0] = client_reqCount
 
-# def organize(requests, out_trace, numclients, getonly):
-#     organized = [[] for x in xrange(numclients)]
-#     clientTOThreads = {}
-#     clientToReqs = defaultdict(list)
-#     
-#     with open(out_trace, 'r') as f:
-#         blob = json.load(f)
-#     print "load number of unique get requests: " + str(len(blob)) 
-#     print "load number of replay requests: " + str(len(requests)) 
-#   
-#     for r in requests:
-#         request = {
-#             'delay': r['delay'],
-#             'duration': r['duration'],
-#             'data': r['data'],
-#             'uri': r['uri'],
-# 	    'client': r['client']
-#         }
-#         if r['uri'] in blob:
-#             b = blob[r['uri']]
-#             if b != 'bad':
-#                 request['blob'] = b # dgest
-#                 request['method'] = 'GET'
-#         else:
-# 	    if True == getonly:
-# 		continue
-#             request['size'] = r['size']
-#             request['method'] = 'PUT'
-#             
-#         clientToReqs[r['client']].append(request)
-#     
-#     i = 0
-#     """for cli in clientToReqs:
-#         #req = clireqlst[0]
-#         #try:
-#         #    threadid = clientTOThreads[cli]
-#         #    organized[threadid].extend(clientToReqs[cli])
-#         #except Exception as e:
-#         organized[i%numclients].extend(clientToReqs[cli])
-#         clientTOThreads[cli] = i%numclients
-#         i += 1    """
-#              
-#     print ("number of clients:", len(clientToReqs)) 
-#     client_reqCount = []
-#     for k, v in clientToReqs.iteritems():
-#         client_reqCount.append([k, len(v)])
-#     #print clientToReqs[client_reqCount[0][0]]
-#     #print client_reqCount[0]
-#     organized = bi_load_balance(numclients, client_reqCount, clientToReqs)
-#     print 'bi-partitioned...printing each thread...'
-#     for elem in organized:
-#         print 'length: ' + str(len(elem))
-#     
-#     before = 0
-#     
-#     for clireqlst in organized:
-#         clireqlst.sort(key= lambda x: x['delay'])
-#         i = 0
-#         for r in clireqlst:
-# 	    #print r
-#             if 0 == i:
-#                 r['sleep'] = 0
-#                 before = r['delay']
-#                 i += 1
-#             else:
-#                 r['sleep'] = (r['delay'] - before).total_seconds()
-#                 before = r['delay']
-#                 i += 1
-#                 
-#         print ("number of request for client:", i)
-#                 
-#     #print organized
-#     totalcnt = sum([len(x) for x in organized])
-#     print ("total number of relay requests are: ", totalcnt)
-#     return organized
+    folds = int(math.log(numclients) / math.log(2))
+    step = numclients * 2
+    for i in range(0, folds):
+        step = step / 2
+        for j in range(0, 2**i):
+            results = split_req(res[j * step])
+            res[j * step] = results[0]
+            res[j * step + int(step / 2)] = results[1]
+            #res = results
+    #with open('test.txt', 'w') as f:
+    #    for item in res:
+    #        f.write("%s\n" % item)
+    #        f.write("\n")
+    print 'final work split:'
 
+    i = -1
+    ret = [[] for j in range(0, numclients)]
+    print len(res)
+    print i
+    #print ret[numclients - 1]
+    for elem in res:
+        print i
+        print len(elem)
+        #print elem
+        i += 1
+        print i
+        for cli in elem:
+            #print cli[0]
+            #print clientToReqs[cli[0]]
+            ret[i].extend(clientToReqs[cli[0]])
+           
+    return ret
 def organize(requests, out_trace, numclients, getonly):
+    organized = [[] for x in xrange(numclients)]
+    clientTOThreads = {}
+    clientToReqs = defaultdict(list)
+    
+    with open(out_trace, 'r') as f:
+        blob = json.load(f)
+    print "load number of unique get requests: " + str(len(blob)) 
+    print "load number of replay requests: " + str(len(requests)) 
+    
+    for r in requests:
+        request = {
+            'delay': r['delay'],
+            'duration': r['duration'],
+            'data': r['data'],
+            'uri': r['uri'],
+	    'client': r['client']
+        }
+        if r['uri'] in blob:
+            b = blob[r['uri']]
+            if b != 'bad':
+                request['blob'] = b # dgest
+                request['method'] = 'GET'
+        else:
+	    if True == getonly:
+		continue
+            request['size'] = r['size']
+            request['method'] = 'PUT'
+            
+        clientToReqs[r['client']].append(request)
+    
+    i = 0
+    """for cli in clientToReqs:
+        #req = clireqlst[0]
+        #try:
+        #    threadid = clientTOThreads[cli]
+        #    organized[threadid].extend(clientToReqs[cli])
+        #except Exception as e:
+        organized[i%numclients].extend(clientToReqs[cli])
+        clientTOThreads[cli] = i%numclients
+        i += 1    """
+             
+    print ("number of clients:", len(clientToReqs)) 
+    client_reqCount = []
+    print 'clientToReqs: ' + str(len(clientToReqs))
+    for k, v in clientToReqs.iteritems():
+        client_reqCount.append([k, len(v)])
+    #print clientToReqs[client_reqCount[0][0]]
+    #print client_reqCount[0]
+    organized = bi_load_balance(numclients, client_reqCount, clientToReqs)
+    print 'bi-partitioned...printing each thread...'
+    for elem in organized:
+        print 'length: ' + str(len(elem))
+    
+    before = 0
+    
+    for clireqlst in organized:
+        clireqlst.sort(key= lambda x: x['delay'])
+        i = 0
+        for r in clireqlst:
+	    #print r
+            if 0 == i:
+                r['sleep'] = 0
+                before = r['delay']
+                i += 1
+            else:
+                r['sleep'] = (r['delay'] - before).total_seconds()
+                before = r['delay']
+                i += 1
+                
+        print ("number of request for client:", i)
+                
+    #print organized
+    totalcnt = sum([len(x) for x in organized])
+    print ("total number of relay requests are: ", totalcnt)
+    return organized
+
+def neworganize(requests, out_trace, numclients, getonly):
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
     clientToReqs = defaultdict(list)
@@ -543,13 +547,17 @@ def main():
     print(registries)
  
     getonly = False
-    if inputs['simulate']['getonly'] == True:
-        getonly = True
-        print("getonly or not?", getonly)
+    if 'simulate' in inputs:
+        if inputs['simulate']['getonly'] == True:
+            getonly = True
+            print("getonly or not?", getonly)
         
-    tracetype = inputs['simulate']['tracetype']
-    print ("tracetype is ", tracetype)
-    
+        tracetype = inputs['simulate']['tracetype']
+        print ("tracetype is ", tracetype)
+    else:
+        getonly  = False
+        tracetype = 'layer'
+
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:
@@ -576,7 +584,7 @@ def main():
 
     json_data = get_requests(trace_files, limit)#, getonly) # == init in cache.py
     config_client(registries, testmode) #requests, out_trace, numclients   
-         
+    print len(json_data) 
     if args.command == 'warmup': 
         print 'warmup mode'
         warmup(json_data, interm, registries, threads)
@@ -584,7 +592,8 @@ def main():
     elif args.command == 'run':
         print 'run mode'
         data = organize(json_data, interm, threads, getonly)
-        get_blobs(data, threads, out_file)#, testmode)
+        return
+        #get_blobs(data, threads, out_file)#, testmode)
     else:
         pass
 

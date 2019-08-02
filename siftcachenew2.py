@@ -7,7 +7,7 @@ import pdb
 import yaml
 import json
 
-from master import match
+from organize_requests import *
 
 rlmaplocation = "/home/nannan/dockerimages/docker-traces/data_centers/usr2repo2layer_map_with_size.json"
 urlmaplocation = "/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/dev-mon01_total_trace.json-repo2layersdic.json"
@@ -69,9 +69,7 @@ class siftcache:
         client = request['client']
         repo = request['repo']
 
-        print '~~~~~~zap'
         print 'RLMAP ' + str(self.RLmap[repo])
-        print 'beep~~~~'
         print 'URLMAP' + str(self.URLmap[client])
         print ' req ' + str(request)
         client_layers = list(self.URLmap[client][repo])
@@ -396,6 +394,7 @@ def main():
         exit(-1)
     #trace_files
     trace_files = []
+    layeridmap = []
 
     if 'location' in inputs['trace']:
         location = inputs['trace']['location']
@@ -403,12 +402,19 @@ def main():
             location += '/'
         for fname in inputs['trace']['traces']:
             trace_files.append(location + fname)
+            layeridmap.append(location + fname)
     else:
         trace_files.extend(inputs['trace']['traces'])
+        layeridmap.extend(inputs['trace']['traces'])
 
     print 'Input traces'
     for f in trace_files:
         print f
+
+    getonly = False
+    #if inputs['simulate']['getonly'] == True:
+    #    getonly = True
+    #    print("getonly or not?", getonly)
 
     print 'trace files successful'
     #limit
@@ -423,7 +429,7 @@ def main():
             exit(1)
     print 'limit successful'
     print 'now running match'
-    match(realblob_locations, trace_files, limit)
+    match(realblob_locations, trace_files, limit, getonly, layeridmap)
     print 'match successful'
 
     print 'reading in requests...'
@@ -432,6 +438,7 @@ def main():
         with open(filename+'-realblob.json', 'r') as f:
             data.extend(json.load(f))
     print 'requests read in successfully'
+    print 'data length: ' + str(len(data))
 
     print 'now running init...'
     init(data, 10)
