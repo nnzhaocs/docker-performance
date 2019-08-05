@@ -65,7 +65,7 @@ def get_request_registries(r):
         return list(set(serverIps))
 
 #key = 'Slice:Recipe::'+dgst
-def redis_stat_recipe_serverips(dgst, tp):
+def redis_stat_recipe_serverips(dgst):
     global rediscli_dbrecipe
     global Gettype
 
