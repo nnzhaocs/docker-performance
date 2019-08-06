@@ -59,7 +59,7 @@ def match(realblob_location_files, tracedata, layeridmap):
                 if newuri != '':
                     uri = newuri
                 else:
-                    not_refered_put += 0
+                    not_refered_put += 1
             except Exception as e:
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
                 continue
@@ -110,14 +110,14 @@ def match(realblob_location_files, tracedata, layeridmap):
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
 
-    print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total requests: ' + str(count) 
-    print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024)
     print 'total put requests: ' + str(put_reqs)
-    print 'match put and get requests: ' + str(find_puts)   
+    print 'matched put and following get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
+    print 'total unique layer count: ' + str(len(lTOblobdic))
     print 'total uniq put requests: ' + str(len(layeridmap))      
-
+    print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024)
+    
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
 ######

@@ -65,7 +65,7 @@ def get_request_registries(r):
         return list(set(serverIps))
 
 #key = 'Slice:Recipe::'+dgst
-def redis_stat_recipe_serverips(dgst, tp):
+def redis_stat_recipe_serverips(dgst):
     global rediscli_dbrecipe
     global Gettype
 
@@ -215,7 +215,10 @@ def push_layer_request(request):
                 
         t = time.time() - now
         clear_extracting_dir(str(os.getpid()))
-        result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSH'}
+	if 'LAYER' == type:
+            result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHLAYER'}
+	else:
+	    result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHMANIFEST'}
 	print("push: ", blobfname, result)
         return result
         
@@ -259,9 +262,12 @@ def send_requests(requests):
         if 'GET' == r['method']:
             print "get repo request: "
             result = pull_repo_request(r)
-        else: # 'PUT' == r['method']:
+        elif 'PUT' == r['method']:
             print "push repo request: "
             result = push_repo_request(r)
+	else:
+	    print "############# norecognized method #########"
+	    print r['method']
 
         results_all.extend(result) 
         prev = result[0]['duration']

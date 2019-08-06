@@ -81,9 +81,15 @@ def send_warmup_thread(req):
         print("dxf send exception: ", e, request['data'])
         dgst = 'bad'
         onTime = 'failed: '+str(e)
-        
+    
     t = time.time() - now
-    result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': 'warmup'}
+    tp = ''
+    if 'LAYER' == type:
+	tp = 'warmuplayer'
+    else:
+	tp = 'warmupmanifest'    
+
+    result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tp}
     print result
     
     clear_extracting_dir(str(os.getpid()))
@@ -165,10 +171,11 @@ def warmup(data, out_trace, registries, threads):
     with open('warmup_push_performance.json', 'w') as f:
         json.dump(results, f)
     
-    print "max threads:" + str(threads)
-    print 'unique count: ' + str(len(dedup))
-    print 'total count: ' + str(total_cnt)
-    print "total warmup unique requests: (for get layer/manifest requests)" + str(len(process_data))
+    print "Warmup information:"
+    print "Number of warmup threads: " + str(threads)
+    print 'Unique count (get layer/manifest requests): ' + str(len(dedup))
+    print 'Total count (get layer/manifest requests): ' + str(total_cnt)
+    print "Total warmup unique requests (for get layer/manifest requests): " + str(len(process_data))
 
 
 #############
@@ -186,8 +193,24 @@ def stats(responses):
     total = len(responses)
     onTimes = 0
     failed = 0
-    layerlatency = 0
-    totallayer = 0
+
+    getlayerlatency = 0
+    gettotallayer = 0
+
+    getmanifestlatency = 0
+    gettotalmanifest = 0
+
+    putlayerlatency = 0
+    puttotallayer = 0
+
+    putmanifestlatency = 0
+    puttotalmanifest = 0
+
+    warmuplayerlatency = 0
+    warmuptotallayer = 0
+
+    warmupmanifestlatency = 0
+    warmuptotalmanifest = 0    
 
     startTime = responses[0]['time']
     for r in responses:
@@ -212,10 +235,24 @@ def stats(responses):
             latency += r['duration']
             data += r['size']
         
-        if r['type'] == 'LAYER' or r['type'] == 'SLICE':
-            layerlatency += r['duration']
-            totallayer += 1
-
+        if r['type'] == 'LAYER':
+            getlayerlatency += r['duration']
+            gettotallayer += 1
+	if r['type'] == 'MANIFEST':
+	    getmanifestlatency += r['duration']
+	    gettotalmanifest += 1
+        if r['type'] == 'PUSHLAYER':
+	    putlayerlatency += r['duration']
+	    puttotallayer += 1
+	if r['type'] == 'PUSHMANIFEST':
+	    putmanifestlatency += r['duration']
+	    puttotalmanifest += 1
+	if r['type'] == 'warmuplayer':
+	    warmuplayerlatency += r['duration']
+	    warmuptotallayer += 1
+	if r['type'] == 'warmupmanifest':
+	    warmupmanifestlatency += r['duration']
+	    warmuptotalmanifest += 1
             
     duration = endtime - startTime
     print 'Statistics'
@@ -225,8 +262,27 @@ def stats(responses):
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
-    if totallayer > 0:
-        print 'Average layer latency: ' + str(1.*layerlatency/totallayer) + ' seconds/request'
+    print 'Total GET layer: ' + str(gettotallayer)
+    print 'Total GET manifest: ' + str(gettotalmanifest)
+    print 'Total PUT layer: ' + str(puttotallayer)
+    print 'Total PUT Manifest: ' + str(puttotalmanifest)
+    print 'Total WAMRUP layer: ' + str(warmuptotallayer)
+    print 'Total WAMRUP manifest: ' + str(warmuptotalmanifest)
+
+    if gettotallayer > 0:
+        print 'Average get layer latency: ' + str(1.*getlayerlatency/gettotallayer) + ' seconds/request'
+    if puttotallayer > 0:
+	print 'Average put layer latency: ' + str(1.*putlayerlatency/puttotallayer) + ' seconds/request'
+    if warmuptotallayer > 0:
+	print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
+
+    if gettotalmanifest > 0:
+        print 'Average get manifest latency: ' + str(1.*getmanifestlatency/gettotalmanifest) + ' seconds/request'
+    if puttotalmanifest > 0:
+        print 'Average put manifest latency: ' + str(1.*putmanifestlatency/puttotalmanifest) + ' seconds/request'
+    if warmuptotalmanifest > 0:
+        print 'Average warmup manifest latency: ' + str(1.*warmupmanifestlatency/warmuptotalmanifest) + ' seconds/request'
+
 
  
 ## send out requests to clients and get results
