@@ -853,8 +853,8 @@ def getGetManfiests(total_trace):
 
 
 #
-def durationmanifestblobs():
-    with open('sorted_reqs.lst', 'r') as fp:
+def durationmanifestblobs(total_trace):
+    with open(total_trace + '-sorted_reqs_repo_client.lst', 'r') as fp:
         blob = json.load(fp)
 
     intervals_GET_MLs = []
@@ -1199,7 +1199,7 @@ def main():
     elif args.command == 'clusteruserreqs':
         clusterClientReqs(trace_file)
     elif args.command == 'calintervalgetML':
-        durationmanifestblobs()
+        durationmanifestblobs(trace_file)
     elif args.command == 'calbatchstats':
         calbatchstats()
     elif args.command == 'repullLayers':
