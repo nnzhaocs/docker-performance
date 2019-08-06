@@ -71,7 +71,7 @@ def redis_stat_recipe_serverips(dgst):
 
     key = "Layer:Recipe::"+dgst    
     if not rediscli_dbrecipe.exists(key):
-        print "cannot find recipe for redis_stat_recipe_serverips"
+        print "################ cannot find recipe for redis_stat_recipe_serverips ############"
         return None
     recipe = json.loads(rediscli_dbrecipe.execute_command('GET', key))
     serverIps = []

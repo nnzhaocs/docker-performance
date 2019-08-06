@@ -36,6 +36,9 @@ MANIFEST
 LAYER
 SLICE
 PRECONSTRUCTLAYER
+''''
+WARMUPLAYER
+
 */
 """
 
@@ -58,7 +61,7 @@ def send_warmup_thread(req):
     if 'manifest' in uri:
         type = 'MANIFEST'
     else:
-        type = 'LAYER'
+        type = 'WARMUPLAYER'
     
     newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
     #print("newreponame: ", newreponame)   
@@ -85,9 +88,9 @@ def send_warmup_thread(req):
     t = time.time() - now
     tp = ''
     if 'LAYER' == type:
-	tp = 'warmuplayer'
+        tp = 'warmuplayer'
     else:
-	tp = 'warmupmanifest'    
+        tp = 'warmupmanifest'    
 
     result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tp}
     print result
