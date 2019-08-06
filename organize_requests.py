@@ -60,6 +60,7 @@ def match(realblob_location_files, tracedata, layeridmap):
                 if newuri != '':
                     uri = newuri
                 else:
+		    #uri = 'v2/'+reponame+'/'+blobs+uri.rsplit('/', 1)[1]+str(size)
                     not_refered_put += 1
             except Exception as e:
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
