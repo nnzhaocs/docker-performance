@@ -25,6 +25,7 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
     newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
     dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print("newreponame: ", newreponame)   
+    print("pull layer from registry, dgst: ", dgst)
     now = time.time()
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
