@@ -298,6 +298,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
 	results.extend(x)
     """
     #""" # for run
+    """
     with ProcessPoolExecutor(max_workers = numclients) as executor:
         futures = [executor.submit(send_requests, reqlst) for reqlst in data]
         for future in as_completed(futures):
@@ -308,11 +309,14 @@ def get_blobs(data, numclients, out_file):#, testmode):
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
         stats(results)
-    #"""
+    
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
-
+    """
+    with open(results_dir+out_file) as f:
+        results = json.load(f)
+    stats(results)
 
 def main():
 
