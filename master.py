@@ -98,7 +98,7 @@ def send_warmup_thread(req):
     
     clear_extracting_dir(str(os.getpid()))
 
-    trace[id] = dgst
+    trace[type+id] = dgst
     all = {'trace': trace, 'result': result}
     return all
 
