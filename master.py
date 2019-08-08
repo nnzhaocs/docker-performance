@@ -109,41 +109,41 @@ def send_warmup_thread(req):
 #######################
 
 def warmup(data, out_trace, registries, threads):
-    dedup = {}
-#     dup_cnt = 0
+    dedupL = {}
+    dedupM = {}
+    get_M = 0
+    get_L = 0
+
     total_cnt = 0
     trace = {}
     results = []
     process_data = []
     global ring
     ring = HashRing(nodes = registries)
-    manifs_cnt = 0
 
     for request in data:
         unique = True
-	manifs = False
-        if (request['method']) == 'GET':
-	    if 'manifest' in request['uri']:
-		manifs = True
-            uri = request['uri']
-            layer_id = uri.split('/')[-1]
-            total_cnt += 1
-            try:
-                dup_cnt = dedup[layer_id]
-#                 dup_cnt += 1
-#                 dedup[layer_id] += 1
-                unique = False
-            except Exception as e:
-                dedup[layer_id] = 1
-		if manifs:
-		    manifs_cnt += 1
-                
-            if unique:
-                registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
-                process_data.append((registry_tmp, request))
 
-    print("total warmup unique requests:", len(process_data))
-    print("unique manifest cnt: ", manifs_cnt)
+        if request['method'] == 'GET':
+            uri = request['uri']
+            id = uri.split('/')[-1]
+            total_cnt += 1
+            if 'manifest' in request['uri']:
+                get_M += 1
+                try:
+                    x = dedupM[id]
+                    continue
+                except Exception as e:
+                    dedupM[id] = 1
+            else:        
+                try:
+                    x = dedupL[id]
+                    continue
+                except Exception as e:
+                    dedupL[id] = 1
+                
+            registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
+            process_data.append((registry_tmp, request))
     #split request list into sublists
     #n = len(process_data)
 
@@ -176,9 +176,16 @@ def warmup(data, out_trace, registries, threads):
     
     print "Warmup information:"
     print "Number of warmup threads: " + str(threads)
-    print 'Unique count (get layer/manifest requests): ' + str(len(dedup))
-    print 'Total count (get layer/manifest requests): ' + str(total_cnt)
+    
+    print 'Get layer request unique count: ' + str(len(dedupL))
+    print 'Get manifest request unique count: ' + str(len(dedupM))
+    
+    print 'Total get layer request count: ' + str(get_L)
+    print 'Total get manifest request count: ' + str(get_M)
+    
     print "Total warmup unique requests (for get layer/manifest requests): " + str(len(process_data))
+#     print("total warmup unique requests:", len(process_data))
+#     print("unique manifest cnt: ", manifs_cnt)
 
 
 #############
@@ -265,6 +272,7 @@ def stats(responses):
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
+    
     print 'Total GET layer: ' + str(gettotallayer)
     print 'Total GET manifest: ' + str(gettotalmanifest)
     print 'Total PUT layer: ' + str(puttotallayer)
