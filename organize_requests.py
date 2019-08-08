@@ -122,6 +122,7 @@ def match(realblob_location_files, tracedata, layeridmap):
         #fname = os.path.basename(trace_file)
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
+        #pass
 
     print 'total requests: ' + str(count) 
     print 'total put requests: ' + str(put_reqs)
