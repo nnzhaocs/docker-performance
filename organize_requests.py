@@ -43,6 +43,7 @@ def match(realblob_location_files, tracedata, layeridmap):
     put_reqs = 0
     find_puts = 0
     not_refered_put = 0
+    put_M = 0
   
     for request in tracedata:
         method = request['http.request.method']
@@ -50,7 +51,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 #         print uri
         size = request['http.response.written']
         
-        if 'PUT' == method:
+        if 'PUT' == method and 'layer' in uri:
             parts = uri.split('/')
             reponame = parts[1] + '/' + parts[2] 
             newid = reponame + '/' + str(size)
@@ -65,7 +66,7 @@ def match(realblob_location_files, tracedata, layeridmap):
             except Exception as e:
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
                 continue
-    	else:
+    	elif 'GET' == method and 'layer' in uri:
             parts = uri.split('/')
             reponame = parts[1] + '/' + parts[2] 
             newid = reponame + '/' + str(size)
@@ -74,6 +75,8 @@ def match(realblob_location_files, tracedata, layeridmap):
                 find_puts += 1
             except Exception as e:
                 pass
+        elif 'PUT' == method and 'manifest' in uri:
+            put_M += 1
 	    
         layer_id = uri.rsplit('/', 1)[1] #dict[-1] == trailing
 
@@ -117,7 +120,8 @@ def match(realblob_location_files, tracedata, layeridmap):
     print 'matched put and following get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
     print 'total unique layer count: ' + str(len(lTOblobdic))
-    print 'total uniq put requests: ' + str(len(layeridmap))      
+    print 'total uniq put layer requests: ' + str(len(layeridmap))   
+    print 'total uniq put manifest requests: ' + str(put_M)   
     print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024)
     
 ######
@@ -139,6 +143,8 @@ def fix_put_id(trace_files, limit):
     put_reqs = 0
     find_puts = 0
     ret = []
+    manifestidmap = {} # put manifest request
+    reputm = 0
 
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
@@ -160,7 +166,17 @@ def fix_put_id(trace_files, limit):
                 if count >= limit:
                     break
 
-                if 'GET' == method:
+                if 'PUT' == method and 'manifest' in uri:
+                    # ***** remove same manifest ******
+                    parts = uri.split('/')
+                    manifest_id = uri.rsplit('/', 1)[1]
+                    try:
+                        x = manifestidmap[manifest_id]
+                        reputm += 1
+                        continue
+                    except Exception as e:
+                        manifestidmap[manifest_id] = 1
+                elif 'GET' == method and 'layer' in uri:
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
                     newid = reponame + '/' + str(size)
@@ -171,7 +187,7 @@ def fix_put_id(trace_files, limit):
                         find_puts += 1
                     except Exception as e:
                         pass
-                else:
+                elif 'PUT' == method and 'layer' in uri:
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
                     newid = reponame + '/' + str(size)
