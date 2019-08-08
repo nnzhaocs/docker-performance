@@ -23,6 +23,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 
     blob_locations = []
     lTOblobdic = {}
+    mdic = {}
         
     i = 0
     count = 0
@@ -44,6 +45,7 @@ def match(realblob_location_files, tracedata, layeridmap):
     find_puts = 0
     not_refered_put = 0
     put_M = 0
+#     uniq_M = 0
   
     for request in tracedata:
         method = request['http.request.method']
@@ -84,6 +86,11 @@ def match(realblob_location_files, tracedata, layeridmap):
         if i < len(blob_locations):
             if 'manifest' in uri:# NOT SURE if a proceeding manifest
                 blob = None
+                try:
+                    x = mdic[layer_id]
+                except Exception as e:
+                    mdic[layer_id] = 1
+#                     uniq_M += 1 
             else:
                 try:
                     blob = lTOblobdic[layer_id]
@@ -121,6 +128,7 @@ def match(realblob_location_files, tracedata, layeridmap):
     print 'matched put and following get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
     print 'total unique layer count: ' + str(len(lTOblobdic))
+    print 'total unique manifest count: ' + str(len(mdic))
     print 'total uniq put layer requests: ' + str(len(layeridmap))   
     print 'total uniq put manifest requests: ' + str(put_M)   
     print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024)
