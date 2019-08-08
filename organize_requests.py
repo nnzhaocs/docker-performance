@@ -51,7 +51,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 #         print uri
         size = request['http.response.written']
         
-        if 'PUT' == method and 'layer' in uri:
+        if 'PUT' == method and 'blobs' in uri:
             parts = uri.split('/')
             reponame = parts[1] + '/' + parts[2] 
             newid = reponame + '/' + str(size)
@@ -66,7 +66,7 @@ def match(realblob_location_files, tracedata, layeridmap):
             except Exception as e:
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
                 continue
-    	elif 'GET' == method and 'layer' in uri:
+    	elif 'GET' == method and 'blobs' in uri:
             parts = uri.split('/')
             reponame = parts[1] + '/' + parts[2] 
             newid = reponame + '/' + str(size)
@@ -77,6 +77,7 @@ def match(realblob_location_files, tracedata, layeridmap):
                 pass
         elif 'PUT' == method and 'manifest' in uri:
             put_M += 1
+            put_reqs += 1
 	    
         layer_id = uri.rsplit('/', 1)[1] #dict[-1] == trailing
 
@@ -176,7 +177,7 @@ def fix_put_id(trace_files, limit):
                         continue
                     except Exception as e:
                         manifestidmap[manifest_id] = 1
-                elif 'GET' == method and 'layer' in uri:
+                elif 'GET' == method and 'blobs' in uri:
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
                     newid = reponame + '/' + str(size)
@@ -187,7 +188,7 @@ def fix_put_id(trace_files, limit):
                         find_puts += 1
                     except Exception as e:
                         pass
-                elif 'PUT' == method and 'layer' in uri:
+                elif 'PUT' == method and 'blobs' in uri:
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
                     newid = reponame + '/' + str(size)
