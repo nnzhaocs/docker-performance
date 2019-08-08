@@ -127,6 +127,7 @@ def match(realblob_location_files, tracedata, layeridmap):
             ret.append(r)
             count += 1
             fcnt += 1
+    ret.sort(key= lambda x: x['timestamp'])
     if fcnt:
         #fname = os.path.basename(trace_file)
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
