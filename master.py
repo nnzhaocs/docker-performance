@@ -87,7 +87,7 @@ def send_warmup_thread(req):
     
     t = time.time() - now
     tp = ''
-    if 'LAYER' == type:
+    if 'WARMUPLAYER' == type:
         tp = 'warmuplayer'
     else:
         tp = 'warmupmanifest'    
