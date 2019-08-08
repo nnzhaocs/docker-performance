@@ -44,7 +44,12 @@ def match(realblob_location_files, tracedata, layeridmap):
     put_reqs = 0
     find_puts = 0
     not_refered_put = 0
+    
     put_M = 0
+#     put_L = 0
+    get_M = 0
+    get_L = 0
+    
 #     uniq_M = 0
   
     for request in tracedata:
@@ -52,8 +57,10 @@ def match(realblob_location_files, tracedata, layeridmap):
         uri = request['http.request.uri']
 #         print uri
         size = request['http.response.written']
+        if 'GET' == method and 'manifest' in uri:
+            get_M += 1
         
-        if 'PUT' == method and 'blobs' in uri:
+        elif 'PUT' == method and 'blobs' in uri:
             parts = uri.split('/')
             reponame = parts[1] + '/' + parts[2] 
             newid = reponame + '/' + str(size)
@@ -69,6 +76,8 @@ def match(realblob_location_files, tracedata, layeridmap):
                 print "######## didn't find get uri for this PUT req: "+uri+', '+newid
                 continue
     	elif 'GET' == method and 'blobs' in uri:
+            get_L += 1
+            
             parts = uri.split('/')
             reponame = parts[1] + '/' + parts[2] 
             newid = reponame + '/' + str(size)
@@ -123,15 +132,25 @@ def match(realblob_location_files, tracedata, layeridmap):
         with open(realblobtrace_dir+'input_tracefile'+'-realblob.json', 'w') as fp:
             json.dump(ret, fp)      
 
+    start = datetime.datetime.strptime(ret[0]['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+    end = datetime.datetime.strptime(ret[-1]['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+    
     print 'total requests: ' + str(count) 
+    print 'total unique layer count: ' + str(len(lTOblobdic))
+    print 'total unique manifest count: ' + str(len(mdic))
+    print 'total uniq get layer requests: ' + str(get_L)   
+    print 'total uniq get manifest requests: ' + str(get_M)     
+    print 'total uniq put layer requests: ' + str(len(layeridmap))   
+    print 'total uniq put manifest requests: ' + str(put_M)  
+    print 'total replay time: '+ str((end-start).total_seconds())
+    print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024) 
+               
     print 'total put requests: ' + str(put_reqs)
     print 'matched put and following get requests: ' + str(find_puts)   
     print 'put but no following get reqs: ' + str(not_refered_put)
-    print 'total unique layer count: ' + str(len(lTOblobdic))
-    print 'total unique manifest count: ' + str(len(mdic))
-    print 'total uniq put layer requests: ' + str(len(layeridmap))   
-    print 'total uniq put manifest requests: ' + str(put_M)   
-    print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024)
+
+ 
+   
     
 ######
 # NANNAN: realblobtrace_dir+'input_tracefile'+'-realblob.json'
