@@ -54,6 +54,7 @@ def send_warmup_thread(req):
     uri = request['uri']
     parts = uri.split('/')
     reponame = parts[1] + parts[2]
+    id = uri.split('/')[-1]
     
     newreponame = ''
     client = request['client']
@@ -97,7 +98,7 @@ def send_warmup_thread(req):
     
     clear_extracting_dir(str(os.getpid()))
 
-    trace[request['uri']] = dgst
+    trace[id] = dgst
     all = {'trace': trace, 'result': result}
     return all
 

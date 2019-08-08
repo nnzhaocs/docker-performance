@@ -481,8 +481,9 @@ def organize(requests, out_trace, numclients):
             'uri': r['uri'],
             'client': r['client']
         }
-        if r['uri'] in blob:
-            b = blob[r['uri']]
+        id = r['uri'].split('/')[-1]
+        if id in blob:
+            b = blob[id]
             if b != 'bad':
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
