@@ -483,12 +483,12 @@ def organize(requests, out_trace, numclients):
         }
         id = r['uri'].split('/')[-1]
         
-        if 'manifest' in uri:
+        if 'manifest' in r['uri']:
             type = 'MANIFEST'
         else:
             type = 'WARMUPLAYER'
             
-        if (type+id) in blob:
+        if (type+id) in blob and 'GET' == r['method']:
             b = blob[type+id]
             if b != 'bad':
                 request['blob'] = b # dgest
