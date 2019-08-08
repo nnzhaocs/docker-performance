@@ -135,14 +135,15 @@ def warmup(data, out_trace, registries, threads):
                     continue
                 except Exception as e:
                     dedupM[id] = 1
-            else:        
+            else:
+                get_L += 1
                 try:
                     x = dedupL[id]
                     continue
                 except Exception as e:
                     dedupL[id] = 1
                 
-            registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
+            registry_tmp = ring.get_node(id) # which registry should store this layer/manifest?
             process_data.append((registry_tmp, request))
     #split request list into sublists
     #n = len(process_data)
