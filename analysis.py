@@ -498,10 +498,131 @@ def clusterUserreqs(total_trace):
         }
 
         clientAddr = r['http.request.remoteaddr']
-        print request
+        #print request
         organized[clientAddr].append(request)
     return organized
 
+
+##############################
+#Keren 8/6
+debug = True
+def smartclusterClientReqs(total_trace):
+    organized = defaultdict(list)
+    fname = os.path.basename(total_trace)
+    print "the output file would be: " + input_dir + fname + '-smart_sorted_reqs_repo_client.lst'
+    if debug:
+        print 'debugging enabled...'
+        abn_get = 0
+        abn_put = 0
+        abn_clustering = 0
+        abn_clusters = {}
+        total_put = 0
+        total_get = 0
+        buff = []
+    organized = clusterUserreqs(total_trace)
+
+    img_req_group = []
+    #for all the requests from each client
+    for cli, reqs in organized.items():
+        cli_img_req_group = [[]]
+        prev = cli_img_req_group[-1]
+        #prev_repo = ''
+        cur = []
+        #for each request
+        for req in reqs:
+            uri = req['uri']
+            layer_or_manifest_id = uri.rsplit('/', 1)[1]
+            parts = uri.split('/')
+            repo = parts[1] + '/' + parts[2]
+	    #if debug:
+            #    print req
+            #params:repo, method(get/put), type (Manifest/layer)
+            #fixed: client
+            #rules: repo change = new cluster
+            #       get cluster: get m, get l, get l...
+            #       put:         put l, put l...put m
+            # so: a cluster is a set of requests confirming the get/put pattern
+            # and are all on the same repo; a cluster is supposed to be a single get/put image request
+            if True: #prev_repo == repo:
+                #still the same person working with the same repo
+                
+                if req['method'] == 'GET':
+                    '''if len(prev) != 0:
+                        tmp = prev[0]['uri'].split('/')
+                        prepo = tmp[1] + '/' + tmp[2]
+                        if prepo != repo:
+                            abn_clustering += 1
+                            abn_clusters[prev[0]['delay']] = prev'''
+                    # if we see a get request
+                    print 'GET: '+'uri'
+                    if 'blobs' in uri:
+                        # continue on the old get request
+                        print 'GET layer'
+                        prev.append(req)
+                    else:
+                        # start of new cluster
+                        print 'GET manifest'
+                        cur = []
+                        cur.append(req)
+                        cli_img_req_group.append(cur)
+                        prev = cli_img_req_group[-1]
+                    total_get += 1
+                    if debug and prev[0]['method'] != 'GET':
+                            abn_get += 1
+                    if len(prev) > 1:
+                        tmp = prev[0]['uri'].split('/')
+                        prepo = tmp[1] + '/' + tmp[2]
+                        if prepo != repo:
+                            abn_clustering += 1
+                            abn_clusters[prev[0]['delay']] = prev
+                '''else:
+                    #if we see a put request
+                    print 'PUT: '+'uri'
+                    if 'blobs' in uri:
+                        print 'PUT layer'
+                        if len(prev) > 0 and prev[0]['method'] != 'PUT':
+                            print 'new put cluster; should only appear after get cluster'
+                            cur = []
+                            cur.append(req)
+                            cli_img_req_group.append(cur)
+                            prev = cli_img_req_group[-1]
+                        else:
+                            prev.append(req)
+                    elif 'manifests' in uri:
+                        print 'PUT manifest'
+                        prev.append(req)
+                        cur = []
+                        cli_img_req_group.append(cur)
+                        if debug and (prev[0]['method'] != 'PUT'):
+                            abn_put += 1
+                        prev = cli_img_req_group[-1]
+                    total_put += 1'''
+            '''else:
+                print 'new repo'
+                #started working with a new layer
+                prev_repo = repo
+                #start a new record regardless of specific request type
+                cur = []
+                cur.append(req)
+                cli_img_req_group.append(cur)
+                prev = cli_img_req_group[-1]'''
+#         cli_img_req_group = cli_img_pull_group + cli_img_push_group
+	cli_img_req_group_new = [x for x in cli_img_req_group if x and len(x) > 1]
+	print cli_img_req_group_new
+        #cli_img_req_group.sort(key= lambda x: x[0]['delay'])
+        img_req_group += cli_img_req_group_new
+    img_req_group.sort(key= lambda x: x[0]['delay'])
+#     return img_req_group
+    with open(input_dir + fname + '-smart_sorted_reqs_repo_client.lst', 'w') as fp:
+        json.dump(img_req_group, fp)
+
+    if debug:
+       print 'abnormal puts = ' + str(abn_put) + '; abnormal gets = ' + str(abn_get) + '... total puts = ' + str(total_put) + '; total gets = ' + str(total_get)
+       print 'abnormal requests: ' + str(abn_clustering) + ', abnormal clusters: ' + str(len(abn_clusters))
+    with open('abnormities.txt', 'w') as fp:
+        json.dump(abn_clusters, fp)
+
+##############################
 
 def clusterClientReqs(total_trace):
     organized = defaultdict(list)
@@ -515,6 +636,11 @@ def clusterClientReqs(total_trace):
         cli_img_req_group = [[]]
         prev = cli_img_req_group[-1]
         cur = []
+        #print "cli: "
+        #print cli
+        #print "reqs"
+        #print reqs
+        #return
 #         prev_push = []
 #         cur_push = []
         for req in reqs:
@@ -854,7 +980,7 @@ def getGetManfiests(total_trace):
 
 #
 def durationmanifestblobs(total_trace):
-    with open(total_trace + '-sorted_reqs_repo_client.lst', 'r') as fp:
+    with open(total_trace + '-smart_sorted_reqs_repo_client.lst', 'r') as fp:
         blob = json.load(fp)
 
     intervals_GET_MLs = []
@@ -883,9 +1009,9 @@ def durationmanifestblobs(total_trace):
     print "avg interval between a get manifest and a get layer:" + str(sum(lst)*1.0 / len(lst))
     print "midian is:  "+ str(statistics.median(lst))
 
-    with open('intervals_client_GET_MLs.lst', 'w') as fp:
+    with open(total_trace + 'intervals_client_GET_MLs-no_batch.lst', 'w') as fp:
         json.dump(intervals_GET_MLs, fp)
-    with open('intervals_GET_MLs.lst', 'w') as fp:
+    with open(total_trace +'intervals_GET_MLs-no_batch.lst', 'w') as fp:
         json.dump(lst, fp)
 
 
@@ -1198,6 +1324,8 @@ def main():
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
         clusterClientReqs(trace_file)
+    elif args.command == 'newclusteruserreqs':
+        smartclusterClientReqs(trace_file)
     elif args.command == 'calintervalgetML':
         durationmanifestblobs(trace_file)
     elif args.command == 'calbatchstats':
