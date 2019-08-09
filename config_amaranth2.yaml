@@ -110,9 +110,8 @@ warmup: # required for run and warmup mode
     threads: 100 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: False
-#    traditionaldedup: False #True #False  
-    sift: True
+    nodedup: False # nnzhaocs/distribution:original  
+    sift: True # nnzhaocs/distribution:distributioncache
 
 simulate:
     wait: True  #True # or no delay
