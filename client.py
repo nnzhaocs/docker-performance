@@ -268,8 +268,8 @@ def send_requests(requests):
         if print_cnt == i:
             print ("==============> processed ", i*1.0/totalcnt, " requests! <=============", totalcnt) 
         if True == Wait and r['sleep'] > prev:
-            print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(accelerater)
-            time.sleep((r['sleep'] - prev)/accelerater)
+            print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(Accelerater)
+            time.sleep((r['sleep'] - prev)/Accelerater)
             
         if 'GET' == r['method']:
             print "get repo request: "
