@@ -22,7 +22,13 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
-    newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
+    #newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
+    
+    if Testmode != "nodedup":
+        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    else:
+        newreponame = "testrepo"
+
     dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print("newreponame: ", newreponame)   
     print("pull layer from registry, dgst: ", dgst)
@@ -186,7 +192,12 @@ def push_layer_request(request):
     else:
         type = 'LAYER'
 
-    newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    #newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    global Testmode
+    if Testmode != "nodedup":
+        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    else:
+        newreponame = "testrepo"
     #print("newreponame: ", newreponame)
     blobfname = ''
     # manifest: randomly generate some files

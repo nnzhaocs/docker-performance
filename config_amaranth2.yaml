@@ -12,7 +12,7 @@ client_info: # Required for run command
         #	- /home/nannan/dockerimages/layers/hulk4_layers_less_50m.lst
 
 trace: # mandatory field
-    location: /home/nannan/dockerimages/docker-traces/data_centers/dal09 # use a small trace for debugging
+    location: /home/nannan/dockerimages/docker-traces/data_centers #/dal09 # use a small trace for debugging
     traces:
 #        - dal09_total_trace.json
 #        - dev-mon01_total_trace.json
@@ -21,17 +21,54 @@ trace: # mandatory field
 #        - prestage-mon01_total_trace.json
 #        - stage-dal-09_total_trace.json
 #        - syd01_total_trace.json
-        - prod-dal09-logstash-2017.06.20-0.json
-#        - prod-dal09-logstash-2017.06.20-1.json
-#        - prod-dal09-logstash-2017.06.20-2.json
-#        - prod-dal09-logstash-2017.06.20-3.json
-#        - prod-dal09-logstash-2017.06.21-0.json
-#        - prod-dal09-logstash-2017.06.21-1.json
-#        - prod-dal09-logstash-2017.06.21-2.json
-#        - prod-dal09-logstash-2017.06.21-3.json
+#        **********************************************
+         - dal09/prod-dal09-logstash-2017.06.20-0.json
+#         ------------------------------------------------
+#         - dev-mon01/dev-mon01-logstash-2017.07.13-0.json
+#         - dev-mon01/dev-mon01-logstash-2017.07.13-1.json  
+#         - dev-mon01/dev-mon01-logstash-2017.07.13-2.json
+#         - dev-mon01/dev-mon01-logstash-2017.07.13-3.json 
+#         - dev-mon01/dev-mon01-logstash-2017.07.14-0.json  
+#         - dev-mon01/dev-mon01-logstash-2017.07.14-1.json  
+#         - dev-mon01/dev-mon01-logstash-2017.07.14-2.json
+#         - dev-mon01/dev-mon01-logstash-2017.07.14-3.json 
+#         - dev-mon01/dev-mon01-logstash-2017.07.15-0.json
+#         - dev-mon01/dev-mon01-logstash-2017.07.15-1.json
+#         -------------------------------------------------  
+#          - fra02/prod-fra02-logstash-2017.06.20-0.json
+#          - fra02/prod-fra02-logstash-2017.06.20-1.json
+#          - fra02/prod-fra02-logstash-2017.06.20-3.json
+#          - fra02/prod-fra02-logstash-2017.06.21-0.json
+#          - fra02/prod-fra02-logstash-2017.06.21-1.json
+#          - fra02/prod-fra02-logstash-2017.06.21-2.json
+#          - fra02/prod-fra02-logstash-2017.06.21-3.json
+#          - fra02/prod-fra02-logstash-2017.06.22-0.json
+#          - fra02/prod-fra02-logstash-2017.06.22-1.json
+#          - fra02/prod-fra02-logstash-2017.06.22-2.json
+#          - fra02/prod-fra02-logstash-2017.06.22-3.json
+#          - lon02/prod-lon02-logstash-2017.06.20-0.json
+#         ------------------------------------------------
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.03-0.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.03-1.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.03-2.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.03-3.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.04-0.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.04-1.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.04-2.json
+#          - prestage-mon01/prestage-mon01-logstash-2017.07.04-3.json
+#          ----------------------------------------------------------
+#          - stage-dal09/stage-dal09-logstash-2017.06.27-0.json
+#          - syd01/prod-syd01-logstash-2017.07.01-0.json  
+#          - syd01/prod-syd01-logstash-2017.07.01-1.json
+#          - syd01/prod-syd01-logstash-2017.07.01-2.json
+#          - syd01/prod-syd01-logstash-2017.07.01-3.json
+#          - syd01/prod-syd01-logstash-2017.07.02-0.json
+#          - syd01/prod-syd01-logstash-2017.07.02-1.json
+#          - syd01/prod-syd01-logstash-2017.07.02-2.json
+#          - syd01/prod-syd01-logstash-2017.07.02-3.json
     
     limit: # entire trace used if limit not speciiied
-        amount: 2  # 5000000
+        amount: 5000
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -68,15 +105,15 @@ registry:
 
 warmup: # required for run and warmup mode
     output: warmup_output.json # name of file that holds mapping between trace uri's and hashes
-    threads: 6 # how many clients used to push/pull blobs to registry
+    threads: 100 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
     nodedup: False
     traditionaldedup: False #True #False  
-    sift: True 
+    sift: True
 
 simulate:
-    wait: False # or no delay
+    wait: True  #True # or no delay
 #    getonly: False
     gettype: layer
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile

@@ -64,7 +64,11 @@ def send_warmup_thread(req):
     else:
         type = 'WARMUPLAYER'
     
-    newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    global testmode
+    if testmode != "nodedup":
+        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    else:
+        newreponame = "testrepo"
     #print("newreponame: ", newreponame)   
     dxf = DXF(registry, newreponame.lower(), insecure=True) 
     
@@ -406,7 +410,8 @@ def main():
     else:
         threads = 1
     print 'warmup threads same as number of clients: ' + str(threads)
-    
+
+    global testmode
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
     elif inputs['testmode']['traditionaldedup'] == True:
