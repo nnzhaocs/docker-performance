@@ -36,6 +36,9 @@ MANIFEST
 LAYER
 SLICE
 PRECONSTRUCTLAYER
+''''
+WARMUPLAYER
+
 */
 """
 
@@ -51,6 +54,7 @@ def send_warmup_thread(req):
     uri = request['uri']
     parts = uri.split('/')
     reponame = parts[1] + parts[2]
+    id = uri.split('/')[-1]
     
     newreponame = ''
     client = request['client']
@@ -58,9 +62,13 @@ def send_warmup_thread(req):
     if 'manifest' in uri:
         type = 'MANIFEST'
     else:
-        type = 'LAYER'
+        type = 'WARMUPLAYER'
     
-    newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    global testmode
+    if testmode != "nodedup":
+        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    else:
+        newreponame = "testrepo"
     #print("newreponame: ", newreponame)   
     dxf = DXF(registry, newreponame.lower(), insecure=True) 
     
@@ -84,17 +92,17 @@ def send_warmup_thread(req):
     
     t = time.time() - now
     tp = ''
-    if 'LAYER' == type:
-	tp = 'warmuplayer'
+    if 'WARMUPLAYER' == type:
+        tp = 'warmuplayer'
     else:
-	tp = 'warmupmanifest'    
+        tp = 'warmupmanifest'    
 
     result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tp}
     print result
     
     clear_extracting_dir(str(os.getpid()))
 
-    trace[request['uri']] = dgst
+    trace[type+id] = dgst
     all = {'trace': trace, 'result': result}
     return all
 
@@ -106,41 +114,42 @@ def send_warmup_thread(req):
 #######################
 
 def warmup(data, out_trace, registries, threads):
-    dedup = {}
-#     dup_cnt = 0
+    dedupL = {}
+    dedupM = {}
+    get_M = 0
+    get_L = 0
+
     total_cnt = 0
     trace = {}
     results = []
     process_data = []
     global ring
     ring = HashRing(nodes = registries)
-    manifs_cnt = 0
 
     for request in data:
         unique = True
-	manifs = False
-        if (request['method']) == 'GET':
-	    if 'manifest' in request['uri']:
-		manifs = True
-            uri = request['uri']
-            layer_id = uri.split('/')[-1]
-            total_cnt += 1
-            try:
-                dup_cnt = dedup[layer_id]
-#                 dup_cnt += 1
-#                 dedup[layer_id] += 1
-                unique = False
-            except Exception as e:
-                dedup[layer_id] = 1
-		if manifs:
-		    manifs_cnt += 1
-                
-            if unique:
-                registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
-                process_data.append((registry_tmp, request))
 
-    print("total warmup unique requests:", len(process_data))
-    print("unique manifest cnt: ", manifs_cnt)
+        if request['method'] == 'GET':
+            uri = request['uri']
+            id = uri.split('/')[-1]
+            total_cnt += 1
+            if 'manifest' in request['uri']:
+                get_M += 1
+                try:
+                    x = dedupM[id]
+                    continue
+                except Exception as e:
+                    dedupM[id] = 1
+            else:
+                get_L += 1
+                try:
+                    x = dedupL[id]
+                    continue
+                except Exception as e:
+                    dedupL[id] = 1
+                
+            registry_tmp = ring.get_node(id) # which registry should store this layer/manifest?
+            process_data.append((registry_tmp, request))
     #split request list into sublists
     #n = len(process_data)
 
@@ -173,9 +182,16 @@ def warmup(data, out_trace, registries, threads):
     
     print "Warmup information:"
     print "Number of warmup threads: " + str(threads)
-    print 'Unique count (get layer/manifest requests): ' + str(len(dedup))
-    print 'Total count (get layer/manifest requests): ' + str(total_cnt)
+    
+    print 'Get layer request unique count: ' + str(len(dedupL))
+    print 'Get manifest request unique count: ' + str(len(dedupM))
+    
+    print 'Total get layer request count: ' + str(get_L)
+    print 'Total get manifest request count: ' + str(get_M)
+    
     print "Total warmup unique requests (for get layer/manifest requests): " + str(len(process_data))
+#     print("total warmup unique requests:", len(process_data))
+#     print("unique manifest cnt: ", manifs_cnt)
 
 
 #############
@@ -262,6 +278,7 @@ def stats(responses):
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
+    
     print 'Total GET layer: ' + str(gettotallayer)
     print 'Total GET manifest: ' + str(gettotalmanifest)
     print 'Total PUT layer: ' + str(puttotallayer)
@@ -295,6 +312,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
 	results.extend(x)
     """
     #""" # for run
+    
     with ProcessPoolExecutor(max_workers = numclients) as executor:
         futures = [executor.submit(send_requests, reqlst) for reqlst in data]
         for future in as_completed(futures):
@@ -305,11 +323,15 @@ def get_blobs(data, numclients, out_file):#, testmode):
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
         stats(results)
-    #"""
+    
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
-
+    """
+    with open(results_dir+out_file) as f:
+        results = json.load(f)
+    stats(results)
+    """
 
 def main():
 
@@ -382,17 +404,20 @@ def main():
         
     wait = inputs['simulate']['wait']
     print ("wait or not? ", wait)
+
+    accelerater = inputs['simulate']['accelerater']
     
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:
         threads = 1
     print 'warmup threads same as number of clients: ' + str(threads)
-    
+
+    global testmode
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
-    elif inputs['testmode']['traditionaldedup'] == True:
-        testmode = 'traditionaldedup'
+    #elif inputs['testmode']['traditionaldedup'] == True:
+    #    testmode = 'traditionaldedup'
     else:
         testmode = 'sift' 
     
@@ -408,7 +433,7 @@ def main():
 	    return
 
     json_data = get_requests()#, getonly) # == init in cache.py
-    config_client(registries, testmode, gettype, wait) #requests, out_trace, numclients   
+    config_client(registries, testmode, gettype, wait, accelerater) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
         print 'warmup mode'

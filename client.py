@@ -22,9 +22,16 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
-    newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
+    #newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
+    
+    if Testmode != "nodedup":
+        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    else:
+        newreponame = "testrepo"
+
     dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print("newreponame: ", newreponame)   
+    print("pull layer from registry, dgst: ", dgst)
     now = time.time()
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
@@ -71,7 +78,7 @@ def redis_stat_recipe_serverips(dgst):
 
     key = "Layer:Recipe::"+dgst    
     if not rediscli_dbrecipe.exists(key):
-        print "cannot find recipe for redis_stat_recipe_serverips"
+        print "################ cannot find recipe for redis_stat_recipe_serverips ############"
         return None
     recipe = json.loads(rediscli_dbrecipe.execute_command('GET', key))
     serverIps = []
@@ -185,7 +192,12 @@ def push_layer_request(request):
     else:
         type = 'LAYER'
 
-    newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    #newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    global Testmode
+    if Testmode != "nodedup":
+        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    else:
+        newreponame = "testrepo"
     #print("newreponame: ", newreponame)
     blobfname = ''
     # manifest: randomly generate some files
@@ -248,7 +260,7 @@ def send_requests(requests):
     totalcnt = len(requests)
     i = 0
     prev = 0
-    accelerater = 8
+    global Accelerater #= 8
     global Wait
 
     for r in requests:
@@ -275,7 +287,7 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(registries_input, testmode, gettype, wait): 
+def config_client(registries_input, testmode, gettype, wait, accelerater): 
     global ring
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
@@ -284,16 +296,19 @@ def config_client(registries_input, testmode, gettype, wait):
     global Testmode
     global Gettype
     global Wait
+    global Accelerater
     
     registries = registries_input
     ring = HashRing(nodes = registries)
     Testmode = testmode
     Gettype = gettype
     Wait = wait
+    Accelerater = accelerater
     
     print("The testmode is: ", Testmode)
     print("The Gettype is: ", Gettype)
     print("The Wait is: ", Wait)
+    print("The Accelerater is: ", Accelerater)
 
     print registries
     if "192.168.0.170:5000" in registries:
