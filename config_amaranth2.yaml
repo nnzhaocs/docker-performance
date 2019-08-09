@@ -46,6 +46,7 @@ trace: # mandatory field
 #          - fra02/prod-fra02-logstash-2017.06.22-1.json
 #          - fra02/prod-fra02-logstash-2017.06.22-2.json
 #          - fra02/prod-fra02-logstash-2017.06.22-3.json
+#          -------------------------------------------------------
 #          - lon02/prod-lon02-logstash-2017.06.20-0.json
 #         ------------------------------------------------
 #          - prestage-mon01/prestage-mon01-logstash-2017.07.03-0.json
@@ -58,6 +59,7 @@ trace: # mandatory field
 #          - prestage-mon01/prestage-mon01-logstash-2017.07.04-3.json
 #          ----------------------------------------------------------
 #          - stage-dal09/stage-dal09-logstash-2017.06.27-0.json
+#          ---------------------------------------------------------
 #          - syd01/prod-syd01-logstash-2017.07.01-0.json  
 #          - syd01/prod-syd01-logstash-2017.07.01-1.json
 #          - syd01/prod-syd01-logstash-2017.07.01-2.json
@@ -109,12 +111,13 @@ warmup: # required for run and warmup mode
 
 testmode: # required for simulate mode
     nodedup: False
-    traditionaldedup: False #True #False  
+#    traditionaldedup: False #True #False  
     sift: True
 
 simulate:
     wait: True  #True # or no delay
 #    getonly: False
     gettype: layer
+    accelerater: 2
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
     

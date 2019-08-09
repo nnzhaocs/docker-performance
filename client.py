@@ -260,7 +260,7 @@ def send_requests(requests):
     totalcnt = len(requests)
     i = 0
     prev = 0
-    accelerater = 8
+    global Accelerater #= 8
     global Wait
 
     for r in requests:
@@ -287,7 +287,7 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(registries_input, testmode, gettype, wait): 
+def config_client(registries_input, testmode, gettype, wait, accelerater): 
     global ring
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
@@ -296,16 +296,19 @@ def config_client(registries_input, testmode, gettype, wait):
     global Testmode
     global Gettype
     global Wait
+    global Accelerater
     
     registries = registries_input
     ring = HashRing(nodes = registries)
     Testmode = testmode
     Gettype = gettype
     Wait = wait
+    Accelerater = accelerater
     
     print("The testmode is: ", Testmode)
     print("The Gettype is: ", Gettype)
     print("The Wait is: ", Wait)
+    print("The Accelerater is: ", Accelerater)
 
     print registries
     if "192.168.0.170:5000" in registries:

@@ -404,6 +404,8 @@ def main():
         
     wait = inputs['simulate']['wait']
     print ("wait or not? ", wait)
+
+    accelerater = inputs['simulate']['accelerater']
     
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
@@ -414,8 +416,8 @@ def main():
     global testmode
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
-    elif inputs['testmode']['traditionaldedup'] == True:
-        testmode = 'traditionaldedup'
+    #elif inputs['testmode']['traditionaldedup'] == True:
+    #    testmode = 'traditionaldedup'
     else:
         testmode = 'sift' 
     
@@ -431,7 +433,7 @@ def main():
 	    return
 
     json_data = get_requests()#, getonly) # == init in cache.py
-    config_client(registries, testmode, gettype, wait) #requests, out_trace, numclients   
+    config_client(registries, testmode, gettype, wait, accelerater) #requests, out_trace, numclients   
          
     if args.command == 'warmup': 
         print 'warmup mode'
