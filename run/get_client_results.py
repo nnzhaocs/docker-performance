@@ -2,8 +2,10 @@ import sys
 import os
 import json 
 import numpy as np 
+from argparse import ArgumentParser
+import pickle
 
-results_dir = "/home/nannan/testing/results/"
+results_dir = "" #/home/nannan/testing/results/"
 fname = "results.json"
 
 #############
@@ -72,32 +74,32 @@ def stats(responses):
         if r['type'] == 'LAYER':
             getlayerlatency += r['duration']
             gettotallayer += 1
-            getlayerlatencies.append((r['duration'], r['size']))
+            getlayerlatencies.append(r['duration'])
             
         if r['type'] == 'MANIFEST':
             getmanifestlatency += r['duration']
             gettotalmanifest += 1
-            getmanifestlatencies.append((r['duration'], r['size']))
+            getmanifestlatencies.append(r['duration'])
             
         if r['type'] == 'PUSHLAYER':
             putlayerlatency += r['duration']
             puttotallayer += 1
-            putlayerlatencies.append((r['duration'], r['size']))
+            putlayerlatencies.append(r['duration'])
             
         if r['type'] == 'PUSHMANIFEST':
             putmanifestlatency += r['duration']
             puttotalmanifest += 1
-            putmanifestlatencies.append((r['duration'], r['size']))
+            putmanifestlatencies.append(r['duration'])
             
         if r['type'] == 'warmuplayer':
             warmuplayerlatency += r['duration']
             warmuptotallayer += 1
-            warmuplayerlatencies.append((r['duration'], r['size']))
+            warmuplayerlatencies.append(r['duration'])
             
         if r['type'] == 'warmupmanifest':
             warmupmanifestlatency += r['duration']
             warmuptotalmanifest += 1
-            warmupmanifestlatencies.append((r['duration'], r['size']))
+            warmupmanifestlatencies.append(r['duration'])
                 
     duration = endtime - startTime
     print 'Statistics'
@@ -116,65 +118,78 @@ def stats(responses):
     
     if gettotallayer > 0:
         print 'Average get layer latency: ' + str(1.*getlayerlatency/gettotallayer) + ' seconds/request'
-        print("50th percentile of arr : ", np.percentile(getlayerlatencies, 50))  
-        print("75th percentile of arr : ", np.percentile(getlayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(getlayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(getlayerlatencies, 75))
+        print('50th percentile of durations : ', np.percentile(getlayerlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(getlayerlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(getlayerlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(getlayerlatencies, 99))
         
     if puttotallayer > 0:
         print 'Average put layer latency: ' + str(1.*putlayerlatency/puttotallayer) + ' seconds/request'
-        print("50th percentile of arr : ", np.percentile(putlayerlatencies, 50))  
-        print("75th percentile of arr : ", np.percentile(putlayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(putlayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(putlayerlatencies, 75))
+        print("50th percentile of durations : ", np.percentile(putlayerlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(putlayerlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(putlayerlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(putlayerlatencies, 99))
         
     if warmuptotallayer > 0:
         print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
-        print("50th percentile of arr : ", np.percentile(warmuplayerlatencies, 50))  
-        print("75th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("50th percentile of durations : ", np.percentile(warmuplayerlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(warmuplayerlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(warmuplayerlatencies, 99))
         
     if gettotalmanifest > 0:
         print 'Average get manifest latency: ' + str(1.*getmanifestlatency/gettotalmanifest) + ' seconds/request'
-        print("50th percentile of arr : ", np.percentile(getmanifestlatencies, 50))  
-        print("75th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
+        print("50th percentile of durations : ", np.percentile(getmanifestlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(getmanifestlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(getmanifestlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(getmanifestlatencies, 99))
         
     if puttotalmanifest > 0:
         print 'Average put manifest latency: ' + str(1.*putmanifestlatency/puttotalmanifest) + ' seconds/request'
-        print("50th percentile of arr : ", np.percentile(putmanifestlatencies, 50))  
-        print("75th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
+        print("50th percentile of durations : ", np.percentile(putmanifestlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(putmanifestlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(putmanifestlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(putmanifestlatencies, 99))
         
     if warmuptotalmanifest > 0:
         print 'Average warmup manifest latency: ' + str(1.*warmupmanifestlatency/warmuptotalmanifest) + ' seconds/request'
-        print("50th percentile of arr : ", np.percentile(warmuplayerlatencies, 50))  
-        print("75th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
-        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("50th percentile of durations : ", np.percentile(warmuplayerlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(warmuplayerlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(warmuplayerlatencies, 99))
     
     with open(os.path.join(results_dir, 'client_getlayerlatencies.lst'), 'w') as fp:
-        fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in getlayerlatencies))
+        pickle.dump(getlayerlatencies, fp)
+        #fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in getlayerlatencies))
     with open(os.path.join(results_dir, 'client_getmanifestlatencies.lst'), 'w') as fp:
-        fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in getmanifestlatencies))
-        
+        pickle.dump(getmanifestlatencies, fp)
+        #fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in getmanifestlatencies))
+    
     with open(os.path.join(results_dir, 'client_putlayerlatencies.lst'), 'w') as fp:
-        fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in putlayerlatencies))
+        pickle.dump(putlayerlatencies, fp)
+        #fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in putlayerlatencies))
     with open(os.path.join(results_dir, 'client_putmanifestlatencies.lst'), 'w') as fp:
-        fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in putmanifestlatencies))
+        pickle.dump(putmanifestlatencies, fp)
+        #fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in putmanifestlatencies))
         
     with open(os.path.join(results_dir, 'client_warmuplayerlatencies.lst'), 'w') as fp:
-        fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in warmuplayerlatencies))
+        pickle.dump(warmuplayerlatencies, fp)
+        #fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in warmuplayerlatencies))
     with open(os.path.join(results_dir, 'client_warmupmanifestlatencies.lst'), 'w') as fp:
-        fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in warmupmanifestlatencies))
+        pickle.dump(warmupmanifestlatencies, fp)
+        #fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in warmupmanifestlatencies))
 
  
 
 def main():
-    with open(os.path.join(results_dir, fname), 'r') as fp:
+    parser = ArgumentParser(description='Input result.json file dir.')
+    parser.add_argument('-i', '--input', dest='input', type=str, required=True,
+                                    help = 'Input result.json file dir')
+
+    args = parser.parse_args()
+    fdir = args.input
+    results_dir = fdir
+    with open(os.path.join(fdir, fname), 'r') as fp:
         data = json.load(fp)
     
     stats(data)
