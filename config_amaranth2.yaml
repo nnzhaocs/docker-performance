@@ -3,8 +3,8 @@ client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
         #- /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
-        #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_1MB.lst  
-        - /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_10MB.lst
+        - /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_1MB.lst  
+        #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_10MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_20MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_30MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_40MB.lst
@@ -117,8 +117,8 @@ warmup: # required for run and warmup mode
     threads: 100 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: True #False # nnzhaocs/distribution:original  
-    sift: False  # nnzhaocs/distribution:distributioncache
+    nodedup: False # nnzhaocs/distribution:original  
+    sift: True  # nnzhaocs/distribution:distributioncache
 
 simulate:
     wait: True  #True # or no delay

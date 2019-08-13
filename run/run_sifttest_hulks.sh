@@ -23,13 +23,13 @@ echo 'check pulling finishing'
 pssh -h remotehostshulk.txt -l root -A -i $cmd
 
 
-filecachecap=291
-layercachecap=291
-stype="MB"
-repullcntthres=6
+filecachecap=3524
+layercachecap=3524
+stype="B"
+repullcntthres=4
 comprlevel=6
 layerslicingfcntthres=30
-layerslicingdirsizethres=1 #(MB)
+layerslicingdirsizethres=2 #(MB)
 ttl=40000
 
 echo 'run containers as following'

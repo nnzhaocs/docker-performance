@@ -288,6 +288,12 @@ def stats(responses):
 
     if gettotallayer > 0:
         print 'Average get layer latency: ' + str(1.*getlayerlatency/gettotallayer) + ' seconds/request'
+        print("50th percentile of arr : ",  
+                       np.percentile(, 50)) 
+        print("25th percentile of arr : ", 
+                       np.percentile(arr, 25)) 
+        print("75th percentile of arr : ", 
+                       np.percentile(arr, 75))
     if puttotallayer > 0:
 	print 'Average put layer latency: ' + str(1.*putlayerlatency/puttotallayer) + ' seconds/request'
     if warmuptotallayer > 0:
