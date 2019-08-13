@@ -2,7 +2,14 @@
 client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
-        - /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
+        #- /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
+        - /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_1MB.lst  
+        #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_10MB.lst
+          #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_20MB.lst
+          #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_30MB.lst
+          #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_40MB.lst
+          #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_50MB.lst
+          #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_60MB.lst
         #	- /home/nannan/dockerimages/layers/hulk1_layers_bigger_2g.lst
         #- /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_1g.lst
         #	- /home/nannan/dockerimages/layers/hulk1_layers_less_2g.lst
@@ -111,13 +118,13 @@ warmup: # required for run and warmup mode
 
 testmode: # required for simulate mode
     nodedup: False # nnzhaocs/distribution:original  
-    sift: True # nnzhaocs/distribution:distributioncache
+    sift: True  # nnzhaocs/distribution:distributioncache
 
 simulate:
     wait: True  #True # or no delay
 #    getonly: False
     gettype: layer
-    accelerater: 2
+    accelerater: 8
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
     biglayer: True
 biglayers:    
