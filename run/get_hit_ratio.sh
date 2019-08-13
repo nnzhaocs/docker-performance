@@ -18,11 +18,11 @@ echo "layer stage area hit count: "$stagehitcnt
 waitlayercnt=$(grep "layer construct: reqtype: LAYER, WAITLAYERCONSTRUCT" $1/logs | wc -l | cut -f1 -d' ')
 echo "waiting for restoring layer count: "$waitlayercnt
 
-cmd=$(printf "scale=3; (%d+%d)/(%d+%d)" $hitcnt $stagehitcnt $hitcnt $misscnt) 
+cmd=$(printf "scale=3; %d/(%d+%d)"  $hitcnt $hitcnt $misscnt ) 
 echo "layer hit ratio: for layer cache + stage area: "$(echo $cmd | bc)
 
-cmd=$(printf "scale=3; 1-((%d+%d+%d)/(%d+%d))" $hitcnt $stagehitcnt $waitlayercnt $hitcnt $misscnt) 
-echo "layer miss ratio: for layer cache + stage area + waiting: "$(echo $cmd | bc)
+cmd=$(printf "scale=3; (%d+%d)/(%d+%d)" $hitcnt $waitlayercnt $hitcnt $misscnt ) 
+echo "layer hit ratio: for layer cache + stage area + waiting: "$(echo $cmd | bc)
 
 echo "=====>>> File cache statistics <<<===="
 
