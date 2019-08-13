@@ -119,4 +119,10 @@ simulate:
     gettype: layer
     accelerater: 2
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
+    biglayer: True
+biglayers:    
+#    location: /home/nannan/dockerimages/layers/hulk1/splited_layers  #/dal09 # use a small trace for debugging
+    traces: /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_1g_splits.lst   
+    number: 2
+    max: 4000
     
