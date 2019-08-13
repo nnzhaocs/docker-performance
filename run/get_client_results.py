@@ -1,6 +1,7 @@
 import sys
 import os
 import json 
+import numpy as np 
 
 results_dir = "/home/nannan/testing/results/"
 fname = "results.json"
@@ -115,17 +116,45 @@ def stats(responses):
     
     if gettotallayer > 0:
         print 'Average get layer latency: ' + str(1.*getlayerlatency/gettotallayer) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(getlayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(getlayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(getlayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(getlayerlatencies, 75))
+        
     if puttotallayer > 0:
         print 'Average put layer latency: ' + str(1.*putlayerlatency/puttotallayer) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(putlayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(putlayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(putlayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(putlayerlatencies, 75))
+        
     if warmuptotallayer > 0:
         print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
-
+        print("50th percentile of arr : ", np.percentile(warmuplayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        
     if gettotalmanifest > 0:
         print 'Average get manifest latency: ' + str(1.*getmanifestlatency/gettotalmanifest) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(getmanifestlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
+        
     if puttotalmanifest > 0:
         print 'Average put manifest latency: ' + str(1.*putmanifestlatency/puttotalmanifest) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(putmanifestlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
+        
     if warmuptotalmanifest > 0:
         print 'Average warmup manifest latency: ' + str(1.*warmupmanifestlatency/warmuptotalmanifest) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(warmuplayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
     
     with open(os.path.join(results_dir, 'client_getlayerlatencies.lst'), 'w') as fp:
         fp.write('\n'.join('{} {}'.format(x[0],x[1]) for x in getlayerlatencies))

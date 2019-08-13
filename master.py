@@ -212,21 +212,27 @@ def stats(responses):
 
     getlayerlatency = 0
     gettotallayer = 0
+    getlayerlatencies = []
 
     getmanifestlatency = 0
     gettotalmanifest = 0
+    getmanifestlatencies = []
 
     putlayerlatency = 0
     puttotallayer = 0
+    putlayerlatencies = []
 
     putmanifestlatency = 0
     puttotalmanifest = 0
+    putmanifestlatencies = []
 
     warmuplayerlatency = 0
     warmuptotallayer = 0
+    warmuplayerlatencies = []
 
     warmupmanifestlatency = 0
-    warmuptotalmanifest = 0    
+    warmuptotalmanifest = 0 
+    warmupmanifestlatencies = []   
 
     startTime = responses[0]['time']
     for r in responses:
@@ -237,7 +243,7 @@ def stats(responses):
                     total -= 1
                     failed += 1
                     break # no need to care the rest partial layer.
-            	data += i['size']
+                data += i['size']
             if r['time'] + r['duration'] > endtime:
                 endtime = r['time'] + r['duration']
             latency += r['duration']
@@ -254,22 +260,33 @@ def stats(responses):
         if r['type'] == 'LAYER':
             getlayerlatency += r['duration']
             gettotallayer += 1
-	if r['type'] == 'MANIFEST':
-	    getmanifestlatency += r['duration']
-	    gettotalmanifest += 1
-        if r['type'] == 'PUSHLAYER':
-	    putlayerlatency += r['duration']
-	    puttotallayer += 1
-	if r['type'] == 'PUSHMANIFEST':
-	    putmanifestlatency += r['duration']
-	    puttotalmanifest += 1
-	if r['type'] == 'warmuplayer':
-	    warmuplayerlatency += r['duration']
-	    warmuptotallayer += 1
-	if r['type'] == 'warmupmanifest':
-	    warmupmanifestlatency += r['duration']
-	    warmuptotalmanifest += 1
+            getlayerlatencies.append((r['duration'], r['size']))
             
+        if r['type'] == 'MANIFEST':
+            getmanifestlatency += r['duration']
+            gettotalmanifest += 1
+            getmanifestlatencies.append((r['duration'], r['size']))
+            
+        if r['type'] == 'PUSHLAYER':
+            putlayerlatency += r['duration']
+            puttotallayer += 1
+            putlayerlatencies.append((r['duration'], r['size']))
+            
+        if r['type'] == 'PUSHMANIFEST':
+            putmanifestlatency += r['duration']
+            puttotalmanifest += 1
+            putmanifestlatencies.append((r['duration'], r['size']))
+            
+        if r['type'] == 'warmuplayer':
+            warmuplayerlatency += r['duration']
+            warmuptotallayer += 1
+            warmuplayerlatencies.append((r['duration'], r['size']))
+            
+        if r['type'] == 'warmupmanifest':
+            warmupmanifestlatency += r['duration']
+            warmuptotalmanifest += 1
+            warmupmanifestlatencies.append((r['duration'], r['size']))
+                
     duration = endtime - startTime
     print 'Statistics'
     print 'Successful Requests: ' + str(total)
@@ -278,34 +295,54 @@ def stats(responses):
     print 'Data Transfered: ' + str(data) + ' bytes'
     print 'Average Latency: ' + str(latency / total)
     print 'Throughput: ' + str(1.*total / duration) + ' requests/second'
-    
     print 'Total GET layer: ' + str(gettotallayer)
     print 'Total GET manifest: ' + str(gettotalmanifest)
     print 'Total PUT layer: ' + str(puttotallayer)
     print 'Total PUT Manifest: ' + str(puttotalmanifest)
     print 'Total WAMRUP layer: ' + str(warmuptotallayer)
     print 'Total WAMRUP manifest: ' + str(warmuptotalmanifest)
-
+    
     if gettotallayer > 0:
         print 'Average get layer latency: ' + str(1.*getlayerlatency/gettotallayer) + ' seconds/request'
-        print("50th percentile of arr : ",  
-                       np.percentile(, 50)) 
-        print("25th percentile of arr : ", 
-                       np.percentile(arr, 25)) 
-        print("75th percentile of arr : ", 
-                       np.percentile(arr, 75))
+        print("50th percentile of arr : ", np.percentile(getlayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(getlayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(getlayerlatencies, 95))
+        print("99th percentile of arr : ", np.percentile(getlayerlatencies, 99))
+        
     if puttotallayer > 0:
-	print 'Average put layer latency: ' + str(1.*putlayerlatency/puttotallayer) + ' seconds/request'
-    if warmuptotallayer > 0:
-	print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
-
+        print 'Average put layer latency: ' + str(1.*putlayerlatency/puttotallayer) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(putlayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(putlayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(putlayerlatencies, 95))
+        print("99th percentile of arr : ", np.percentile(putlayerlatencies, 99))
+               
     if gettotalmanifest > 0:
         print 'Average get manifest latency: ' + str(1.*getmanifestlatency/gettotalmanifest) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(getmanifestlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(getmanifestlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(getmanifestlatencies, 95))
+        print("99th percentile of arr : ", np.percentile(getmanifestlatencies, 99))
+        
     if puttotalmanifest > 0:
         print 'Average put manifest latency: ' + str(1.*putmanifestlatency/puttotalmanifest) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(putmanifestlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(putmanifestlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(putmanifestlatencies, 95))
+        print("99th percentile of arr : ", np.percentile(putmanifestlatencies, 99))
+        
     if warmuptotalmanifest > 0:
         print 'Average warmup manifest latency: ' + str(1.*warmupmanifestlatency/warmuptotalmanifest) + ' seconds/request'
-
+        print("50th percentile of arr : ", np.percentile(warmuplayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 95))
+        print("99th percentile of arr : ", np.percentile(warmuplayerlatencies, 99))
+        
+    if warmuptotallayer > 0:
+        print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
+        print("50th percentile of arr : ", np.percentile(warmuplayerlatencies, 50))  
+        print("75th percentile of arr : ", np.percentile(warmuplayerlatencies, 75))
+        print("95th percentile of arr : ", np.percentile(warmuplayerlatencies, 95))
+        print("99th percentile of arr : ", np.percentile(warmuplayerlatencies, 99))
 
  
 ## send out requests to clients and get results
