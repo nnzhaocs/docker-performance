@@ -200,7 +200,7 @@ def warmup(data, out_trace, registries, threads):
 # {'time': now, 'duration': t, 'onTime': onTime_l}
 ##############
  
-def stats(responses):
+def stats(responses):   
     responses.sort(key = lambda x: x['time'])
 
     endtime = 0
@@ -288,7 +288,15 @@ def stats(responses):
             warmupmanifestlatencies.append(r['duration'])
                 
     duration = endtime - startTime
+    
+    global gettype
+    global accelerater
+    global testmode
+    
     print 'Statistics'
+    print 'gettype: '+gettype
+    print 'accelerater: '+str(accelerater)
+    print 'testmode: ' + str(testmode)
     print 'Successful Requests: ' + str(total)
     print 'Failed Requests: ' + str(failed)
     print 'Duration: ' + str(duration)
@@ -441,13 +449,15 @@ def main():
         registries.extend(inputs['registry'])
      
     print(registries)
- 
+    
+    global gettype
     gettype = inputs['simulate']['gettype']       
     print("gettype layer or slice? ", gettype)
         
     wait = inputs['simulate']['wait']
     print ("wait or not? ", wait)
-
+    
+    global accelerater
     accelerater = inputs['simulate']['accelerater']
     
     if 'threads' in inputs['warmup']:
