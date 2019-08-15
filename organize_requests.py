@@ -147,7 +147,7 @@ def match(realblob_location_files, tracedata, layeridmap):
     print 'total uniq put layer requests: ' + str(len(layeridmap))   
     print 'total uniq put manifest requests: ' + str(put_M)  
     print 'total replay time: '+ str((end-start).total_seconds()/60/60) +' Hr'
-    print 'unique layer dataset size: %5.3f GB'%(float(uniq_layerdataset_size)/1024/1024/1024) 
+    print 'unique layer dataset size: %5.6f GB'%(float(uniq_layerdataset_size)/1024/1024/1024) 
                
     print 'total put requests: ' + str(put_reqs)
     print 'matched put and following get requests: ' + str(find_puts)   
