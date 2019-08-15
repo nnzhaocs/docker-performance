@@ -4,7 +4,7 @@ from os.path import stat
 from argparse import ArgumentParser
 import pickle
 
-layer_files = ["/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst", "/home/nannan/dockerimages/layers/hulk4/hulk4_layers_less_50m.lst"]
+layer_files = ["/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_1g.lst"]#, "/home/nannan/dockerimages/layers/hulk4/hulk4_layers_less_1g.lst"]
 out_dir = "/home/nannan/dockerimages/layers/hulk1/"
 stored_dat_file = os.getcwd() + "/lyr_size.pkl"
 #df_num = 160
@@ -43,7 +43,7 @@ def sampling(layer_size_dict, size):
     floor = size * 0.9
     if size == 1:
         floor = 0
-    
+
     for lyr, lyr_size in layer_size_dict.items():
         mb_size = lyr_size / 1024 / 1024
         if mb_size <= cap and mb_size >= floor :
@@ -84,7 +84,9 @@ def main():
             print 'unable to read the stored layer:size file'
             exit(-1)
         print 'successfully read in ' + str(len(layer_size_dict)) + ' layers, now sampling...'
-        sampling(layer_size_dict, args.size)
+        for i in range(60, 210, 10):
+            #print i
+            sampling(layer_size_dict, i)#args.size)
 
 
 if __name__ == "__main__":

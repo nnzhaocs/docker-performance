@@ -23,7 +23,7 @@ from __builtin__ import str
 #from Carbon.Aliases import false
 from sqlitedict import SqliteDict
 
-input_dir = '/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/'
+input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
 
 def absoluteFilePaths(directory):
@@ -113,15 +113,17 @@ def getTimeIntervals(total_trace, fname2, fnameout):
 
 
 def getSkewness(total_trace):
-    
+    print 'start'
     lfname = '-layer_access_cnt.json'
     urfname = '-repo_access_cnt.json'
     ufname = '-usr_access_cnt.json'
-    lfoutname = '-layer-layer_access_cnt'
+    lfoutname = '-layer_access_cnt'
     urfoutname = '-repo_access_cnt'
     ufoutname = '-usr_access_cnt'
     
     getCnt(total_trace, lfname, lfoutname)
+    pullSizeRelationAnalyze(total_trace)
+
     getCnt(total_trace, urfname, urfoutname)
     getCnt(total_trace, ufname, ufoutname) 
     fname = os.path.basename(total_trace)
@@ -142,21 +144,53 @@ def getSkewness(total_trace):
             fratio.write(str(ratio)+'\t\n')
             
     f.close()
-    fratio.close() 
+    fratio.close()
+    print 'end' 
 
     
 def getCnt(total_trace, fname2, fnameout):
+    print 'in get count'
     interaccess = []
     fname = os.path.basename(total_trace)
     with open(os.path.join(input_dir, fname + fname2), 'r') as fp:
         usrrepoTOtimedic = json.load(fp)
         
-    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')    
-    for k in usrrepoTOtimedic:
+    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')   
+     
+    #keys =
+    keys = sorted(usrrepoTOtimedic, key = (lambda x : usrrepoTOtimedic[x]))
+    print usrrepoTOtimedic[keys[0]]
+    for k in keys:#usrrepoTOtimedic:
         val = usrrepoTOtimedic[k]
         f.write(str(val)+'\t\n')
     f.close()
         
+def pullSizeRelationAnalyze(total_trace):
+    print 'in calculation'
+    data = []
+    fname = os.path.basename(total_trace)
+    with open(os.path.join(input_dir, fname + '-layer_access_cnt.json'), 'r') as fp:
+        usrrepoTOtimedic = json.load(fp)
+
+    keys = sorted(usrrepoTOtimedic, key = (lambda x : usrrepoTOtimedic[x]))
+    for k in keys:#usrrepoTOtimedic:
+        data.append(usrrepoTOtimedic[k])
+    
+    cnts = sorted(set([elem[0] for elem in data]))
+
+
+    for cnt in cnts:
+        subdt = [elem[1] for elem in data if elem[0] == cnt]
+        total = sum(subdt)
+        try:
+            avg = total/len(subdt)
+        except:
+            avg = 0
+        print 'For hit count of ' + str(cnt) + ': '
+        if cnt == 0:
+            cnt = 1
+        print 'number of layers = ' + str(len(subdt)) + '; total size = ' + str(total) + '; average size = ' + str(avg) + '; hit/avg size ratio = '+ str(avg/cnt)
+        print 'max = ' + str(subdt[-1]) + ', min = ' + str(subdt[0])
         
 def analyze_reusetime(total_trace):
     
@@ -167,7 +201,7 @@ def analyze_reusetime(total_trace):
     urfoutname = '-usrrepo-raccessinterval'
     ufoutname = '-usr-raccessinterval'
     getTimestamp(total_trace)
-
+    
     getTimeIntervals(total_trace, lfname, lfoutname)
     getTimeIntervals(total_trace, urfname, urfoutname)
     getTimeIntervals(total_trace, ufname, ufoutname)
@@ -198,7 +232,8 @@ def getTimestamp(total_trace):
         method = r['http.request.method']
         clientAddr = r['http.request.remoteaddr']
         timestamp = r['timestamp']
-        
+        size = r['http.response.written']
+ 
         layer_id_or_manifest_id = uri.rsplit('/', 1)[1]
             
         repo_namepart1 = uri.split('/')[1]
@@ -211,9 +246,11 @@ def getTimestamp(total_trace):
             print "layer_id: "+layer_id_or_manifest_id
             layerTOtimedic[layer_id_or_manifest_id].append(timestamp)
 	    try:
-                layerToCcntdic[layer_id_or_manifest_id] += 1
+                layerToCcntdic[layer_id_or_manifest_id][0] += 1
 	    except:
-		layerToCcntdic[layer_id_or_manifest_id] = 0
+
+		layerToCcntdic[layer_id_or_manifest_id] = [0, size]
+                #layerToCcntdic[layer_id_or_manifest_id][1] = size
 	    
 	    try:
 		repoToCcntdic[repo_name] += 1
@@ -735,7 +772,6 @@ def clusterClientReqForClients(total_trace):
         json.dump(img_req_group, fp)
 
 
-
 def clusterClientRepoPull(total_trace):
     fname = os.path.basename(total_trace)
     print "the output file would be: " + input_dir + fname +'_clusterClientRepoPull.json'
@@ -747,6 +783,10 @@ def clusterClientRepoPull(total_trace):
     f = open(input_dir + fname + '-_clusterClientRepoPull.lst', 'w')
 
     for client, rlst in blob.items():
+        print client
+        print rlst
+        print 'end...'
+        exit(0)
         repo_state_dict = {}
         if 0 == len(rlst):
             print "empty reqs"
