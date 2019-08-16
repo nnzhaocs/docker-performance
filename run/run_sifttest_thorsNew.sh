@@ -17,10 +17,10 @@ echo "nnzhaocs/distribution:distributioncache"
 
 echo "docker pull images: $1"
 cmd=$(printf "docker pull %s" $1)
-pssh -h remotehostshulk.txt -l root -A -i -t 600 $cmd
+pssh -h remotehostthors.txt -l root -A -i -t 600 $cmd
 
 echo 'check pulling finishing'
-pssh -h remotehostshulk.txt -l root -A -i $cmd
+pssh -h remotehoststhors.txt -l root -A -i $cmd
 
 
 filecachecap=203 #3524 # = match result unique dataset size / 8 *0.25
@@ -47,5 +47,5 @@ else
 	cmd=$cmd1	
 fi;
 echo $cmd
-pssh -h remotehostshulk.txt -l root -A -i $cmd
+pssh -h remotehostthors.txt -l root -A -i $cmd
 

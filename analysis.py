@@ -122,7 +122,7 @@ def getSkewness(total_trace):
     ufoutname = '-usr_access_cnt'
     
     getCnt(total_trace, lfname, lfoutname)
-    pullSizeRelationAnalyze(total_trace)
+    #pullSizeRelationAnalyze(total_trace)
 
     getCnt(total_trace, urfname, urfoutname)
     getCnt(total_trace, ufname, ufoutname) 
@@ -157,12 +157,10 @@ def getCnt(total_trace, fname2, fnameout):
         
     f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')   
      
-    #keys =
-    keys = sorted(usrrepoTOtimedic, key = (lambda x : usrrepoTOtimedic[x]))
-    print usrrepoTOtimedic[keys[0]]
-    for k in keys:#usrrepoTOtimedic:
+    
+    for k in usrrepoTOtimedic:
         val = usrrepoTOtimedic[k]
-        f.write(str(val)+'\t\n')
+        f.write(str(val[0])+'\t' + str(val[1]) + '\n')
     f.close()
         
 def pullSizeRelationAnalyze(total_trace):
@@ -246,10 +244,10 @@ def getTimestamp(total_trace):
             print "layer_id: "+layer_id_or_manifest_id
             layerTOtimedic[layer_id_or_manifest_id].append(timestamp)
 	    try:
-                layerToCcntdic[layer_id_or_manifest_id][0] += 1
+                layerToCcntdic[layer_id_or_manifest_id][1] += 1
 	    except:
 
-		layerToCcntdic[layer_id_or_manifest_id] = [0, size]
+		layerToCcntdic[layer_id_or_manifest_id] = [size, 1]
                 #layerToCcntdic[layer_id_or_manifest_id][1] = size
 	    
 	    try:
