@@ -37,8 +37,8 @@ echo "GET IP FROM THORS"
 thorip="\$(ip -4 addr |grep 192.168.0.2 |grep -Po 'inet \K[\d.]+')"
 echo $thorip
 
-filecachecap=203 #3524
-layercachecap=203 #3524
+filecachecap=138 #3524
+layercachecap=138 #3524
 stype="MB" #"B"
 repullcntthres=3
 comprlevel=4
