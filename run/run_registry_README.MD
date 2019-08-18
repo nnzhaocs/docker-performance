@@ -20,6 +20,7 @@ docker build -t nnzhaocs/distribution:registry .
 #
 docker stop container_id
 
+docker rmi $(docker images -a -q)
 #==========================>
 ps axf | grep docker | grep -v grep | awk '{print "kill -9 " (}' | sudo sh')}'
 
