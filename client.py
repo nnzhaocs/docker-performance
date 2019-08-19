@@ -147,7 +147,7 @@ def get_read_registries(r):
 
 def redis_stat_recipe_serverips(dgst):
     global rediscli_dbrecipe
-    global Gettype
+    #global Gettype
 
     key = "Layer:Recipe::"+dgst    
     if not rediscli_dbrecipe.exists(key):
@@ -155,10 +155,10 @@ def redis_stat_recipe_serverips(dgst):
         return None
     recipe = json.loads(rediscli_dbrecipe.execute_command('GET', key))
     serverIps = []
-    if "layer" == Gettype:
-        return serverIps.append(recipe['MasterIp'])
-    else:
-        return serverIps
+    #if "layer" == Gettype:
+    return serverIps.append(recipe['MasterIp'])
+    #else:
+    #    return serverIps
 
 
 def get_request_registries(r):
@@ -330,13 +330,13 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, gettype, wait, accelerater): 
+def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater): 
 
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
    
     global Testmode
-    global Gettype
+    #global Gettype
     global Wait
     global Accelerater
     
@@ -349,12 +349,12 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
     hotlayer = hotlayers_input
         
     Testmode = testmode
-    Gettype = gettype
+    #Gettype = gettype
     Wait = wait
     Accelerater = accelerater
     
     print("The testmode is: ", Testmode)
-    print("The Gettype is: ", Gettype)
+    #print("The Gettype is: ", Gettype)
     print("The Wait is: ", Wait)
     print("The Accelerater is: ", Accelerater)
 

@@ -17,7 +17,7 @@ import numpy as np
 
 from client import *
 # from organize_requests import *
-from split_into_client import *
+from split_into_clients import *
 
 results_dir = "/home/nannan/testing/results/"
 
@@ -224,12 +224,12 @@ def stats(responses):
                 
     duration = endtime - startTime
     
-    global gettype
+   # global gettype
     global accelerater
     global testmode
     
     print 'Statistics'
-    print 'gettype: '+gettype
+    #print 'gettype: '+gettype
     print 'accelerater: '+str(accelerater)
     print 'testmode: ' + str(testmode)
     print 'Successful Requests: ' + str(total)
@@ -381,13 +381,13 @@ def main():
     
     global primaryregistries    
     primaryregistries = []
-    if 'registry' in inputs:
+    if 'primaryregistry' in inputs:
         primaryregistries.extend(inputs['primaryregistry'])
     print("primaryregistries: ", primaryregistries)
     
     global dedupregistries
     dedupregistries = []
-    if 'registry' in inputs:
+    if 'dedupregistry' in inputs:
         dedupregistries.extend(inputs['dedupregistry'])
     print("dedupregistries: ", dedupregistries)
     
@@ -397,13 +397,13 @@ def main():
     ringdedup = HashRing(nodes = dedupregistries) 
     
     clients = []
-    if 'registry' in inputs:
+    if 'clients' in inputs:
         clients.extend(inputs['clients'])
     print(clients)
     
-    global gettype
-    gettype = inputs['simulate']['gettype']       
-    print("gettype layer or slice? ", gettype)
+#    global gettype
+#    gettype = inputs['simulate']['gettype']       
+#    print("gettype layer or slice? ", gettype)
         
     wait = inputs['simulate']['wait']
     print ("wait or not? ", wait)
@@ -453,13 +453,13 @@ def main():
 	else:
 	    print "please put realblobs in the config files"
 	    return      
-
-    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, gettype, wait, accelerater) #requests, out_trace, numclients
-       
+  
     fname = realblobtrace_dir+'input_tracefile'+'_hotlayers.json'
     with open(fname, 'r') as fp:
         hotlayers = json.load(fp)
-    
+
+    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater) #requests, out_trace, numclients
+        
     print("hot layers are: ", hotlayers)    
          
     if args.command == 'warmup': 

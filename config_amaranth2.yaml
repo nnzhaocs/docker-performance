@@ -171,10 +171,10 @@ siftparams:
 simulate:
     wait: True  #True # or no delay
 #    getonly: False
-    gettype: layer
+#    gettype: layer
     accelerater: 8
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
-    biglayer: True
+#    biglayer: True
     replicalevel: 3
 biglayers:    
 #    location: /home/nannan/dockerimages/layers/hulk1/splited_layers  #/dal09 # use a small trace for debugging
