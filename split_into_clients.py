@@ -336,8 +336,11 @@ def get_hotlayers(requests, hotratio, clients):
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
 def organize_and_send_clients(numclients, clients, hotratio):
+    
     fname = realblobtrace_dir+'input_tracefile'+'-realblob.json'
-    requests = get_requests(fname)
+    with open(fname, 'r') as f:
+        requests = json.load(f) #append a file
+#     requests = get_requests(fname)
     
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
@@ -347,7 +350,7 @@ def organize_and_send_clients(numclients, clients, hotratio):
     print "load number of replay requests: " + str(len(requests)) 
    
     for r in requests:           
-        clientToReqs[r['client']].append(request)
+        clientToReqs[r['http.request.remoteaddr']].append(request)
         
     get_hotlayers(requests, hotratio, clients)
         
@@ -390,9 +393,7 @@ def organize_and_send_clients(numclients, clients, hotratio):
 def organize(out_trace, numclients, clients):
     
     fname = realblobtrace_dir+'input_tracefile'+'client-realblob.json' 
-    with open(fname, 'r') as f:
-        requests = json.load(f)
-    requests.sort(key= lambda x: x['delay'])
+    requests = get_requests(fname)
     
     with open(out_trace, 'r') as f:
         blob = json.load(f)
