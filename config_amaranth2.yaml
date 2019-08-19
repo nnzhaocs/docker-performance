@@ -1,3 +1,4 @@
+
 # excample configuration file for trace player
 client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
@@ -163,8 +164,7 @@ testmode: # required for simulate mode
 siftparams:  
     mode: selective  
     selective: 
-        hotratio: 0.2
-
+        hotratio: 0.25
     standard: 
         nondedupreplicas: 2             
 
@@ -181,4 +181,4 @@ biglayers:
     traces: /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_1g_splits.lst   
     number: 2
     max: 4000
-    
+ 

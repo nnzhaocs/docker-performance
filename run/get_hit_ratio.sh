@@ -1,7 +1,7 @@
 echo "the input directory is:"
 echo $1
 
-#cat $1/*.log > $1/logs
+cat $1/*.log > $1/logs
 ### metdata
 
 echo "=====>>> Layer cache statistics <<<===="

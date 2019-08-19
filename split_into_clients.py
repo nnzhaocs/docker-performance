@@ -304,7 +304,7 @@ def get_hotlayers(requests, hotratio):
         except Exception as e:
             layeridtopop[layer_id] = 1
             
-    selected = len(layeridtopop)*0.25 
+    selected = len(layeridtopop) * hotratio 
     i = 0       
     for k, v in sorted(layeridtopop.items(), key=lambda item: item[1], reverse=True):
         print("%s: %d" % (k, v))

@@ -30,8 +30,8 @@ def main():
     #args = parser.parse_args()
     
     #get layers
-    #length = random.randint(5000, 100000)#5k-10w
-    length = 1000
+    length = random.randint(50, 900)#5k-10w
+    #length = 1000
     '''content = []
     print 'reading in layer file...'
     for fn in layer_file:
@@ -90,7 +90,7 @@ def main():
     #    f.write("%s\n" % node)
         print str(node[0]) + ': ' + str(node[1])
 
-    print 'kk-greedy mixed: '
+    '''print 'kk-greedy mixed: '
     #calculate ideal cap
     boundary = int(sum([lyr[1] for lyr in lyrs]) / len(nodes))
     trap = 0
@@ -122,7 +122,7 @@ def main():
                     idx += 1
     for node in nodes:
         print str(node[0]) + ': ' + str(node[1])
-    print 'standard dev: ' + str(std_dev(nodes))
+    print 'standard dev: ' + str(std_dev(nodes))'''
 if __name__ == "__main__":
     main()
 

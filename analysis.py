@@ -23,7 +23,7 @@ from __builtin__ import str
 #from Carbon.Aliases import false
 from sqlitedict import SqliteDict
 
-input_dir = '/home/nannan/dockerimages/docker-traces/downloaded-traces/data_centers/'
+input_dir = '/home/nannan/dockerimages/docker-traces/data_centers/'
 
 
 def absoluteFilePaths(directory):
@@ -113,15 +113,17 @@ def getTimeIntervals(total_trace, fname2, fnameout):
 
 
 def getSkewness(total_trace):
-    
+    print 'start'
     lfname = '-layer_access_cnt.json'
     urfname = '-repo_access_cnt.json'
     ufname = '-usr_access_cnt.json'
-    lfoutname = '-layer-layer_access_cnt'
+    lfoutname = '-layer_access_cnt'
     urfoutname = '-repo_access_cnt'
     ufoutname = '-usr_access_cnt'
     
     getCnt(total_trace, lfname, lfoutname)
+    #pullSizeRelationAnalyze(total_trace)
+
     getCnt(total_trace, urfname, urfoutname)
     getCnt(total_trace, ufname, ufoutname) 
     fname = os.path.basename(total_trace)
@@ -142,21 +144,51 @@ def getSkewness(total_trace):
             fratio.write(str(ratio)+'\t\n')
             
     f.close()
-    fratio.close() 
+    fratio.close()
+    print 'end' 
 
     
 def getCnt(total_trace, fname2, fnameout):
+    print 'in get count'
     interaccess = []
     fname = os.path.basename(total_trace)
     with open(os.path.join(input_dir, fname + fname2), 'r') as fp:
         usrrepoTOtimedic = json.load(fp)
         
-    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')    
+    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')   
+     
+    
     for k in usrrepoTOtimedic:
         val = usrrepoTOtimedic[k]
-        f.write(str(val)+'\t\n')
+        f.write(str(val[0])+'\t' + str(val[1]) + '\n')
     f.close()
         
+def pullSizeRelationAnalyze(total_trace):
+    print 'in calculation'
+    data = []
+    fname = os.path.basename(total_trace)
+    with open(os.path.join(input_dir, fname + '-layer_access_cnt.json'), 'r') as fp:
+        usrrepoTOtimedic = json.load(fp)
+
+    keys = sorted(usrrepoTOtimedic, key = (lambda x : usrrepoTOtimedic[x]))
+    for k in keys:#usrrepoTOtimedic:
+        data.append(usrrepoTOtimedic[k])
+    
+    cnts = sorted(set([elem[0] for elem in data]))
+
+
+    for cnt in cnts:
+        subdt = [elem[1] for elem in data if elem[0] == cnt]
+        total = sum(subdt)
+        try:
+            avg = total/len(subdt)
+        except:
+            avg = 0
+        print 'For hit count of ' + str(cnt) + ': '
+        if cnt == 0:
+            cnt = 1
+        print 'number of layers = ' + str(len(subdt)) + '; total size = ' + str(total) + '; average size = ' + str(avg) + '; hit/avg size ratio = '+ str(avg/cnt)
+        print 'max = ' + str(subdt[-1]) + ', min = ' + str(subdt[0])
         
 def analyze_reusetime(total_trace):
     
@@ -167,7 +199,7 @@ def analyze_reusetime(total_trace):
     urfoutname = '-usrrepo-raccessinterval'
     ufoutname = '-usr-raccessinterval'
     getTimestamp(total_trace)
-
+    
     getTimeIntervals(total_trace, lfname, lfoutname)
     getTimeIntervals(total_trace, urfname, urfoutname)
     getTimeIntervals(total_trace, ufname, ufoutname)
@@ -198,7 +230,8 @@ def getTimestamp(total_trace):
         method = r['http.request.method']
         clientAddr = r['http.request.remoteaddr']
         timestamp = r['timestamp']
-        
+        size = r['http.response.written']
+ 
         layer_id_or_manifest_id = uri.rsplit('/', 1)[1]
             
         repo_namepart1 = uri.split('/')[1]
@@ -211,9 +244,11 @@ def getTimestamp(total_trace):
             print "layer_id: "+layer_id_or_manifest_id
             layerTOtimedic[layer_id_or_manifest_id].append(timestamp)
 	    try:
-                layerToCcntdic[layer_id_or_manifest_id] += 1
+                layerToCcntdic[layer_id_or_manifest_id][1] += 1
 	    except:
-		layerToCcntdic[layer_id_or_manifest_id] = 0
+
+		layerToCcntdic[layer_id_or_manifest_id] = [size, 1]
+                #layerToCcntdic[layer_id_or_manifest_id][1] = size
 	    
 	    try:
 		repoToCcntdic[repo_name] += 1
@@ -498,10 +533,131 @@ def clusterUserreqs(total_trace):
         }
 
         clientAddr = r['http.request.remoteaddr']
-        print request
+        #print request
         organized[clientAddr].append(request)
     return organized
 
+
+##############################
+#Keren 8/6
+debug = True
+def smartclusterClientReqs(total_trace):
+    organized = defaultdict(list)
+    fname = os.path.basename(total_trace)
+    print "the output file would be: " + input_dir + fname + '-smart_sorted_reqs_repo_client.lst'
+    if debug:
+        print 'debugging enabled...'
+        abn_get = 0
+        abn_put = 0
+        abn_clustering = 0
+        abn_clusters = {}
+        total_put = 0
+        total_get = 0
+        buff = []
+    organized = clusterUserreqs(total_trace)
+
+    img_req_group = []
+    #for all the requests from each client
+    for cli, reqs in organized.items():
+        cli_img_req_group = [[]]
+        prev = cli_img_req_group[-1]
+        #prev_repo = ''
+        cur = []
+        #for each request
+        for req in reqs:
+            uri = req['uri']
+            layer_or_manifest_id = uri.rsplit('/', 1)[1]
+            parts = uri.split('/')
+            repo = parts[1] + '/' + parts[2]
+	    #if debug:
+            #    print req
+            #params:repo, method(get/put), type (Manifest/layer)
+            #fixed: client
+            #rules: repo change = new cluster
+            #       get cluster: get m, get l, get l...
+            #       put:         put l, put l...put m
+            # so: a cluster is a set of requests confirming the get/put pattern
+            # and are all on the same repo; a cluster is supposed to be a single get/put image request
+            if True: #prev_repo == repo:
+                #still the same person working with the same repo
+                
+                if req['method'] == 'GET':
+                    '''if len(prev) != 0:
+                        tmp = prev[0]['uri'].split('/')
+                        prepo = tmp[1] + '/' + tmp[2]
+                        if prepo != repo:
+                            abn_clustering += 1
+                            abn_clusters[prev[0]['delay']] = prev'''
+                    # if we see a get request
+                    print 'GET: '+'uri'
+                    if 'blobs' in uri:
+                        # continue on the old get request
+                        print 'GET layer'
+                        prev.append(req)
+                    else:
+                        # start of new cluster
+                        print 'GET manifest'
+                        cur = []
+                        cur.append(req)
+                        cli_img_req_group.append(cur)
+                        prev = cli_img_req_group[-1]
+                    total_get += 1
+                    if debug and prev[0]['method'] != 'GET':
+                            abn_get += 1
+                    if len(prev) > 1:
+                        tmp = prev[0]['uri'].split('/')
+                        prepo = tmp[1] + '/' + tmp[2]
+                        if prepo != repo:
+                            abn_clustering += 1
+                            abn_clusters[prev[0]['delay']] = prev
+                '''else:
+                    #if we see a put request
+                    print 'PUT: '+'uri'
+                    if 'blobs' in uri:
+                        print 'PUT layer'
+                        if len(prev) > 0 and prev[0]['method'] != 'PUT':
+                            print 'new put cluster; should only appear after get cluster'
+                            cur = []
+                            cur.append(req)
+                            cli_img_req_group.append(cur)
+                            prev = cli_img_req_group[-1]
+                        else:
+                            prev.append(req)
+                    elif 'manifests' in uri:
+                        print 'PUT manifest'
+                        prev.append(req)
+                        cur = []
+                        cli_img_req_group.append(cur)
+                        if debug and (prev[0]['method'] != 'PUT'):
+                            abn_put += 1
+                        prev = cli_img_req_group[-1]
+                    total_put += 1'''
+            '''else:
+                print 'new repo'
+                #started working with a new layer
+                prev_repo = repo
+                #start a new record regardless of specific request type
+                cur = []
+                cur.append(req)
+                cli_img_req_group.append(cur)
+                prev = cli_img_req_group[-1]'''
+#         cli_img_req_group = cli_img_pull_group + cli_img_push_group
+	cli_img_req_group_new = [x for x in cli_img_req_group if x and len(x) > 1]
+	print cli_img_req_group_new
+        #cli_img_req_group.sort(key= lambda x: x[0]['delay'])
+        img_req_group += cli_img_req_group_new
+    img_req_group.sort(key= lambda x: x[0]['delay'])
+#     return img_req_group
+    with open(input_dir + fname + '-smart_sorted_reqs_repo_client.lst', 'w') as fp:
+        json.dump(img_req_group, fp)
+
+    if debug:
+       print 'abnormal puts = ' + str(abn_put) + '; abnormal gets = ' + str(abn_get) + '... total puts = ' + str(total_put) + '; total gets = ' + str(total_get)
+       print 'abnormal requests: ' + str(abn_clustering) + ', abnormal clusters: ' + str(len(abn_clusters))
+    with open('abnormities.txt', 'w') as fp:
+        json.dump(abn_clusters, fp)
+
+##############################
 
 def clusterClientReqs(total_trace):
     organized = defaultdict(list)
@@ -515,6 +671,11 @@ def clusterClientReqs(total_trace):
         cli_img_req_group = [[]]
         prev = cli_img_req_group[-1]
         cur = []
+        #print "cli: "
+        #print cli
+        #print "reqs"
+        #print reqs
+        #return
 #         prev_push = []
 #         cur_push = []
         for req in reqs:
@@ -609,7 +770,6 @@ def clusterClientReqForClients(total_trace):
         json.dump(img_req_group, fp)
 
 
-
 def clusterClientRepoPull(total_trace):
     fname = os.path.basename(total_trace)
     print "the output file would be: " + input_dir + fname +'_clusterClientRepoPull.json'
@@ -621,6 +781,10 @@ def clusterClientRepoPull(total_trace):
     f = open(input_dir + fname + '-_clusterClientRepoPull.lst', 'w')
 
     for client, rlst in blob.items():
+        print client
+        print rlst
+        print 'end...'
+        exit(0)
         repo_state_dict = {}
         if 0 == len(rlst):
             print "empty reqs"
@@ -853,8 +1017,8 @@ def getGetManfiests(total_trace):
 
 
 #
-def durationmanifestblobs():
-    with open('sorted_reqs.lst', 'r') as fp:
+def durationmanifestblobs(total_trace):
+    with open(total_trace + '-smart_sorted_reqs_repo_client.lst', 'r') as fp:
         blob = json.load(fp)
 
     intervals_GET_MLs = []
@@ -883,9 +1047,9 @@ def durationmanifestblobs():
     print "avg interval between a get manifest and a get layer:" + str(sum(lst)*1.0 / len(lst))
     print "midian is:  "+ str(statistics.median(lst))
 
-    with open('intervals_client_GET_MLs.lst', 'w') as fp:
+    with open(total_trace + 'intervals_client_GET_MLs-no_batch.lst', 'w') as fp:
         json.dump(intervals_GET_MLs, fp)
-    with open('intervals_GET_MLs.lst', 'w') as fp:
+    with open(total_trace +'intervals_GET_MLs-no_batch.lst', 'w') as fp:
         json.dump(lst, fp)
 
 
@@ -1198,8 +1362,10 @@ def main():
         analyze_usr_repolifetime()
     elif args.command == 'clusteruserreqs':
         clusterClientReqs(trace_file)
+    elif args.command == 'newclusteruserreqs':
+        smartclusterClientReqs(trace_file)
     elif args.command == 'calintervalgetML':
-        durationmanifestblobs()
+        durationmanifestblobs(trace_file)
     elif args.command == 'calbatchstats':
         calbatchstats()
     elif args.command == 'repullLayers':
