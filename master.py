@@ -448,7 +448,7 @@ def main():
             realblob_locations = inputs['client_info']['realblobs'] 
             tracedata, layeridmap = fix_put_id(trace_files, limit)
             match(realblob_locations, tracedata, layeridmap)
-            organize_and_send_clients(out_trace, numclients, clients, hotratio)
+            organize_and_send_clients(threads, clients, hotratio)
             return
 	else:
 	    print "please put realblobs in the config files"
@@ -468,7 +468,7 @@ def main():
 
     elif args.command == 'run':
         print 'run mode'
-        data = organize(threads, clients)
+        data = organize(interm, threads, clients)
         get_blobs(data, threads/len(clients), out_file)#, testmode)
     else:
         pass

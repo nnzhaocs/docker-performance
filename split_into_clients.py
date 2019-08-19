@@ -8,6 +8,7 @@ import random
 import datetime
 import math
 from collections import defaultdict
+from utilities import *
 ####
 # Random match
 # the output file is the last trace filename-realblob.json, which is total trace file.
@@ -295,7 +296,7 @@ def get_hotlayers(requests, hotratio, clients):
     selectedlayers = []
     for r in requests:
         uri = r['uri']
-        if 'manifest' in r[uri]:
+        if 'manifest' in r['uri']:
             continue
         layer_id = uri.rsplit('/', 1)[1]
         try:
@@ -319,7 +320,7 @@ def get_hotlayers(requests, hotratio, clients):
         json.dump(selectedlayers, fp)
     
     for clientaddr in clients:
-        send_to_client(fname, clientaddr, targetname)    
+        send_to_client(fname, clientaddr, fname)    
     
             
 ##############
@@ -347,7 +348,7 @@ def organize_and_send_clients(numclients, clients, hotratio):
     print "load number of replay requests: " + str(len(requests)) 
    
     for r in requests:           
-        clientToReqs[r['client']].append(request)
+        clientToReqs[r['client']].append(r)
         
     get_hotlayers(requests, hotratio, clients)
         
