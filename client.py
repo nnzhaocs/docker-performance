@@ -9,9 +9,6 @@ import subprocess
 from utilities import *
 from uhashring import HashRing
 
-###=========== this is a temperal directory =============>
-layerdir = "/home/nannan/testing/layers"
-
 
 def pull_from_registry(dgst, registry_tmp, type, reponame, client):        
     result = {}
@@ -51,89 +48,133 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
     return result
 
 
-def get_request_registries(r):
-    global ring
-    global Testmode
-        
-    uri = r['uri']
-    layer_id = uri.split('/')[-1]
+def push_to_registry(blobfname, registry, newreponame, tp):    
     
-    if (r['method'] == 'PUT') or ('manifest' in r['uri']) or (Testmode == 'nodedup'):
-        registry_tmp = ring.get_node(layer_id) # which registry should store this layer/manifest?
+    dxf = DXF(registry, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
+    
+    try:
+        dgst = dxf.push_blob(blobfname)
+    except Exception as e:
+            print("PUT/WARMUP: dxf object: ", dxf, "file: ", blobfname, e)
+            dgst = 'bad'
+            onTime = 'failed: '+str(e)  
+            
+    result = {'registry': registry, 'onTime': onTime, 'dgst': dgst}                           
+    print result  
+    return result
+
+
+def get_write_registries(r):
+    global ring
+    global ringdedup
+    
+    global testmode
+    global replica_level
+     
+    global siftmode
+    global hotratio
+    global nondedupreplicas
+    
+    global hotlayers
+         
+    uri = r['uri']
+    id = uri.split('/')[-1]
+    # *************** registry_tmps: [x, x, dedup] ************  
+    registry_tmps = []
+    if ('manifest' in r['uri']) or (Testmode == 'nodedup'): 
+        noderange = ring.range(id, replica_level, True)
+        for i in noderange:
+            registry_tmps.append(i)
+    elif testmode == 'sift': 
+        if 'standard' == siftmode:
+            # *********** nondedupreplicas send to primary nodes ************  
+            noderange = ring.range(id, nondedupreplicas, True)
+            for i in noderange:
+                registry_tmps.append(i)
+            # *********** 1 replica send to dedup nodes ************      
+            registry_tmps.append(ringdedup.get_node(id))
+        elif 'selective' == siftmode:
+            if id in hotlayers:
+                noderange = ring.range(id, replica_level, True)
+                for i in noderange:
+                    registry_tmps.append(i)
+            else:
+                registry_tmps.append(ring.get_node(id))
+                registry_tmps.append(ringdedup.get_node(id))
+                 
+    elif testmode == 'restore':
+        registry_tmps.append(ringdedup.get_node(id)) 
+            
+    return registry_tmps 
+
+
+def get_read_registries(r):
+    global ring
+    global ringdedup
+    
+    global testmode
+    global replica_level
+      
+    global siftmode
+    global hotratio
+    global nondedupreplicas
+     
+    global hotlayers
+       
+    uri = r['uri']
+    layer_id = uri.split('/')[-1] #(r['method'] == 'PUT') or 
+    
+    registry_tmps = []
+    if ('manifest' in r['uri']) or (Testmode == 'nodedup'):
+        registry_tmps = get_write_registries(r)
+        registry_tmp = random.choice(registry_tmps) 
+        #ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
         return [registry_tmp]
-    else:
+    elif testmode == 'restore':
         dgst = r['blob'] 
         serverIps = redis_stat_recipe_serverips(dgst)
         #print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
         if not serverIps:
-            registry_tmp = ring.get_node(layer_id)
+            registry_tmp = ringdedup.get_node(layer_id)
             return [registry_tmp]
-        return list(set(serverIps))
+    elif testmode == 'sift':
+        registry_tmps = get_write_registries(r)
+        registry_tmp = random.choice(registry_tmps[:len(registry_tmps)-1])
+        
+    return registry_tmp 
 
-#key = 'Slice:Recipe::'+dgst
+
 def redis_stat_recipe_serverips(dgst):
     global rediscli_dbrecipe
     global Gettype
 
     key = "Layer:Recipe::"+dgst    
     if not rediscli_dbrecipe.exists(key):
-        print "################ cannot find recipe for redis_stat_recipe_serverips ############"
+        print "################ cannot find recipe for redis_stat_recipe_serverips ############" + dgst
         return None
     recipe = json.loads(rediscli_dbrecipe.execute_command('GET', key))
     serverIps = []
     if "layer" == Gettype:
         return serverIps.append(recipe['MasterIp'])
-    #print("recipe: ", recipe)
-    elif 'slice' == Gettype:  
-        for serverip in recipe['HostServerIps']:
-            serverIps.append(serverip)
-        return serverIps
     else:
         return serverIps
 
 
-def get_slice_request(request):
-    registries = []
-    onTime_l = []
-    results = {}
-    global Testmode
-    global Gettype
+def get_request_registries(r):
+    registry_tmps = []
+    if 'GET' == r['method']:
+        registry_tmps = get_read_registries(r)
+    elif 'PUT' == r['method']:
+        registry_tmps = get_write_registries(r)
+        
+    return registry_tmps
+          
 
-    dgst = request['blob']      
-    uri = request['uri']
-    parts = uri.split('/')
-    reponame = parts[1] + parts[2]
-    client = request['client']
-
-    registries.extend(get_request_registries(request)) 
-    threads = len(registries)
-    print('registries list', registries)
-    
-    if not threads:
-        print 'destination registries for this blob is zero! ERROR!' 
-        return results           
-    
-    # get slice requests    
-    now = time.time()
-    with ProcessPoolExecutor(max_workers = threads) as executor:
-        futures = [executor.submit(pull_from_registry, dgst, registry, "SLICE", reponame, client) for registry in registries]
-        for future in futures:#.as_completed(timeout=60):
-            #print("get_slice_request: future result: ", future.result(timeout=60))
-            try:
-                x = future.result()
-                onTime_l.append(x)      
-            except Exception as e:
-                print('get_slice_request: something generated an exception: %s', e, dgst)
-
-    duration = time.time() - now 
-
-    results = {'time': now, 'duration': duration, 'onTime': onTime_l, 'type': 'SLICE'}     
-    return results
-    
-
-def get_manifest_or_normallayer_request(request):
+def get_request(request):
     #print request
+    results = []
+    
     dgst = request['blob']
     uri = request['uri']
     parts = uri.split('/')
@@ -143,57 +184,60 @@ def get_manifest_or_normallayer_request(request):
   
     registries.extend(get_request_registries(request))
     if len(registries) == 0:
-        print "get_manifest_request ERROR no registry########################"
+        print "get_manifest_request ERROR no registry ######################## "+dgst
         return {}
     
     t = ''
     if 'manifest' in request['uri']:
         t = 'MANIFEST'
+        print "get manifest request: "
     else:
         t = 'LAYER'  
+        print "get layer requests: "
              
-    return pull_from_registry(dgst, registries[0], t, reponame, client)
-   
+    result = pull_from_registry(dgst, registries[0], t, reponame, client)
+    results.append(result)
+    
 
-def pull_repo_request(r): 
+def put_request(request):
     results = []
     
-    if 'manifest' in r['uri']:
-        print "get manifest request: "
-        result = get_manifest_or_normallayer_request(r)
-        results.append(result)
-    else:
-        global Testmode
-        global Gettype
-        if Testmode == 'nodedup' or Gettype == 'layer':
-            print "get normal layer requests: "
-            result = get_manifest_or_normallayer_request(r)
-            results.append(result)
-        else:
-            print "get layer requests: "
-            result = get_slice_request(r)
-            results.append(result)
-    return results
+    registries.extend(get_request_registries(request))
+    result = distribute_put_requests(request, 'PUT', registries)
+    results.append(result)
+    return results    
         
-        
-def push_layer_request(request):
+def distribute_put_requests(request, tp, registries):
+    
+    all = {}
+    trace = {}
+    
     size = request['size']
     uri = request['uri']
     parts = uri.split('/')
     reponame = parts[1] + parts[2]
     client = request['client']
+    id = uri.split('/')[-1]
+    
+    newreponame = ''
+    dgst = ''
     
     registries = []
     result = {}
     onTime = 'yes'
+    
+    global Testmode
 
     if 'manifest' in uri:
         type = 'MANIFEST'
-    else:
+        print "put manifest request: "
+    elif tp == 'PUT':
         type = 'LAYER'
-
-    #newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    global Testmode
+        print "put layer request: "
+    elif tp == 'WARMUP':
+        type = 'WARMUPLAYER'
+        print "warmup layer request: "
+    
     if Testmode != "nodedup":
         newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
     else:
@@ -209,47 +253,46 @@ def push_layer_request(request):
         blobfname = str(os.getpid())
     else:
         blobfname = request['data']
+     
+    now = time.time()        
+    with ProcessPoolExecutor(max_workers = len(registries)) as executor:
+        futures = [executor.submit(push_to_registry, blobfname, registry, newreponame) for registry in registries]
+        for future in futures:#.as_completed(timeout=60):
+            #print("get_slice_request: future result: ", future.result(timeout=60))
+            try:
+                x = future.result()
+                if 'failed' in x['onTime']:
+                    onTime = x['onTime']
+                else:
+                    dgst = x['dgst']
+#                 onTime_l.append(x)      
+            except Exception as e:
+                print('send_warmup_thread: something generated an exception: %s', e, uri)   
+
+    t = time.time() - now
+       
+    clear_extracting_dir(str(os.getpid()))
     
-    if size > 0:
-        registries.extend(get_request_registries(request)) 
-        registry_tmp = registries[0]
-        dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
-        
-        now = time.time()
-        try:
-            dgst = dxf.push_blob(blobfname)#fname
-        except Exception as e:
-            print("PUT: dxf object: ", dxf, "file: ", request['data'], e)
-            if "expected digest sha256:" in str(e):
-                onTime = 'yes: wrong digest'
-            else:
-                onTime = 'failed: ' + str(e)
-                
-        t = time.time() - now
-        clear_extracting_dir(str(os.getpid()))
-	if 'LAYER' == type:
+    if 'manifest' in uri and tp == 'WARMUP':
+        tpp = 'warmupmanifest'          
+    elif 'WARMUPLAYER' == type:
+        tpp = 'warmuplayer'
+
+    if 'WARMUP' == tp:    
+        result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tpp}
+        print result
+        trace[type+id] = dgst
+        all = {'trace': trace, 'result': result}
+        return all    
+    elif 'PUT' == tp:
+        if 'manifest' not in uri:
             result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHLAYER'}
-	else:
-	    result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHMANIFEST'}
-	print("push: ", blobfname, result)
+    	else:
+    	    result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHMANIFEST'}
+    	print("push: ", blobfname, result)
         return result
         
-
-def push_manifest_request(request):
-    return push_layer_request(request)
-            
-            
-def push_repo_request(r):
-    results = []
-    if 'manifest' in r['uri']:
-        result = push_manifest_request(r)
-        results.append(result)
-    else:
-        result = push_layer_request(r)
-        results.append(result)
-    return results
-        
-        
+               
 def send_requests(requests):
     results_all = [] 
     if not len(requests):
@@ -273,10 +316,10 @@ def send_requests(requests):
             
         if 'GET' == r['method']:
             print "get repo request: "
-            result = pull_repo_request(r)
+            result = get_request(r)
         elif 'PUT' == r['method']:
             print "push repo request: "
-            result = push_repo_request(r)
+            result = put_request(r)
 	else:
 	    print "############# norecognized method #########"
 	    print r['method']
@@ -287,19 +330,24 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(registries_input, testmode, gettype, wait, accelerater): 
-    global ring
+def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, gettype, wait, accelerater): 
+
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
-
-    global registries
+   
     global Testmode
     global Gettype
     global Wait
     global Accelerater
     
-    registries = registries_input
-    ring = HashRing(nodes = registries)
+    global ring  
+    global ringdedup
+    global hotlayer
+      
+    ring = ring_input
+    ringdedup = ringdedup_input
+    hotlayer = hotlayers_input
+        
     Testmode = testmode
     Gettype = gettype
     Wait = wait
@@ -310,16 +358,23 @@ def config_client(registries_input, testmode, gettype, wait, accelerater):
     print("The Wait is: ", Wait)
     print("The Accelerater is: ", Accelerater)
 
-    print registries
-    if "192.168.0.170:5000" in registries:
-        startup_nodes = startup_nodes_hulks
-        print("==========> Testing HULKS <============: ", startup_nodes)
-    else:    
-        startup_nodes = startup_nodes_thors
-        print("==========> Testing THORS <============: ", startup_nodes)
-        
-    rediscli_dbrecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+    print("===========> Testing dedupregistries <============", dedupregistries)
     
+    if Testmode != 'nodedup':    
+        if "192.168.0.17" in dedupregistries[0]:
+            startup_nodes = startup_nodes_hulks
+            print("==========> Testing dedupregistries HULKS <============: ", startup_nodes)
+        else:    
+            startup_nodes = startup_nodes_thors
+            print("==========> Testing dedupregistries THORS <============: ", startup_nodes)
+        
+    
+#         for ip in dedupregistries:
+#             addr = ip.split(':')[0]
+#             redisservers.append(addr+':7000')
+#             redisservers.append(addr+':7001')
+#         print redisservers   
+#         rediscli_dbrecipe = StrictRedisCluster(startup_nodes=redisservers, decode_responses=True)
 
 
     
