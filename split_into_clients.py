@@ -290,7 +290,7 @@ def get_requests(fname):
     return ret  
 
 
-def get_hotlayers(requests, hotratio):
+def get_hotlayers(requests, hotratio, clients):
     layeridtopop = {}
     selectedlayers = []
     for r in requests:
@@ -318,6 +318,9 @@ def get_hotlayers(requests, hotratio):
     with open(fname, 'w') as fp:
         json.dump(selectedlayers, fp)
     
+    for clientaddr in clients:
+        send_to_client(fname, clientaddr, targetname)    
+    
             
 ##############
 # NANNAN: old organize request function
@@ -332,7 +335,7 @@ def get_hotlayers(requests, hotratio):
 # "http.request.method": "GET", 
 # "http.request.remoteaddr": "0ee76ffa"
 ##############
-def organize_and_send_clients(out_trace, numclients, clients, hotratio):
+def organize_and_send_clients(numclients, clients, hotratio):
     fname = realblobtrace_dir+'input_tracefile'+'-realblob.json'
     requests = get_requests(fname)
     
@@ -341,8 +344,65 @@ def organize_and_send_clients(out_trace, numclients, clients, hotratio):
     clientToReqs = defaultdict(list)
     threadsize = {x: 0 for x in range(0, numclients)}
      
+    print "load number of replay requests: " + str(len(requests)) 
+   
+    for r in requests:           
+        clientToReqs[r['client']].append(request)
+        
+    get_hotlayers(requests, hotratio, clients)
+        
+    i = 0 
+    for cli in sorted(clientToReqs, key=lambda k: len(clientToReqs[k]), reverse=True):
+        #req = clireqlst[0]
+        try:
+            threadid = clientTOThreads[cli]
+            organized[threadid].extend(clientToReqs[cli])
+            threadsize[threadid] += len(clientToReqs[cli])
+        except Exception as e:
+            i += 1
+            threadid = min(threadsize, key=threadsize.get)
+            organized[threadid].extend(clientToReqs[cli])
+            clientTOThreads[cli] = threadid
+            threadsize[threadid] += len(clientToReqs[cli])   
+              
+    print ("number of real clients:", i)      
+    before = 0
+    
+    i = 0
+    for clireqlst in organized:
+        fname = realblobtrace_dir+'input_tracefile-'+clients[i]+'-realblob.json'
+        targetname = realblobtrace_dir+'input_tracefile-'+'client-realblob.json'
+        clientaddr = clients[i]
+        
+        print ("send to client: filename: ", fname)
+        with open(fname, 'w') as fp:
+            json.dump(clireqlst, fp)
+        i = (i+1)/len(clients)
+        
+        send_to_client(fname, clientaddr, targetname)
+                
+    #print organized
+    totalcnt = sum([len(x) for x in organized])
+    print ("total number of replay requests are: ", totalcnt)
+#     return organized
+
+
+def organize(out_trace, numclients, clients):
+    
+    fname = realblobtrace_dir+'input_tracefile'+'client-realblob.json' 
+    with open(fname, 'r') as f:
+        requests = json.load(f)
+    requests.sort(key= lambda x: x['delay'])
+    
     with open(out_trace, 'r') as f:
         blob = json.load(f)
+    
+    numclients = numclients/len(clients)
+    organized = [[] for x in xrange(numclients)]
+    clientTOThreads = {}
+    clientToReqs = defaultdict(list)
+    threadsize = {x: 0 for x in range(0,numclients)}
+    
     print "load number of unique get requests: " + str(len(blob)) 
     print "load number of replay requests: " + str(len(requests)) 
    
@@ -369,79 +429,6 @@ def organize_and_send_clients(out_trace, numclients, clients, hotratio):
         else:
             request['size'] = r['size']
             request['method'] = 'PUT'
-             
-        clientToReqs[r['client']].append(request)
-        
-    get_hotlayers(requests, hotratio)
-        
-    i = 0 
-    for cli in sorted(clientToReqs, key=lambda k: len(clientToReqs[k]), reverse=True):
-        #req = clireqlst[0]
-        try:
-            threadid = clientTOThreads[cli]
-            organized[threadid].extend(clientToReqs[cli])
-            threadsize[threadid] += len(clientToReqs[cli])
-        except Exception as e:
-            i += 1
-            threadid = min(threadsize, key=threadsize.get)
-            organized[threadid].extend(clientToReqs[cli])
-            clientTOThreads[cli] = threadid
-            threadsize[threadid] += len(clientToReqs[cli])   
-              
-    print ("number of real clients:", i)      
-    before = 0
-     
-    for clireqlst in organized:
-        clireqlst.sort(key= lambda x: x['delay'])
-        i = 0
-        for r in clireqlst:
-        #print r
-            if 0 == i:
-                r['sleep'] = 0
-                before = r['delay']
-                i += 1
-            else:
-                r['sleep'] = (r['delay'] - before).total_seconds()
-                before = r['delay']
-                i += 1
-                 
-        print ("number of request for client:", i)
-    
-    i = 0
-    for clireqlst in organized:
-        fname = realblobtrace_dir+'input_tracefile-'+clients[i]+'-realblob.json'
-        targetname = realblobtrace_dir+'input_tracefile-'+'client-realblob.json'
-        clientaddr = clients[i]
-        
-        print ("send to client: filename: ", fname)
-        with open(fname, 'w') as fp:
-            json.dump(clireqlst, fp)
-        i = (i+1)/len(clients)
-        
-        send_to_client(fname, clientaddr, targetname)
-                
-    #print organized
-    totalcnt = sum([len(x) for x in organized])
-    print ("total number of replay requests are: ", totalcnt)
-#     return organized
-
-
-def organize(numclients, clients):
-    
-    fname = realblobtrace_dir+'input_tracefile'+'client-realblob.json' 
-    with open(fname, 'r') as f:
-        requests = json.load(f)
-    requests.sort(key= lambda x: x['delay'])
-    
-    numclients = numclients/len(clients)
-    organized = [[] for x in xrange(numclients)]
-    clientTOThreads = {}
-    clientToReqs = defaultdict(list)
-    threadsize = {x: 0 for x in range(0,numclients)}
-     
-    print "load number of replay requests: " + str(len(requests)) 
-   
-    for r in requests:
         clientToReqs[r['client']].append(r)
     i = 0 
     for cli in sorted(clientToReqs, key=lambda k: len(clientToReqs[k]), reverse=True):
@@ -459,9 +446,25 @@ def organize(numclients, clients):
               
     print ("number of real clients:", i)      
      
+#     for clireqlst in organized:
+#         clireqlst.sort(key= lambda x: x['delay'])
+#         print ("number of request for client:", i)
+        
     for clireqlst in organized:
         clireqlst.sort(key= lambda x: x['delay'])
-        print ("number of request for client:", i)
+        i = 0
+        for r in clireqlst:
+        #print r
+            if 0 == i:
+                r['sleep'] = 0
+                before = r['delay']
+                i += 1
+            else:
+                r['sleep'] = (r['delay'] - before).total_seconds()
+                before = r['delay']
+                i += 1
+                 
+        print ("number of request for client:", i)    
     
     totalcnt = sum([len(x) for x in organized])
     print ("total number of replay requests are: ", totalcnt)
