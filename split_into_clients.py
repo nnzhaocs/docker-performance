@@ -47,12 +47,9 @@ def match(realblob_location_files, tracedata, layeridmap):
     not_refered_put = 0
     
     put_M = 0
-#     put_L = 0
     get_M = 0
     get_L = 0
     
-#     uniq_M = 0
-  
     for request in tracedata:
         method = request['http.request.method']
         uri = request['http.request.uri']
@@ -102,7 +99,6 @@ def match(realblob_location_files, tracedata, layeridmap):
                     x = mdic[layer_id]
                 except Exception as e:
                     mdic[layer_id] = 1
-#                     uniq_M += 1 
             else:
                 try:
                     blob = lTOblobdic[layer_id]
@@ -266,7 +262,7 @@ def get_requests(fname):
         with open(fname, 'r') as f:
             requests.extend(json.load(f))#append a file
     except Exception as e:
-        print('get_requests: Ignore this exception because no *-realblob file generated for this trace', e)
+        print('##############: get_requests: ##############', e, fname)
     
     for request in requests: #load each request
         method = request['http.request.method']
@@ -295,8 +291,8 @@ def get_hotlayers(requests, hotratio, clients):
     layeridtopop = {}
     selectedlayers = []
     for r in requests:
-        uri = r['uri']
-        if 'manifest' in r['uri']:
+        uri = r['http.request.uri']
+        if 'manifest' in r['http.request.uri']:
             continue
         layer_id = uri.rsplit('/', 1)[1]
         try:
@@ -306,21 +302,22 @@ def get_hotlayers(requests, hotratio, clients):
             layeridtopop[layer_id] = 1
             
     selected = len(layeridtopop) * hotratio 
+    print('selected: ', selected)
     i = 0       
     for k, v in sorted(layeridtopop.items(), key=lambda item: item[1], reverse=True):
-        print("%s: %d" % (k, v))
-        
+        #print("%s: %d" % (k, v))
         if i >= selected:
             break
         i += 1
         selectedlayers.append(k)
     
-    fname = realblobtrace_dir+'input_tracefile'+'_hotlayers.json'
+    fname = realblobtrace_dir+'input_tracefile'+'tmp_hotlayers.json'
+    targetname = realblobtrace_dir+'input_tracefile'+'_hotlayers.json'
     with open(fname, 'w') as fp:
         json.dump(selectedlayers, fp)
     
     for clientaddr in clients:
-        send_to_client(fname, clientaddr, fname)    
+        send_to_client(fname, clientaddr, targetname)    
     
             
 ##############
@@ -341,7 +338,6 @@ def organize_and_send_clients(numclients, clients, hotratio):
     fname = realblobtrace_dir+'input_tracefile'+'-realblob.json'
     with open(fname, 'r') as f:
         requests = json.load(f) #append a file
-#     requests = get_requests(fname)
     
     organized = [[] for x in xrange(numclients)]
     clientTOThreads = {}
@@ -351,13 +347,12 @@ def organize_and_send_clients(numclients, clients, hotratio):
     print "load number of replay requests: " + str(len(requests)) 
    
     for r in requests:           
-        clientToReqs[r['http.request.remoteaddr']].append(request)
+        clientToReqs[r['http.request.remoteaddr']].append(r)
         
     get_hotlayers(requests, hotratio, clients)
         
     i = 0 
     for cli in sorted(clientToReqs, key=lambda k: len(clientToReqs[k]), reverse=True):
-        #req = clireqlst[0]
         try:
             threadid = clientTOThreads[cli]
             organized[threadid].extend(clientToReqs[cli])
@@ -370,7 +365,6 @@ def organize_and_send_clients(numclients, clients, hotratio):
             threadsize[threadid] += len(clientToReqs[cli])   
               
     print ("number of real clients:", i)      
-    before = 0
     
     i = 0
     for clireqlst in organized:
@@ -378,10 +372,11 @@ def organize_and_send_clients(numclients, clients, hotratio):
         targetname = realblobtrace_dir+'input_tracefile-'+'client-realblob.json'
         clientaddr = clients[i]
         
-        print ("send to client: filename: ", fname)
+        print ("send to client: client, number reqs", clients[i], len(clireqlst))
         with open(fname, 'w') as fp:
             json.dump(clireqlst, fp)
-        i = (i+1)/len(clients)
+
+        i = (i+1)%len(clients)
         
         send_to_client(fname, clientaddr, targetname)
                 
@@ -393,9 +388,9 @@ def organize_and_send_clients(numclients, clients, hotratio):
 
 def organize(out_trace, numclients, clients):
     
-    fname = realblobtrace_dir+'input_tracefile'+'client-realblob.json' 
+    fname = realblobtrace_dir+'input_tracefile'+'-client-realblob.json' 
     requests = get_requests(fname)
-    
+    #print out_trace
     with open(out_trace, 'r') as f:
         blob = json.load(f)
     
@@ -425,16 +420,16 @@ def organize(out_trace, numclients, clients):
             
         if (type+id) in blob and 'GET' == r['method']:
             b = blob[type+id]
+            print "dgst: "+b
             if b != 'bad':
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
         else:
             request['size'] = r['size']
             request['method'] = 'PUT'
-        clientToReqs[r['client']].append(r)
+        clientToReqs[r['client']].append(request)
     i = 0 
     for cli in sorted(clientToReqs, key=lambda k: len(clientToReqs[k]), reverse=True):
-        #req = clireqlst[0]
         try:
             threadid = clientTOThreads[cli]
             organized[threadid].extend(clientToReqs[cli])
@@ -451,7 +446,7 @@ def organize(out_trace, numclients, clients):
 #     for clireqlst in organized:
 #         clireqlst.sort(key= lambda x: x['delay'])
 #         print ("number of request for client:", i)
-        
+    before = 0    
     for clireqlst in organized:
         clireqlst.sort(key= lambda x: x['delay'])
         i = 0

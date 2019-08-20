@@ -79,7 +79,7 @@ trace: # mandatory field
 #          - syd01/prod-syd01-logstash-2017.07.02-3.json
     
     limit: # entire trace used if limit not speciiied
-        amount: 5000
+        amount: 100
 
     output: results.json # only used in run mode, produced output trace with latencies
  
@@ -157,8 +157,8 @@ warmup: # required for run and warmup mode
     threads: 20 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: False #True #False # nnzhaocs/distribution:original  
-    sift: True #False #True  # nnzhaocs/distribution:distributioncache 
+    nodedup: True #True #False # nnzhaocs/distribution:original  
+    sift: False #False #True  # nnzhaocs/distribution:distributioncache 
     restore: False
 
 siftparams:  

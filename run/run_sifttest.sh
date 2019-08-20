@@ -30,7 +30,8 @@ echo 'check pulling finishing'
 pssh -h $2 -l root -A -i $cmd
 
 echo "GET IP FROM HULKS"
-hulkip='ip -4 addr |grep 192.168 |grep -Po \"inet \K[\d.]+\"'
+hulkip="\$(ip -4 addr |grep 192.168. |grep -Po 'inet \K[\d.]+')"
+#hulkip='ip -4 addr |grep 192.168 |grep -Po \"inet \K[\d.]+\"'
 echo $hulkip
 echo "GET IP FROM THORS"
 #\$(ip -4 addr |grep 192.168.0.2 |grep -Po \"inet \K[\d.]+\")\"
@@ -46,21 +47,22 @@ layerslicingfcntthres=7
 layerslicingdirsizethres=5 #(MB)
 ttl=7000
 compressmethod="pgzip"
-hostip=$thorip
+hostip=$hulkip
 
 cmd=$(printf "Hostip: %b" "$hostip")
 echo $cmd
 
 echo 'run containers as following'
-cmd1=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" --name registry-cluster %s" "$thorip" $1)
+cmd1=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" --name registry-cluster %s" "$hostip" $1)
 
-cmd2=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_REDIS_ADDR=%s\" --name registry-cluster %s" $hulkip $1)
+cmd2=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_REDIS_ADDR=%s:6379\" --name registry-cluster %s" "$hostip" $1)
 
-cmd3="docker run -p 6379:6379 --name redis-rejson redislabs/rejson:latest"
+cmd3="docker run --rm -d -p 6379:6379 --name redis-rejson redislabs/rejson:latest"
 
 if [ $1 == "nnzhaocs/distribution:original" ]; then 
 	cmd=$cmd2
 	echo "run redis for each registry"
+	echo $cmd3
 	pssh -h $2 -l root -A -i $cmd3
 else
 	cmd=$cmd1	

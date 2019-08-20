@@ -19,8 +19,6 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
-    #newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame    
-    
     if Testmode != "nodedup":
         newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
     else:
@@ -28,7 +26,7 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
 
     dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print("newreponame: ", newreponame)   
-    print("pull layer from registry, dgst: ", dgst)
+    #print("pull layer from registry, dgst: ", dgst)
     now = time.time()
     try:
         for chunk in dxf.pull_blob(dgst, chunk_size=1024*1024):
@@ -44,12 +42,12 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
     
     result = {'time': now, 'size': size, 'onTime': onTime, 'duration': t, "digest": dgst, "type": type}
     
-    print("pull: ", result)
+    #print("pull: ", result)
     return result
 
 
-def push_to_registry(blobfname, registry, newreponame, tp):    
-    
+def push_to_registry(blobfname, registry, newreponame):    
+    onTime = 'yes'
     dxf = DXF(registry, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     
     try:
@@ -58,9 +56,10 @@ def push_to_registry(blobfname, registry, newreponame, tp):
             print("PUT/WARMUP: dxf object: ", dxf, "file: ", blobfname, e)
             dgst = 'bad'
             onTime = 'failed: '+str(e)  
-            
+    #print("push layer to registry, dgst: ", dgst)        
     result = {'registry': registry, 'onTime': onTime, 'dgst': dgst}                           
-    print result  
+
+    #print result  
     return result
 
 
@@ -84,20 +83,20 @@ def get_write_registries(r):
     if ('manifest' in r['uri']) or (Testmode == 'nodedup'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
-            registry_tmps.append(i)
+            registry_tmps.append(i['nodename'])
     elif testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
             noderange = ring.range(id, nondedupreplicas, True)
             for i in noderange:
-                registry_tmps.append(i)
+                registry_tmps.append(i['nodename'])
             # *********** 1 replica send to dedup nodes ************      
             registry_tmps.append(ringdedup.get_node(id))
         elif 'selective' == siftmode:
             if id in hotlayers:
                 noderange = ring.range(id, replica_level, True)
                 for i in noderange:
-                    registry_tmps.append(i)
+                    registry_tmps.append(i['nodename'])
             else:
                 registry_tmps.append(ring.get_node(id))
                 registry_tmps.append(ringdedup.get_node(id))
@@ -147,18 +146,15 @@ def get_read_registries(r):
 
 def redis_stat_recipe_serverips(dgst):
     global rediscli_dbrecipe
-    #global Gettype
-
+    
     key = "Layer:Recipe::"+dgst    
     if not rediscli_dbrecipe.exists(key):
         print "################ cannot find recipe for redis_stat_recipe_serverips ############" + dgst
         return None
     recipe = json.loads(rediscli_dbrecipe.execute_command('GET', key))
     serverIps = []
-    #if "layer" == Gettype:
-    return serverIps.append(recipe['MasterIp'])
-    #else:
-    #    return serverIps
+   
+    return serverIps.append(recipe['MasterIp']) 
 
 
 def get_request_registries(r):
@@ -174,8 +170,9 @@ def get_request_registries(r):
 def get_request(request):
     #print request
     results = []
-    
+    #print "get_request: dgst"
     dgst = request['blob']
+    #print "dgst: "+dgst
     uri = request['uri']
     parts = uri.split('/')
     reponame = parts[1] + parts[2]
@@ -190,25 +187,27 @@ def get_request(request):
     t = ''
     if 'manifest' in request['uri']:
         t = 'MANIFEST'
-        print "get manifest request: "
+        #print "get manifest request: "
     else:
         t = 'LAYER'  
-        print "get layer requests: "
+        #print "get layer requests: "
              
     result = pull_from_registry(dgst, registries[0], t, reponame, client)
+    print("get_request: ", result)
     results.append(result)
-    
+    return results
 
 def put_request(request):
     results = []
-    
+    registries = []
     registries.extend(get_request_registries(request))
     result = distribute_put_requests(request, 'PUT', registries)
+    print("put_request: ", result)
     results.append(result)
     return results    
         
 def distribute_put_requests(request, tp, registries):
-    
+    #print len(registries)
     all = {}
     trace = {}
     
@@ -222,7 +221,6 @@ def distribute_put_requests(request, tp, registries):
     newreponame = ''
     dgst = ''
     
-    registries = []
     result = {}
     onTime = 'yes'
     
@@ -230,13 +228,13 @@ def distribute_put_requests(request, tp, registries):
 
     if 'manifest' in uri:
         type = 'MANIFEST'
-        print "put manifest request: "
+        #print "put manifest request: "
     elif tp == 'PUT':
         type = 'LAYER'
-        print "put layer request: "
+        #print "put layer request: "
     elif tp == 'WARMUP':
         type = 'WARMUPLAYER'
-        print "warmup layer request: "
+        #print "warmup layer request: "
     
     if Testmode != "nodedup":
         newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
@@ -265,9 +263,9 @@ def distribute_put_requests(request, tp, registries):
                     onTime = x['onTime']
                 else:
                     dgst = x['dgst']
-#                 onTime_l.append(x)      
+
             except Exception as e:
-                print('send_warmup_thread: something generated an exception: %s', e, uri)   
+                print('distribute_put_requests: something generated an exception: %s', e, uri)   
 
     t = time.time() - now
        
@@ -280,8 +278,9 @@ def distribute_put_requests(request, tp, registries):
 
     if 'WARMUP' == tp:    
         result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tpp}
-        print result
+        #print result
         trace[type+id] = dgst
+        #print dgst
         all = {'trace': trace, 'result': result}
         return all    
     elif 'PUT' == tp:
@@ -289,7 +288,7 @@ def distribute_put_requests(request, tp, registries):
             result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHLAYER'}
     	else:
     	    result = {'time': now, 'duration': t, 'onTime': onTime, 'size': size, 'type': 'PUSHMANIFEST'}
-    	print("push: ", blobfname, result)
+    	#print("push: ", blobfname, result)
         return result
         
                
@@ -305,6 +304,7 @@ def send_requests(requests):
     prev = 0
     global Accelerater #= 8
     global Wait
+    result = []
 
     for r in requests:
         i += 1
@@ -315,11 +315,17 @@ def send_requests(requests):
             time.sleep((r['sleep'] - prev)/Accelerater)
             
         if 'GET' == r['method']:
-            print "get repo request: "
+            #print "get repo request: "
             result = get_request(r)
+            if result == None:
+                print "empty: get"
+                print r
         elif 'PUT' == r['method']:
-            print "push repo request: "
+            #print "push repo request: "
             result = put_request(r)
+            if result == None:
+                print "empty: put"
+                print r
 	else:
 	    print "############# norecognized method #########"
 	    print r['method']
@@ -330,15 +336,15 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater): 
+def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input): 
 
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
-   
+
     global Testmode
-    #global Gettype
     global Wait
     global Accelerater
+    global replica_level
     
     global ring  
     global ringdedup
@@ -349,12 +355,12 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
     hotlayer = hotlayers_input
         
     Testmode = testmode
-    #Gettype = gettype
     Wait = wait
     Accelerater = accelerater
+    replica_level = replica_level_input
     
     print("The testmode is: ", Testmode)
-    #print("The Gettype is: ", Gettype)
+    print("The replica_level is: ", replica_level)
     print("The Wait is: ", Wait)
     print("The Accelerater is: ", Accelerater)
 

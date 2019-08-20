@@ -38,8 +38,9 @@ WARMUPLAYER
 def send_warmup_thread(req):
     registries = req[0]
     request = req[1]
-
+    print "send_warmup_thread"
     all = distribute_put_requests(request, 'WARMUP', registries)
+    print("send_warmup_thread: ", all)
     return all 
 
 
@@ -61,9 +62,8 @@ def warmup(out_trace, threads):
     results = []
     process_data = []
     
-    fname = realblobtrace_dir+'input_tracefile'+'client-realblob.json' 
-    with open(fname, 'r') as f:
-        data = json.load(f)
+    fname = realblobtrace_dir+'input_tracefile'+'-client-realblob.json' 
+    data = get_requests(fname)
     data.sort(key= lambda x: x['delay'])
     
     for request in data:
@@ -88,12 +88,13 @@ def warmup(out_trace, threads):
                 except Exception as e:
                     dedupL[id] = 1
             # *********** which registry should store this layer/manifest? ************  
-            #registry_tmp = ring.get_node(id) 
             registry_tmps = get_write_registries(request)   
+            print registry_tmps
             process_data.append((registry_tmps, request))
 
     n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
+    print threads
     for s in process_slices:
         with ProcessPoolExecutor(max_workers=threads) as executor:
             futures = [executor.submit(send_warmup_thread, req) for req in s]
@@ -224,12 +225,10 @@ def stats(responses):
                 
     duration = endtime - startTime
     
-   # global gettype
     global accelerater
     global testmode
     
     print 'Statistics'
-    #print 'gettype: '+gettype
     print 'accelerater: '+str(accelerater)
     print 'testmode: ' + str(testmode)
     print 'Successful Requests: ' + str(total)
@@ -296,7 +295,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
     for reqlst in data:
 	x = send_requests(reqlst)
 	results.extend(x)
-    """
+    """ # end debugging
     #""" # for run
     
     with ProcessPoolExecutor(max_workers = numclients) as executor:
@@ -313,11 +312,12 @@ def get_blobs(data, numclients, out_file):#, testmode):
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
-    """
+    #""" # end for run
+    """ # for just extract result 
     with open(results_dir+out_file) as f:
         results = json.load(f)
     stats(results)
-    """
+    """ # end for extracting
 
 def main():
 
@@ -448,7 +448,7 @@ def main():
             realblob_locations = inputs['client_info']['realblobs'] 
             tracedata, layeridmap = fix_put_id(trace_files, limit)
             match(realblob_locations, tracedata, layeridmap)
-            organize_and_send_clients(threads, clients, hotratio)
+            organize_and_send_clients(len(clients), clients, hotratio)
             return
 	else:
 	    print "please put realblobs in the config files"
@@ -458,7 +458,7 @@ def main():
     with open(fname, 'r') as fp:
         hotlayers = json.load(fp)
 
-    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater) #requests, out_trace, numclients
+    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater, replica_level) #requests, out_trace, numclients
         
     print("hot layers are: ", hotlayers)    
          
