@@ -8,7 +8,7 @@ import json
 import yaml
 from dxf import *
 from collections import defaultdict
-
+import socket
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from os.path import stat
