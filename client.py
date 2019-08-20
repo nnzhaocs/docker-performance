@@ -360,7 +360,8 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
     Wait = wait
     Accelerater = accelerater
     replica_level = replica_level_input
-    
+    #startupnodes = []
+
     print("The testmode is: ", Testmode)
     print("The replica_level is: ", replica_level)
     print("The Wait is: ", Wait)
@@ -370,13 +371,13 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
     
     if Testmode != 'nodedup':    
         if "192.168.0.17" in dedupregistries[0]:
-            startup_nodes = startup_nodes_hulks
-            print("==========> Testing dedupregistries HULKS <============: ", startup_nodes)
+            startupnodes = startup_nodes_hulks
+            print("==========> Testing dedupregistries HULKS <============: ", startupnodes)
         else:    
-            startup_nodes = startup_nodes_thors
-            print("==========> Testing dedupregistries THORS <============: ", startup_nodes)
+            startupnodes = startup_nodes_thors
+            print("==========> Testing dedupregistries THORS <============: ", startupnodes)
       
-    rediscli_dbrecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+        rediscli_dbrecipe = StrictRedisCluster(startup_nodes=startupnodes, decode_responses=True)
 
 
     
