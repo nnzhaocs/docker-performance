@@ -7,7 +7,7 @@ pip install statistics
 pip install numpy
 pip install -U sqlitedict
 pip install futures
-pip install redis-py-cluster
+#pip install redis-py-cluster
 pip install futures
 pip install uhashring
 pip install pssh 
