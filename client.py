@@ -8,7 +8,7 @@ from concurrent.futures import ProcessPoolExecutor
 import subprocess
 from utilities import *
 from uhashring import HashRing
-
+from rediscluster import StrictRedisCluster
 
 def pull_from_registry(dgst, registry_tmp, type, reponame, client):        
     result = {}
@@ -375,14 +375,8 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
         else:    
             startup_nodes = startup_nodes_thors
             print("==========> Testing dedupregistries THORS <============: ", startup_nodes)
-        
-    
-#         for ip in dedupregistries:
-#             addr = ip.split(':')[0]
-#             redisservers.append(addr+':7000')
-#             redisservers.append(addr+':7001')
-#         print redisservers   
-#         rediscli_dbrecipe = StrictRedisCluster(startup_nodes=redisservers, decode_responses=True)
+      
+    rediscli_dbrecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 
 
     
