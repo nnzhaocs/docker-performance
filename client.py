@@ -169,6 +169,7 @@ def get_request_registries(r):
 
 def get_request(request):
     #print request
+    print("request: ", request)
     results = []
     #print "get_request: dgst"
     dgst = request['blob']
@@ -198,6 +199,7 @@ def get_request(request):
     return results
 
 def put_request(request):
+    print("request: ", request)
     results = []
     registries = []
     registries.extend(get_request_registries(request))

@@ -38,7 +38,8 @@ WARMUPLAYER
 def send_warmup_thread(req):
     registries = req[0]
     request = req[1]
-    print "send_warmup_thread"
+    #print "send_warmup_thread"
+    print("request: ", request)
     all = distribute_put_requests(request, 'WARMUP', registries)
     print("send_warmup_thread: ", all)
     return all 
@@ -94,7 +95,7 @@ def warmup(out_trace, threads):
 
     n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
-    print threads
+    #print threads
     for s in process_slices:
         with ProcessPoolExecutor(max_workers=threads) as executor:
             futures = [executor.submit(send_warmup_thread, req) for req in s]
