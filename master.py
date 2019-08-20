@@ -470,7 +470,8 @@ def main():
     elif args.command == 'run':
         print 'run mode'
         data = organize(interm, threads, clients)
-        get_blobs(data, threads/len(clients), out_file)#, testmode)
+        fname = out_file+'-'+socket.gethostname()
+        get_blobs(data, threads/len(clients), fname)#, testmode)
     else:
         pass
 
