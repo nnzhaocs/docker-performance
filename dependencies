@@ -12,3 +12,4 @@ pip install futures
 pip install uhashring
 pip install pssh 
 sudo apt install sshpass
+#wget https://github.com/Grokzen/redis-py-cluster/releases/download/1.3.6/redis-py-cluster-1.3.6.tar.gzfor install redis-py-cluster if cannot find restrictedclusterclient
