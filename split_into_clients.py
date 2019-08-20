@@ -420,7 +420,7 @@ def organize(out_trace, numclients, clients):
             
         if (type+id) in blob and 'GET' == r['method']:
             b = blob[type+id]
-            print "dgst: "+b
+            #print "dgst: "+b
             if b != 'bad':
                 request['blob'] = b # dgest
                 request['method'] = 'GET'
