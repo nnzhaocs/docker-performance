@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 import pickle
 
 results_dir = "" #/home/nannan/testing/results/"
-fname = "results.json"
+fname = "all_results.json"
 
 #############
 # NANNAN: change `onTime` for distributed dedup response
