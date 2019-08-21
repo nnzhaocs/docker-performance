@@ -10,7 +10,9 @@ from utilities import *
 from uhashring import HashRing
 from rediscluster import StrictRedisCluster
 
-def pull_from_registry(dgst, registry_tmp, type, reponame, client):        
+def pull_from_registry(dgst, tup, type):       
+    registry_tmp = tup[0]
+    newreponame = tup[1] 
     result = {}
     size = 0
     global Testmode
@@ -46,7 +48,11 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
     return result
 
 
-def push_to_registry(blobfname, registry, newreponame):    
+def push_to_registry(blobfname, tup):    
+    
+    registry = tup[0]
+    newreponame = tup[1]
+    
     onTime = 'yes'
     dxf = DXF(registry, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     
@@ -164,9 +170,7 @@ def get_request_registries(r):
     reponame = parts[1] + parts[2]
     client = r['client']
 
-    #if Testmode != "nodedup":
     dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    #else:
     nodedupreponame = "testrepo"
                                                     
     if 'GET' == r['method']:
@@ -184,10 +188,6 @@ def get_request(request):
     #print "get_request: dgst"
     dgst = request['blob']
     #print "dgst: "+dgst
-    uri = request['uri']
-    parts = uri.split('/')
-    reponame = parts[1] + parts[2]
-    client = request['client']
     registries = []
   
     registries.extend(get_request_registries(request))
@@ -203,7 +203,7 @@ def get_request(request):
         t = 'LAYER'  
         #print "get layer requests: "
              
-    result = pull_from_registry(dgst, registries[0], t, reponame, client)
+    result = pull_from_registry(dgst, registries[0], t)
     print("get_request: ", result)
     results.append(result)
     return results
@@ -225,9 +225,9 @@ def distribute_put_requests(request, tp, registries):
     
     size = request['size']
     uri = request['uri']
-    parts = uri.split('/')
-    reponame = parts[1] + parts[2]
-    client = request['client']
+#     parts = uri.split('/')
+#     reponame = parts[1] + parts[2]
+#     client = request['client']
     id = uri.split('/')[-1]
     
     newreponame = ''
@@ -261,7 +261,7 @@ def distribute_put_requests(request, tp, registries):
      
     now = time.time()        
     with ProcessPoolExecutor(max_workers = len(registries)) as executor:
-        futures = [executor.submit(push_to_registry, blobfname, registry, newreponame) for registry in registries]
+        futures = [executor.submit(push_to_registry, blobfname, registry) for registry in registries]
         for future in futures:#.as_completed(timeout=60):
             #print("get_slice_request: future result: ", future.result(timeout=60))
             try:
