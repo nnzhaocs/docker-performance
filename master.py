@@ -100,7 +100,7 @@ def warmup(out_trace, threads):
             client = request['client']
 
             dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-            repodedupreponame = "testrepo"
+            nodedupreponame = "testrepo"
             registry_tmps = get_write_registries(request, dedupreponame, nodedupreponame)   
             print registry_tmps
             process_data.append((registry_tmps, request))

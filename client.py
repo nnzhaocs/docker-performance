@@ -13,6 +13,7 @@ from rediscluster import StrictRedisCluster
 def pull_from_registry(dgst, tup, type):       
     registry_tmp = tup[0]
     newreponame = tup[1] 
+    print("tup, registry_tmp: ", tup, registry_tmp)
     result = {}
     size = 0
     global Testmode
@@ -131,11 +132,12 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
     
     registry_tmps = []
     if ('manifest' in r['uri']) or (Testmode == 'nodedup'):
-        registry_tmps = get_write_registries(r)
+        registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
         registry_tmp = random.choice(registry_tmps) 
-        #ring.get_node(layer_id) # which registry should store this layer/manifest?
+       
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
-        return [(registry_tmp, nodedupreponame)]
+        # registry_tmp is a tup
+        return [registry_tmp]
     elif Testmode == 'restore':
         dgst = r['blob'] 
         registry_tmp = redis_stat_recipe_serverips(dgst)
@@ -144,9 +146,9 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
             registry_tmp = ringdedup.get_node(layer_id)
         return [(registry_tmp, dedupreponame)]
     elif Testmode == 'sift':
-        registry_tmps = get_write_registries(r)
+        registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
         registry_tmp = random.choice(registry_tmps[:len(registry_tmps)-1])
-        return [(registry_tmp, nodedupreponame)] 
+        return [registry_tmp] 
 
 
 def redis_stat_recipe_serverips(dgst):
@@ -183,9 +185,9 @@ def get_request_registries(r):
     nodedupreponame = "testrepo"
                                                     
     if 'GET' == r['method']:
-        registry_tmps = get_read_registries(r, dedupreponame, nodedupname)
+        registry_tmps = get_read_registries(r, dedupreponame, nodedupreponame)
     elif 'PUT' == r['method']:
-        registry_tmps = get_write_registries(r, dedupreponame, nodedupname)
+        registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
         
     return registry_tmps
           
@@ -221,7 +223,7 @@ def put_request(request):
     print("request: ", request)
     results = []
     registries = []
-    registries.extend(get_request_registries(request, 'PUT'))
+    registries.extend(get_request_registries(request))
     result = distribute_put_requests(request, 'PUT', registries)
     print("put_request: ", result)
     results.append(result)
