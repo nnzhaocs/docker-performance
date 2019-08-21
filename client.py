@@ -354,7 +354,7 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input): 
+def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input, nondedupreplicas_input): 
 
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
@@ -368,7 +368,9 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
     global ringdedup
     global hotlayers
     global siftmode
+    global nondedupreplicas
 
+    nondedupreplicas = nondedupreplicas_input
     siftmode = siftmode_input
     ring = ring_input
     ringdedup = ringdedup_input
