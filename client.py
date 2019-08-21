@@ -162,7 +162,7 @@ def redis_stat_recipe_serverips(dgst):
     return serverIps.append(recipe['MasterIp']) 
 
 
-def get_request_registries(r, tp):
+def get_request_registries(r):
     registry_tmps = []
 
     uri = r['uri']
@@ -173,11 +173,11 @@ def get_request_registries(r, tp):
     if 'manifest' in uri:
         type = 'MANIFEST'
         #print "put manifest request: "
-    elif tp == 'PUT':
+    else:
         type = 'LAYER'
         #print "put layer request: "
-    elif tp == 'WARMUP':
-        type = 'WARMUPLAYER'
+#     elif tp == 'WARMUP':
+#         type = 'WARMUPLAYER'
 
     dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
     nodedupreponame = "testrepo"
