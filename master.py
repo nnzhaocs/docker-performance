@@ -41,14 +41,6 @@ def send_warmup_thread(req):
     #print "send_warmup_thread"
     print("request: ", request)
 
-    uri = request['uri']
-    parts = uri.split('/')
-    reponame = parts[1] + parts[2]
-    client = request['client']
-
-    dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    nodedupreponame = "testrepo"
-
     all = distribute_put_requests(request, 'WARMUP', registries)
     print("send_warmup_thread: ", all)
     return all 
@@ -98,7 +90,18 @@ def warmup(out_trace, threads):
                 except Exception as e:
                     dedupL[id] = 1
             # *********** which registry should store this layer/manifest? ************  
-            registry_tmps = get_write_registries(request)   
+            #uri = request['uri']
+            if 'manifest' in uri:
+                type = 'MANIFEST'
+            else:
+                type = 'WARMUPLAYER'
+            parts = uri.split('/')
+            reponame = parts[1] + parts[2]
+            client = request['client']
+
+            dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+            repodedupreponame = "testrepo"
+            registry_tmps = get_write_registries(request, dedupreponame, nodedupreponame)   
             print registry_tmps
             process_data.append((registry_tmps, request))
 
