@@ -40,6 +40,15 @@ def send_warmup_thread(req):
     request = req[1]
     #print "send_warmup_thread"
     print("request: ", request)
+
+    uri = request['uri']
+    parts = uri.split('/')
+    reponame = parts[1] + parts[2]
+    client = request['client']
+
+    dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    nodedupreponame = "testrepo"
+
     all = distribute_put_requests(request, 'WARMUP', registries)
     print("send_warmup_thread: ", all)
     return all 
@@ -459,7 +468,7 @@ def main():
     with open(fname, 'r') as fp:
         hotlayers = json.load(fp)
 
-    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater, replica_level) #requests, out_trace, numclients
+    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater, replica_level, siftmode) #requests, out_trace, numclients
         
     print("hot layers are: ", hotlayers)    
          

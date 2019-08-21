@@ -19,10 +19,10 @@ def pull_from_registry(dgst, registry_tmp, type, reponame, client):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
-    if Testmode != "nodedup":
-        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    else:
-        newreponame = "testrepo"
+#    if Testmode != "nodedup":
+#        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+#    else:
+#        newreponame = "testrepo"
 
     dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print("newreponame: ", newreponame)   
@@ -63,11 +63,11 @@ def push_to_registry(blobfname, registry, newreponame):
     return result
 
 
-def get_write_registries(r):
+def get_write_registries(r, dedupreponame, nodedupreponame):
     global ring
     global ringdedup
     
-    global testmode
+    global Testmode
     global replica_level
      
     global siftmode
@@ -83,35 +83,35 @@ def get_write_registries(r):
     if ('manifest' in r['uri']) or (Testmode == 'nodedup'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
-            registry_tmps.append(i['nodename'])
-    elif testmode == 'sift': 
+            registry_tmps.append((i['nodename'], nodedupreponame))
+    elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
             noderange = ring.range(id, nondedupreplicas, True)
             for i in noderange:
-                registry_tmps.append(i['nodename'])
+                registry_tmps.append((i['nodename'], nodedupreponame))
             # *********** 1 replica send to dedup nodes ************      
-            registry_tmps.append(ringdedup.get_node(id))
+            registry_tmps.append((ringdedup.get_node(id), dedupreponame))
         elif 'selective' == siftmode:
             if id in hotlayers:
                 noderange = ring.range(id, replica_level, True)
                 for i in noderange:
-                    registry_tmps.append(i['nodename'])
+                    registry_tmps.append((i['nodename'], nodedupreponame))
             else:
-                registry_tmps.append(ring.get_node(id))
-                registry_tmps.append(ringdedup.get_node(id))
+                registry_tmps.append((ring.get_node(id), nodedupreponame))
+                registry_tmps.append((ringdedup.get_node(id), dedupreponame))
                  
-    elif testmode == 'restore':
-        registry_tmps.append(ringdedup.get_node(id)) 
+    elif Testmode == 'restore':
+        registry_tmps.append((ringdedup.get_node(id), dedupreponame))
             
     return registry_tmps 
 
 
-def get_read_registries(r):
+def get_read_registries(r, dedupreponame, nodedupreponame):
     global ring
     global ringdedup
     
-    global testmode
+    global Testmode
     global replica_level
       
     global siftmode
@@ -129,19 +129,18 @@ def get_read_registries(r):
         registry_tmp = random.choice(registry_tmps) 
         #ring.get_node(layer_id) # which registry should store this layer/manifest?
         #print "layer: "+layer_id+"goest to registry: "+registry_tmp
-        return [registry_tmp]
-    elif testmode == 'restore':
+        return [(registry_tmp, nodedupreponame)]
+    elif Testmode == 'restore':
         dgst = r['blob'] 
-        serverIps = redis_stat_recipe_serverips(dgst)
+        registry_tmp = redis_stat_recipe_serverips(dgst)
         #print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
         if not serverIps:
             registry_tmp = ringdedup.get_node(layer_id)
-            return [registry_tmp]
-    elif testmode == 'sift':
+        return [(registry_tmp, dedupreponame)]
+    elif Testmode == 'sift':
         registry_tmps = get_write_registries(r)
         registry_tmp = random.choice(registry_tmps[:len(registry_tmps)-1])
-        
-    return registry_tmp 
+        return [(registry_tmp, nodedupreponame)] 
 
 
 def redis_stat_recipe_serverips(dgst):
@@ -159,10 +158,21 @@ def redis_stat_recipe_serverips(dgst):
 
 def get_request_registries(r):
     registry_tmps = []
+
+    uri = r['uri']
+    parts = uri.split('/')
+    reponame = parts[1] + parts[2]
+    client = r['client']
+
+    #if Testmode != "nodedup":
+    dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+    #else:
+    nodedupreponame = "testrepo"
+                                                    
     if 'GET' == r['method']:
-        registry_tmps = get_read_registries(r)
+        registry_tmps = get_read_registries(r, dedupreponame, nodedupname)
     elif 'PUT' == r['method']:
-        registry_tmps = get_write_registries(r)
+        registry_tmps = get_write_registries(r, dedupreponame, nodedupname)
         
     return registry_tmps
           
@@ -238,13 +248,8 @@ def distribute_put_requests(request, tp, registries):
         type = 'WARMUPLAYER'
         #print "warmup layer request: "
     
-    if Testmode != "nodedup":
-        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    else:
-        newreponame = "testrepo"
-    #print("newreponame: ", newreponame)
     blobfname = ''
-    # manifest: randomly generate some files
+    #manifest: randomly generate some files
     if not request['data']:
         with open(str(os.getpid()), 'wb') as f:
             f.seek(size - 9)
@@ -338,7 +343,7 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input): 
+def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input): 
 
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
@@ -350,11 +355,13 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
     
     global ring  
     global ringdedup
-    global hotlayer
-      
+    global hotlayers
+    global siftmode
+
+    siftmode = siftmode_input
     ring = ring_input
     ringdedup = ringdedup_input
-    hotlayer = hotlayers_input
+    hotlayers = hotlayers_input
         
     Testmode = testmode
     Wait = wait
