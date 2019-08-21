@@ -1,7 +1,7 @@
 import os
 import subprocess
 from pipes import quote
-from rediscluster import StrictRedisCluster
+#from rediscluster import StrictRedisCluster
 
 def compress_tarball_gzip(dgstfile, dgstdir): #.gz
     cmd = 'tar -zcvf %s %s' % (dgstfile, dgstdir)
@@ -56,6 +56,18 @@ def mk_dir(newdir):
     except subprocess.CalledProcessError as e:
         print('###################%s: %s###################',
                       newdir, e.output)
+        return False
+    return True
+
+
+def send_to_client(fname, clientaddr, targetname):
+    cmd = 'sshpass -p \'nannan\' scp %s nannan@%s:%s' % (fname, clientaddr, targetname)
+    #sshpass -p 'nannan' scp /home/nannan/testing/results/results.json root@amaranth$1:/home/nannan/testing/resultslogs/$dir
+    try:
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
+    except subprocess.CalledProcessError as e:
+        print('IGNORE THIS ERROR! ###################%s: exit code: ###################',
+                      fname, clientaddr, e.returncode, e.output)
         return False
     return True
 

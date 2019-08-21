@@ -1,31 +1,24 @@
 import sys
-#import socket
 import os
 from argparse import ArgumentParser
-#import requests
 import time
 import datetime
-#import pdb
 import random
-#import threading
-#import multiprocessing
 import json 
 import yaml
 from dxf import *
-#from multiprocessing import Process, Queue
-#import importlib
-#import hash_ring
 from collections import defaultdict
-
+import socket
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
-from client import *
-from organize_requests import *
 from os.path import stat
 from uhashring import HashRing
 import numpy as np
 
-#realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
+from client import *
+# from organize_requests import *
+from split_into_clients import *
+
 results_dir = "/home/nannan/testing/results/"
 
 # TYPE XXX USRADDR XXX REPONAME XXX ; lowcases!!!!
@@ -43,68 +36,15 @@ WARMUPLAYER
 """
 
 def send_warmup_thread(req):
-    registry = req[0]
+    registries = req[0]
     request = req[1]
+    #print "send_warmup_thread"
+    print("request: ", request)
 
-    all = {}
-    trace = {}
-    size = request['size']
-    onTime = 'yes'
+    all = distribute_put_requests(request, 'WARMUP', registries)
+    print("send_warmup_thread: ", all)
+    return all 
 
-    uri = request['uri']
-    parts = uri.split('/')
-    reponame = parts[1] + parts[2]
-    id = uri.split('/')[-1]
-    
-    newreponame = ''
-    client = request['client']
-    
-    if 'manifest' in uri:
-        type = 'MANIFEST'
-    else:
-        type = 'WARMUPLAYER'
-    
-    global testmode
-    if testmode != "nodedup":
-        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-    else:
-        newreponame = "testrepo"
-    #print("newreponame: ", newreponame)   
-    dxf = DXF(registry, newreponame.lower(), insecure=True) 
-    
-    blobfname = ''
-    # manifest: randomly generate some files
-    if not request['data']:
-        with open(str(os.getpid()), 'wb') as f: 
-            f.write(str(random.getrandbits(64)))
-            f.write('\n')
-        blobfname = str(os.getpid())
-    else:
-        blobfname = request['data']
-
-    now = time.time()
-    try:                     
-        dgst = dxf.push_blob(blobfname)
-    except Exception as e:
-        print("dxf send exception: ", e, request['data'])
-        dgst = 'bad'
-        onTime = 'failed: '+str(e)
-    
-    t = time.time() - now
-    tp = ''
-    if 'WARMUPLAYER' == type:
-        tp = 'warmuplayer'
-    else:
-        tp = 'warmupmanifest'    
-
-    result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tp}
-    print result
-    
-    clear_extracting_dir(str(os.getpid()))
-
-    trace[type+id] = dgst
-    all = {'trace': trace, 'result': result}
-    return all
 
 #######################
 # send to registries according to cht 
@@ -113,7 +53,7 @@ def send_warmup_thread(req):
 # let set threads = n* len(registries)
 #######################
 
-def warmup(data, out_trace, registries, threads):
+def warmup(out_trace, threads):
     dedupL = {}
     dedupM = {}
     get_M = 0
@@ -123,9 +63,11 @@ def warmup(data, out_trace, registries, threads):
     trace = {}
     results = []
     process_data = []
-    global ring
-    ring = HashRing(nodes = registries)
-
+    
+    fname = realblobtrace_dir+'input_tracefile'+'-client-realblob.json' 
+    data = get_requests(fname)
+    data.sort(key= lambda x: x['delay'])
+    
     for request in data:
         unique = True
 
@@ -147,14 +89,25 @@ def warmup(data, out_trace, registries, threads):
                     continue
                 except Exception as e:
                     dedupL[id] = 1
-                
-            registry_tmp = ring.get_node(id) # which registry should store this layer/manifest?
-            process_data.append((registry_tmp, request))
-    #split request list into sublists
-    #n = len(process_data)
+            # *********** which registry should store this layer/manifest? ************  
+            #uri = request['uri']
+            if 'manifest' in uri:
+                type = 'MANIFEST'
+            else:
+                type = 'WARMUPLAYER'
+            parts = uri.split('/')
+            reponame = parts[1] + parts[2]
+            client = request['client']
+
+            dedupreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
+            nodedupreponame = "testrepo"
+            registry_tmps = get_write_registries(request, dedupreponame, nodedupreponame)   
+            print registry_tmps
+            process_data.append((registry_tmps, request))
 
     n = 100
     process_slices = [process_data[i:i + n] for i in xrange(0, len(process_data), n)]
+    #print threads
     for s in process_slices:
         with ProcessPoolExecutor(max_workers=threads) as executor:
             futures = [executor.submit(send_warmup_thread, req) for req in s]
@@ -182,17 +135,13 @@ def warmup(data, out_trace, registries, threads):
     
     print "Warmup information:"
     print "Number of warmup threads: " + str(threads)
-    
+    print "Replica_level: " + str(replica_level)
     print 'Get layer request unique count: ' + str(len(dedupL))
     print 'Get manifest request unique count: ' + str(len(dedupM))
     
     print 'Total get layer request count: ' + str(get_L)
-    print 'Total get manifest request count: ' + str(get_M)
-    
+    print 'Total get manifest request count: ' + str(get_M)    
     print "Total warmup unique requests (for get layer/manifest requests): " + str(len(process_data))
-#     print("total warmup unique requests:", len(process_data))
-#     print("unique manifest cnt: ", manifs_cnt)
-
 
 #############
 # NANNAN: change `onTime` for distributed dedup response
@@ -289,12 +238,10 @@ def stats(responses):
                 
     duration = endtime - startTime
     
-    global gettype
     global accelerater
     global testmode
     
     print 'Statistics'
-    print 'gettype: '+gettype
     print 'accelerater: '+str(accelerater)
     print 'testmode: ' + str(testmode)
     print 'Successful Requests: ' + str(total)
@@ -361,7 +308,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
     for reqlst in data:
 	x = send_requests(reqlst)
 	results.extend(x)
-    """
+    """ # end debugging
     #""" # for run
     
     with ProcessPoolExecutor(max_workers = numclients) as executor:
@@ -378,11 +325,12 @@ def get_blobs(data, numclients, out_file):#, testmode):
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
-    """
+    #""" # end for run
+    """ # for just extract result 
     with open(results_dir+out_file) as f:
         results = json.load(f)
     stats(results)
-    """
+    """ # end for extracting
 
 def main():
 
@@ -443,23 +391,44 @@ def main():
         exit(1)
     else:
         interm = inputs['warmup']['output']
-        
-    registries = []
-    if 'registry' in inputs:
-        registries.extend(inputs['registry'])
-     
-    print(registries)
     
-    global gettype
-    gettype = inputs['simulate']['gettype']       
-    print("gettype layer or slice? ", gettype)
+    global primaryregistries    
+    primaryregistries = []
+    if 'primaryregistry' in inputs:
+        primaryregistries.extend(inputs['primaryregistry'])
+    print("primaryregistries: ", primaryregistries)
+    
+    global dedupregistries
+    dedupregistries = []
+    if 'dedupregistry' in inputs:
+        dedupregistries.extend(inputs['dedupregistry'])
+    print("dedupregistries: ", dedupregistries)
+    
+    global ring    
+    ring = HashRing(nodes = primaryregistries)
+    global ringdedup
+    ringdedup = HashRing(nodes = dedupregistries) 
+    
+    clients = []
+    if 'clients' in inputs:
+        clients.extend(inputs['clients'])
+    print(clients)
+    
+#    global gettype
+#    gettype = inputs['simulate']['gettype']       
+#    print("gettype layer or slice? ", gettype)
         
     wait = inputs['simulate']['wait']
     print ("wait or not? ", wait)
     
     global accelerater
     accelerater = inputs['simulate']['accelerater']
+    print ("accelerater:  ", accelerater)
     
+    global replica_level
+    replica_level = inputs['simulate']['replicalevel']
+    print ("replica_level:  ", replica_level)
+       
     if 'threads' in inputs['warmup']:
         threads = inputs['warmup']['threads']
     else:
@@ -467,35 +436,54 @@ def main():
     print 'warmup threads same as number of clients: ' + str(threads)
 
     global testmode
+    global siftmode
+    global hotratio
+    global nondedupreplicas
+    global hotlayers
+    
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
-    #elif inputs['testmode']['traditionaldedup'] == True:
-    #    testmode = 'traditionaldedup'
-    else:
+    elif inputs['testmode']['sift'] == True:
         testmode = 'sift' 
+        siftmode = inputs['siftparams']['mode']
+        print ("siftmode:  ", siftmode)
+        if 'selective' == siftmode:
+            hotratio = inputs['siftparams']['selective']['hotratio']
+            print ("hotratio:  ", hotratio)
+        elif 'standard' == siftmode:
+            nondedupreplicas = inputs['siftparams']['standard']['nondedupreplicas']
+            print ("nondedupreplicas:  ", nondedupreplicas)        
+    elif inputs['testmode']['restore'] == True:
+        testmode = 'restore'       
     
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:
-#             choseclis = extract_client_reqs(trace_files, threads, limit, tracetype)            
-            realblob_locations = inputs['client_info']['realblobs'] # bin larg ob/specify set of layers(?) being tested
+            realblob_locations = inputs['client_info']['realblobs'] 
             tracedata, layeridmap = fix_put_id(trace_files, limit)
             match(realblob_locations, tracedata, layeridmap)
+            organize_and_send_clients(len(clients), clients, hotratio)
             return
 	else:
 	    print "please put realblobs in the config files"
-	    return
+	    return      
+  
+    fname = realblobtrace_dir+'input_tracefile'+'_hotlayers.json'
+    with open(fname, 'r') as fp:
+        hotlayers = json.load(fp)
 
-    json_data = get_requests()#, getonly) # == init in cache.py
-    config_client(registries, testmode, gettype, wait, accelerater) #requests, out_trace, numclients   
+    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater, replica_level, siftmode, nondedupreplicas) 
+        
+    print("hot layers are: ", hotlayers)    
          
     if args.command == 'warmup': 
         print 'warmup mode'
-        warmup(json_data, interm, registries, threads)
+        warmup(interm, threads/len(clients))
 
     elif args.command == 'run':
         print 'run mode'
-        data = organize(json_data, interm, threads)
-        get_blobs(data, threads, out_file)#, testmode)
+        data = organize(interm, threads, clients)
+        fname = out_file+'-'+socket.gethostname()
+        get_blobs(data, threads/len(clients), fname)#, testmode)
     else:
         pass
 
