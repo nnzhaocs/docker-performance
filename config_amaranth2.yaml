@@ -3,9 +3,9 @@
 client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
-        #- /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
+        - /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
         #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_1MB.lst  
-        - /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_5MB.lst
+        #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_5MB.lst
         #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_10MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_20MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_30MB.lst
@@ -88,10 +88,10 @@ primaryregistry:
         #    - 192.168.0.171:5000
         #    - 192.168.0.172:5000
         #    - 192.168.0.174:5000
-    - 192.168.0.176:5000
-    - 192.168.0.177:5000
-    - 192.168.0.179:5000
-    - 192.168.0.180:5000
+#    - 192.168.0.176:5000
+#    - 192.168.0.177:5000
+#    - 192.168.0.179:5000
+#    - 192.168.0.180:5000
 #    - 192.168.0.200:5000           
 #    - 192.168.0.201:5000           
 #    - 192.168.0.202:5000           
@@ -103,37 +103,37 @@ primaryregistry:
 #    - 192.168.0.210:5000           
 #    - 192.168.0.211:5000           
 #    - 192.168.0.212:5000           
-#    - 192.168.0.213:5000           
-#    - 192.168.0.214:5000           
-#    - 192.168.0.215:5000           
-#    - 192.168.0.216:5000           
-#    - 192.168.0.217:5000           
-#    - 192.168.0.218:5000           
-#    - 192.168.0.219:5000                    
-#    - 192.168.0.221:5000           
-#    - 192.168.0.222:5000           
-#    - 192.168.0.223:5000
+    - 192.168.0.213:5000           
+    - 192.168.0.214:5000           
+    - 192.168.0.215:5000           
+    - 192.168.0.216:5000           
+    - 192.168.0.217:5000           
+    - 192.168.0.218:5000           
+    - 192.168.0.219:5000                    
+    - 192.168.0.221:5000           
+    - 192.168.0.222:5000           
+    - 192.168.0.223:5000
 
 dedupregistry:   
-    - 192.168.0.170:5000
-    - 192.168.0.171:5000
-    - 192.168.0.172:5000
-    - 192.168.0.174:5000
+#    - 192.168.0.170:5000
+#    - 192.168.0.171:5000
+#    - 192.168.0.172:5000
+#    - 192.168.0.174:5000
       #    - 192.168.0.176:5000
       #    - 192.168.0.177:5000
       #    - 192.168.0.179:5000
       #    - 192.168.0.180:5000
-#    - 192.168.0.200:5000           
-#    - 192.168.0.201:5000           
-#    - 192.168.0.202:5000           
-#    - 192.168.0.203:5000           
-#    - 192.168.0.204:5000           
-#    - 192.168.0.205:5000                     
-#    - 192.168.0.208:5000           
-#    - 192.168.0.209:5000           
-#    - 192.168.0.210:5000           
-#    - 192.168.0.211:5000           
-#    - 192.168.0.212:5000           
+    - 192.168.0.200:5000           
+    - 192.168.0.201:5000           
+    - 192.168.0.202:5000           
+    - 192.168.0.203:5000           
+    - 192.168.0.204:5000           
+    - 192.168.0.205:5000                     
+    - 192.168.0.208:5000           
+    - 192.168.0.209:5000           
+    - 192.168.0.210:5000           
+    - 192.168.0.211:5000           
+    - 192.168.0.212:5000           
 #    - 192.168.0.213:5000           
 #    - 192.168.0.214:5000           
 #    - 192.168.0.215:5000           
@@ -146,7 +146,7 @@ dedupregistry:
 #    - 192.168.0.223:5000
 
 clients:
-        #    - 192.168.0.151
+    - 192.168.0.151
     - 192.168.0.152
     - 192.168.0.153
     - 192.168.0.154
@@ -163,7 +163,7 @@ testmode: # required for simulate mode
     restore: False
 
 siftparams:  
-    mode: standard
+    mode: selective
     selective: 
         hotratio: 0.25 # 0.1 
     standard: 
@@ -173,7 +173,7 @@ simulate:
     wait: True  #True # or no delay
 #    getonly: False
 #    gettype: layer
-    accelerater: 8
+    accelerater: 12
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
 #    biglayer: True
     replicalevel: 3

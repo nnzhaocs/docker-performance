@@ -23,8 +23,8 @@ echo 'check pulling finishing'
 pssh -h remotehoststhors.txt -l root -A -i $cmd
 
 
-filecachecap=203 #3524 # = match result unique dataset size / 8 *0.25
-layercachecap=203 #3524# same as above
+filecachecap=66 #3524 # = match result unique dataset size / 8 *0.25
+layercachecap=66 #3524# same as above
 stype="MB" #"B"
 repullcntthres=3
 comprlevel=4

@@ -2,9 +2,9 @@
 client_info: # Required for run command
     threads: 1 #  number of layers pulled in parallel
     realblobs: # NANNAN: lst of real blobs
-        #- /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
+        - /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst
         #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_1MB.lst  
-        - /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_5MB.lst
+        #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_5MB.lst
         #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_10MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_20MB.lst
           #- /home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_30MB.lst
@@ -31,7 +31,7 @@ trace: # mandatory field
 #        - prod-dal09-logstash-2017.06.21-2.json
 #        - prod-dal09-logstash-2017.06.21-3.json
 #        **********************************************
-         - dal09/prod-dal09-logstash-2017.06.20-0.json
+#         - dal09/prod-dal09-logstash-2017.06.20-0.json
 #         ------------------------------------------------
 #         - dev-mon01/dev-mon01-logstash-2017.07.13-0.json
 #         - dev-mon01/dev-mon01-logstash-2017.07.13-1.json  
@@ -69,14 +69,14 @@ trace: # mandatory field
 #          ----------------------------------------------------------
 #          - stage-dal09/stage-dal09-logstash-2017.06.27-0.json
 #          ---------------------------------------------------------
-#          - syd01/prod-syd01-logstash-2017.07.01-0.json  
-#          - syd01/prod-syd01-logstash-2017.07.01-1.json
-#          - syd01/prod-syd01-logstash-2017.07.01-2.json
-#          - syd01/prod-syd01-logstash-2017.07.01-3.json
-#          - syd01/prod-syd01-logstash-2017.07.02-0.json
-#          - syd01/prod-syd01-logstash-2017.07.02-1.json
-#          - syd01/prod-syd01-logstash-2017.07.02-2.json
-#          - syd01/prod-syd01-logstash-2017.07.02-3.json
+          - syd01/prod-syd01-logstash-2017.07.01-0.json  
+          - syd01/prod-syd01-logstash-2017.07.01-1.json
+          - syd01/prod-syd01-logstash-2017.07.01-2.json
+          - syd01/prod-syd01-logstash-2017.07.01-3.json
+          - syd01/prod-syd01-logstash-2017.07.02-0.json
+          - syd01/prod-syd01-logstash-2017.07.02-1.json
+          - syd01/prod-syd01-logstash-2017.07.02-2.json
+          - syd01/prod-syd01-logstash-2017.07.02-3.json
     
     limit: # entire trace used if limit not speciiied
         amount: 5000
@@ -119,13 +119,13 @@ warmup: # required for run and warmup mode
     threads: 100 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: False #True #False # nnzhaocs/distribution:original  
-    sift: True #False #True  # nnzhaocs/distribution:distributioncache
+    nodedup: False # nnzhaocs/distribution:original  
+    sift: True  # nnzhaocs/distribution:distributioncache
 simulate:
     wait: True  #True # or no delay
 #    getonly: False
     gettype: layer
-    accelerater: 8
+    accelerater: 30
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
     biglayer: True
 biglayers:    
@@ -133,4 +133,4 @@ biglayers:
     traces: /home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_1g_splits.lst   
     number: 2
     max: 4000
-    
+   

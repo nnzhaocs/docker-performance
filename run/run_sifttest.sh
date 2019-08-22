@@ -40,7 +40,6 @@ echo "GET IP FROM THORS"
 thorip="\$(ip -4 addr |grep 192.168.0.2 |grep -Po 'inet \K[\d.]+')"
 echo $thorip
 
-#!!!!!!!
 hostip=$thorip
 cmd=$(printf "!!!!! You are choosing to using Hostip: %b, 192.168.xxx.xxx is hulks, and 192.168.0.2xx is thors" "$hostip")
 echo $cmd
