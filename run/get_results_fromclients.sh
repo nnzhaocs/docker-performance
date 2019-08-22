@@ -7,6 +7,7 @@ echo "gathering all client generated result.json file..."
 #create a new directory in amaranth with timestamp
 
 dir=$(date +%Y%m%d_%H%M%S)
+echo $dir
 mkdir -p /home/nannan/testing/results/$dir
 # replace 20190618_164013 with the newly created dir
 pssh -h remotehostsamaranth.txt -l root -A -i "sshpass -p 'nannan' scp /home/nannan/testing/results/results.json*   root@amaranth$1:/home/nannan/testing/results/$dir"

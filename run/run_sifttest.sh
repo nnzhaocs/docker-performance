@@ -18,9 +18,9 @@
 
 echo "Hello! You have many Docker image choices: "
 
-echo "If you wanna run original registry, plz use: nnzhaocs/distribution:original"
-echo "If you wanna run sift registry, with hulks, plz use: nnzhaocs/distribution:distributioncache"
-echo "If you wanna run sift registry, with thors, plz use: nnzhaocs/distribution:distributionthors" 
+#echo "If you wanna run original registry, plz use: nnzhaocs/distribution:original"
+#echo "If you wanna run sift registry, with hulks, plz use: nnzhaocs/distribution:distributioncache"
+#echo "If you wanna run sift registry, with thors, plz use: nnzhaocs/distribution:distributionthors" 
 
 cmd=$(printf "The input parameters: %s %s" $1 $2)
 echo $cmd
@@ -40,7 +40,8 @@ echo "GET IP FROM THORS"
 thorip="\$(ip -4 addr |grep 192.168.0.2 |grep -Po 'inet \K[\d.]+')"
 echo $thorip
 
-hostip=$hulkip
+#!!!!!!!
+hostip=$thorip
 cmd=$(printf "!!!!! You are choosing to using Hostip: %b, 192.168.xxx.xxx is hulks, and 192.168.0.2xx is thors" "$hostip")
 echo $cmd
 
@@ -53,7 +54,7 @@ layerslicingfcntthres=7
 layerslicingdirsizethres=5 
 ttl=7000
 compressmethod="pgzip"
-redisaddr="192.168.0.220:7000"
+redisaddr="192.168.0.220:6379"
 
 
 echo 'run containers as following'

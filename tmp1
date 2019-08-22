@@ -1,0 +1,452 @@
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:5c62be412ad96df3eac031b5cbff0cc3c9ab6a7622c04b1eea89359f71c45e66')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.854802, 'duration': 0.017113208770751953, 'type': 'LAYER', 'digest': u'sha256:5c62be412ad96df3eac031b5cbff0cc3c9ab6a7622c04b1eea89359f71c45e66', 'size': 6})
+sleeping .... .... 154.739886791/8
+push repo request:
+get repo request:
+get manifest request:
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:f95079399a21d5544237b5bf9cb25c2632bdd115b44058c0e8743c85fb48bb4b')
+get repo request:
+get normal layer requests:
+get repo request:
+get normal layer requests:
+get repo request:
+get normal layer requests:
+get repo request:
+get normal layer requests:
+get repo request:
+get normal layer requests:
+get repo request:
+get normal layer requests:
+push repo request:
+get repo request:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:11cb57b1ef590b1e01e167554cacdb7ca3ca192eafd26d40e2d53c432437b240')
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:3e5ba425de59cbcb9142fec58211d8c209b5fc5ee2c850e0e9cec0b5e353813d')
+('pull layer from registry, dgst: ', u'sha256:aacb3ddc300c434692cf2cd52ebfeb33f027f86512af0b0842ad607c56f84613')
+('pull layer from registry, dgst: ', u'sha256:aa58923a913cf5738149d8df8f42920c885ce57263ce24e74292ec285a411394')
+('pull layer from registry, dgst: ', u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada')
+('pull layer from registry, dgst: ', u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d')
+push repo request:
+get repo request:
+get manifest request:
+push repo request:
+('pull layer from registry, dgst: ', u'sha256:b4a024f0a8acc6be665f291ba4a54f5ecc2973c483cb13946870b2eca123ca4b')
+('pull layer from registry, dgst: ', u'sha256:56574d32fe5da1d66741a2acf149ccd3990a840e2dab9f2a6c6aaa6b5702f8c2')
+get repo request:
+('pull layer from registry, dgst: ', u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07')
+push repo request:
+get repo request:
+get manifest request:
+get repo request:
+get normal layer requests:
+push repo request:
+('pull layer from registry, dgst: ', u'sha256:34d05424055379c28ba247c7e09c85d92313887286370a20461c3f5acaa76c38')
+get normal layer requests:
+push repo request:
+('pull layer from registry, dgst: ', u'sha256:6208bd8bc03004f60847a11c0cac7b63de0945dc9bfcb045fff40c87118fb8af')
+get repo request:
+push repo request:
+push repo request:
+push repo request:
+push repo request:
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+push repo request:
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+get normal layer requests:
+get repo request:
+('pull: ', {'onTime': 'yes', 'time': 1565142530.959795, 'duration': 0.018105030059814453, 'type': 'MANIFEST', 'digest': u'sha256:3e5ba425de59cbcb9142fec58211d8c209b5fc5ee2c850e0e9cec0b5e353813d', 'size': 21})
+push repo request:
+get repo request:
+get repo request:
+get repo request:
+get repo request:
+push repo request:
+get normal layer requests:
+################# empty request list ##############
+get repo request:
+push repo request:
+################# empty request list ##############
+################# empty request list ##############
+('pull: ', {'onTime': 'yes', 'time': 1565142530.956914, 'duration': 0.02569413185119629, 'type': 'MANIFEST', 'digest': u'sha256:f95079399a21d5544237b5bf9cb25c2632bdd115b44058c0e8743c85fb48bb4b', 'size': 20})
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+('pull layer from registry, dgst: ', u'sha256:48699efe83cebce71c876e43de9e3e53dbfc31d346a8b3f530309a7ef2ebf562')
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+sleeping .... .... 411.39689497/8
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:88169e581b32d8199efd20ffadaae65d69435b52e72a5ea70142e94b17bb9c96')
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+################# empty request list ##############
+sleeping .... .... 7.88430586815/8
+get manifest request:
+################# empty request list ##############
+('pull layer from registry, dgst: ', u'sha256:70608392937ab90ace30f636ee6f1d475411882c5c9dbb144080b8ceab60c84a')
+get normal layer requests:
+get normal layer requests:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:f91c41be681364fbd188d17a881522026676b2159a4cbe9b25d49a1527c8e57d')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.975532, 'duration': 0.022021055221557617, 'type': 'LAYER', 'digest': u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07', 'size': 6})
+('pull layer from registry, dgst: ', u'sha256:3128c043007fb037c299c6d86e70a24f90da11c0cc27f286ab0624eca79216cc')
+('pull: ', {'onTime': 'yes', 'time': 1565142530.967864, 'duration': 0.03407406806945801, 'type': 'MANIFEST', 'digest': u'sha256:b4a024f0a8acc6be665f291ba4a54f5ecc2973c483cb13946870b2eca123ca4b', 'size': 20})
+sleeping .... .... 1208.07792593/8
+sleeping .... .... 1860.36197894/8
+('pull layer from registry, dgst: ', u'sha256:528b4a638bf81de51ca4a479bd1a0e856a9159db10a37aa4f3abedec37940f1a')
+('pull layer from registry, dgst: ', u'sha256:6e44c66f93c4b724f9269f807b277ce727285d948d420041eada778960471339')
+('pull layer from registry, dgst: ', u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07')
+('pull layer from registry, dgst: ', u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.975652, 'duration': 0.036904096603393555, 'type': 'LAYER', 'digest': u'sha256:34d05424055379c28ba247c7e09c85d92313887286370a20461c3f5acaa76c38', 'size': 6})
+sleeping .... .... 451.231095903/8
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.959543, 'duration': 0.053205013275146484, 'type': 'LAYER', 'digest': u'sha256:11cb57b1ef590b1e01e167554cacdb7ca3ca192eafd26d40e2d53c432437b240', 'size': 1594})
+sleeping .... .... 1875.52679499/8
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.960478, 'duration': 0.0534210205078125, 'type': 'LAYER', 'digest': u'sha256:aacb3ddc300c434692cf2cd52ebfeb33f027f86512af0b0842ad607c56f84613', 'size': 245})
+sleeping .... .... 165.707578979/8
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.963597, 'duration': 0.05176401138305664, 'type': 'LAYER', 'digest': u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d', 'size': 6997})
+sleeping .... .... 6.05623598862/8
+('pull: ', {'onTime': 'yes', 'time': 1565142530.987238, 'duration': 0.04272913932800293, 'type': 'MANIFEST', 'digest': u'sha256:6208bd8bc03004f60847a11c0cac7b63de0945dc9bfcb045fff40c87118fb8af', 'size': 21})
+sleeping .... .... 1626.10127086/8
+('pull: ', {'onTime': 'yes', 'time': 1565142530.9944, 'duration': 0.03725004196166992, 'type': 'MANIFEST', 'digest': u'sha256:70608392937ab90ace30f636ee6f1d475411882c5c9dbb144080b8ceab60c84a', 'size': 18})
+('pull: ', {'onTime': 'yes', 'time': 1565142530.996206, 'duration': 0.037956953048706055, 'type': 'MANIFEST', 'digest': u'sha256:f91c41be681364fbd188d17a881522026676b2159a4cbe9b25d49a1527c8e57d', 'size': 21})
+('pull: ', {'onTime': 'yes', 'time': 1565142530.99356, 'duration': 0.04081892967224121, 'type': 'MANIFEST', 'digest': u'sha256:88169e581b32d8199efd20ffadaae65d69435b52e72a5ea70142e94b17bb9c96', 'size': 21})
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142531.007887, 'duration': 0.030050039291381836, 'type': 'LAYER', 'digest': u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07', 'size': 6})
+('push: ', '30776', {'duration': 0.07804703712463379, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.959675})
+sleeping .... .... 495.551952963/8
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.969631, 'duration': 0.07924008369445801, 'type': 'LAYER', 'digest': u'sha256:56574d32fe5da1d66741a2acf149ccd3990a840e2dab9f2a6c6aaa6b5702f8c2', 'size': 494})
+sleeping .... .... 201.616759916/8
+('push: ', '30780', {'duration': 0.09971904754638672, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.967813})
+sleeping .... .... 1039.88328095/8
+('push: ', u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-b5ce6955d2aa482a424e3afad53f5751b5d86abec098f5ff33db4263b3d75f56-1501516398.17', {'duration': 0.09760308265686035, 'size': 932, 'type': 'PUSHLAYER', 'onTime': 'yes', 'time': 1565142530.989419})
+('push: ', '30775', {'duration': 0.11284899711608887, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.974654})
+sleeping .... .... 57.6841510029/8
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142531.006041, 'duration': 0.09013700485229492, 'type': 'LAYER', 'digest': u'sha256:6e44c66f93c4b724f9269f807b277ce727285d948d420041eada778960471339', 'size': 258})
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142531.004946, 'duration': 0.10795092582702637, 'type': 'LAYER', 'digest': u'sha256:528b4a638bf81de51ca4a479bd1a0e856a9159db10a37aa4f3abedec37940f1a', 'size': 8476})
+('push: ', '30782', {'duration': 0.1445140838623047, 'size': 1780, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.968005})
+sleeping .... .... 1486.99348592/8
+('push: ', u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-a8d998464dc20b2fc61efc34f93454c2c4b8f414fced40d21a2aeccd0b9ca373-1514566191.51', {'duration': 0.1991720199584961, 'size': 112, 'type': 'PUSHLAYER', 'onTime': 'yes', 'time': 1565142530.984198})
+('pull: ', {'onTime': 'yes', 'time': 1565142531.000347, 'duration': 0.24561619758605957, 'type': 'LAYER', 'digest': u'sha256:3128c043007fb037c299c6d86e70a24f90da11c0cc27f286ab0624eca79216cc', 'size': 16561420})
+sleeping .... .... 2.15538380241/8
+('push: ', '30764', {'duration': 0.4082949161529541, 'size': 1153, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.956464})
+sleeping .... .... 1.27170508385/8
+('push: ', '30784', {'duration': 0.4037158489227295, 'size': 18572, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.975017})
+sleeping .... .... 1012.29128415/8
+('push: ', '30787', {'duration': 0.41001200675964355, 'size': 12157, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.976162})
+('push: ', '30785', {'duration': 0.4701380729675293, 'size': 12285, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.980351})
+('push: ', '30788', {'duration': 0.49683189392089844, 'size': 7476, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.976326})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:5ce33c5f3f115f16d01b568060bb3809bc859cb4e114bafc7a5f49fe95dad8db')
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:2ed12c21b2b5313a5a723c6ec02e850202517862eab391875d42c7ac65152101')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142531.517252, 'duration': 0.01753711700439453, 'type': 'LAYER', 'digest': u'sha256:5ce33c5f3f115f16d01b568060bb3809bc859cb4e114bafc7a5f49fe95dad8db', 'size': 4044})
+sleeping .... .... 26.299462883/8
+('push: ', '30799', {'duration': 0.5664241313934326, 'size': 12157, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.988437})
+('push: ', '30801', {'duration': 0.5662600994110107, 'size': 502, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.988932})
+('push: ', '30791', {'duration': 0.5638599395751953, 'size': 12285, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.991086})
+('push: ', '30789', {'duration': 0.5701620578765869, 'size': 18572, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142530.984895})
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142531.530706, 'duration': 0.030222177505493164, 'type': 'LAYER', 'digest': u'sha256:2ed12c21b2b5313a5a723c6ec02e850202517862eab391875d42c7ac65152101', 'size': 350})
+sleeping .... .... 187.632777822/8
+get repo request:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:f95079399a21d5544237b5bf9cb25c2632bdd115b44058c0e8743c85fb48bb4b')
+('pull: ', {'onTime': 'yes', 'time': 1565142531.773474, 'duration': 0.013961076736450195, 'type': 'MANIFEST', 'digest': u'sha256:f95079399a21d5544237b5bf9cb25c2632bdd115b44058c0e8743c85fb48bb4b', 'size': 20})
+sleeping .... .... 4.36303892326/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:aa58923a913cf5738149d8df8f42920c885ce57263ce24e74292ec285a411394')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142531.982025, 'duration': 0.014322996139526367, 'type': 'LAYER', 'digest': u'sha256:aa58923a913cf5738149d8df8f42920c885ce57263ce24e74292ec285a411394', 'size': 1264})
+sleeping .... .... 7.96367700386/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:642ca5965be4a5b7b13349f7d005f114af8ea41ef606c8d7ef16d296907e1eb9')
+('pull: ', {'onTime': 'yes', 'time': 1565142532.334848, 'duration': 0.2169029712677002, 'type': 'LAYER', 'digest': u'sha256:642ca5965be4a5b7b13349f7d005f114af8ea41ef606c8d7ef16d296907e1eb9', 'size': 18364074})
+sleeping .... .... 26.6670970287/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142532.994477, 'duration': 0.15212798118591309, 'type': 'LAYER', 'digest': u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064', 'size': 9363356})
+sleeping .... .... 2.17287201881/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713')
+('pull: ', {'onTime': 'yes', 'time': 1565142533.420144, 'duration': 0.03754901885986328, 'type': 'LAYER', 'digest': u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713', 'size': 1192606})
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142530.988863, 'duration': 2.4889581203460693, 'type': 'LAYER', 'digest': u'sha256:48699efe83cebce71c876e43de9e3e53dbfc31d346a8b3f530309a7ef2ebf562', 'size': 29604279})
+sleeping .... .... 1.30704187965/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:187ff6e1c11b3fe50ab3a71539ff70837df1d2a7704486a98b7f168686d8e4c4')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142533.642665, 'duration': 0.027265071868896484, 'type': 'LAYER', 'digest': u'sha256:187ff6e1c11b3fe50ab3a71539ff70837df1d2a7704486a98b7f168686d8e4c4', 'size': 5081})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:3483b5153c0f202d3917cfe7c882ac564ae5211d83cfd388eea7244f8894185e')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142534.826935, 'duration': 0.018043994903564453, 'type': 'LAYER', 'digest': u'sha256:3483b5153c0f202d3917cfe7c882ac564ae5211d83cfd388eea7244f8894185e', 'size': 453443})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:3483b5153c0f202d3917cfe7c882ac564ae5211d83cfd388eea7244f8894185e')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142535.889867, 'duration': 0.017689943313598633, 'type': 'LAYER', 'digest': u'sha256:3483b5153c0f202d3917cfe7c882ac564ae5211d83cfd388eea7244f8894185e', 'size': 453443})
+push repo request:
+('push: ', '30775', {'duration': 0.05635714530944824, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142538.30983})
+sleeping .... .... 86.1036428547/8
+push repo request:
+('push: ', '30775', {'duration': 0.058976173400878906, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142549.144971})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:33948540c21d5d9970f6075b6c9d9aeb24af620614bd11c401ce4d79deecf6c4')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142550.235322, 'duration': 0.034028053283691406, 'type': 'LAYER', 'digest': u'sha256:33948540c21d5d9970f6075b6c9d9aeb24af620614bd11c401ce4d79deecf6c4', 'size': 284})
+sleeping .... .... 521.376971947/8
+get repo request:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:d8df8f6311f1e56f5b6c16fc3f3edfe555f1072983c14df7777897073dfc4d4d')
+('pull: ', {'onTime': 'yes', 'time': 1565142551.748392, 'duration': 0.01478886604309082, 'type': 'MANIFEST', 'digest': u'sha256:d8df8f6311f1e56f5b6c16fc3f3edfe555f1072983c14df7777897073dfc4d4d', 'size': 21})
+sleeping .... .... 1.67321113396/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142551.973931, 'duration': 0.011682987213134766, 'type': 'LAYER', 'digest': u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d', 'size': 6997})
+sleeping .... .... 418.840317013/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:9056c080ea073b4fbe3ff706722795498d4a018ea94a123a0c07700dbcc2cc06')
+('pull: ', {'onTime': 'yes', 'time': 1565142555.040164, 'duration': 0.07201910018920898, 'type': 'LAYER', 'digest': u'sha256:9056c080ea073b4fbe3ff706722795498d4a018ea94a123a0c07700dbcc2cc06', 'size': 4888716})
+sleeping .... .... 123.9379809/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:46084b21dbb4ae251fe5a9d5426352a8ee8c0d6b7599afa0bdf41e20035f3e06')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142556.277458, 'duration': 0.014095067977905273, 'type': 'LAYER', 'digest': u'sha256:46084b21dbb4ae251fe5a9d5426352a8ee8c0d6b7599afa0bdf41e20035f3e06', 'size': 247})
+sleeping .... .... 46.754904932/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea')
+('pull: ', {'onTime': 'yes', 'time': 1565142562.142712, 'duration': 0.2110297679901123, 'type': 'LAYER', 'digest': u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea', 'size': 17561639})
+sleeping .... .... 586.907970232/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:f1d760fb251165860d4ba21e06c7d9057a91b826ef5719855953b7fdecbd61be')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142570.621412, 'duration': 0.20221996307373047, 'type': 'LAYER', 'digest': u'sha256:f1d760fb251165860d4ba21e06c7d9057a91b826ef5719855953b7fdecbd61be', 'size': 933485})
+sleeping .... .... 122.319780037/8
+get repo request:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:3e5ba425de59cbcb9142fec58211d8c209b5fc5ee2c850e0e9cec0b5e353813d')
+('pull: ', {'onTime': 'yes', 'time': 1565142582.465846, 'duration': 0.014220952987670898, 'type': 'MANIFEST', 'digest': u'sha256:3e5ba425de59cbcb9142fec58211d8c209b5fc5ee2c850e0e9cec0b5e353813d', 'size': 21})
+push repo request:
+('push: ', '30764', {'duration': 0.46346092224121094, 'size': 524, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142586.129245})
+sleeping .... .... 3.33853907776/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:715a274a56d6cd05b8ac610624cd9245e7dd4ee2cfe6b75068cb7e4960b318fb')
+('pull: ', {'onTime': 'yes', 'time': 1565142587.016498, 'duration': 0.08447790145874023, 'type': 'LAYER', 'digest': u'sha256:715a274a56d6cd05b8ac610624cd9245e7dd4ee2cfe6b75068cb7e4960b318fb', 'size': 4887071})
+sleeping .... .... 287.108522099/8
+push repo request:
+('push: ', '30773', {'duration': 0.10319304466247559, 'size': 524, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142587.473345})
+sleeping .... .... 1194.27080696/8
+push repo request:
+('push: ', '30776', {'duration': 0.057991981506347656, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142593.048229})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:9563c7a1027fba04f7e2af10eee2f9bbc9d0b0b6b602b3d665354b8f5aa4f141')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142604.394923, 'duration': 0.02979111671447754, 'type': 'LAYER', 'digest': u'sha256:9563c7a1027fba04f7e2af10eee2f9bbc9d0b0b6b602b3d665354b8f5aa4f141', 'size': 1032})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:a6dfc14499a14d5dd2d056157c453d815585e90a1aac1761f04e9fbb39d40997')
+('pull: ', {'onTime': 'yes', 'time': 1565142615.507998, 'duration': 0.2742500305175781, 'type': 'LAYER', 'digest': u'sha256:a6dfc14499a14d5dd2d056157c453d815585e90a1aac1761f04e9fbb39d40997', 'size': 26665233})
+sleeping .... .... 58.0537499695/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:52ceabbfe33323c545565648ee5c0d8562232ffbc95da1e119884db5e2a4fbad')
+get repo request:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:b4a024f0a8acc6be665f291ba4a54f5ecc2973c483cb13946870b2eca123ca4b')
+('pull: ', {'onTime': 'yes', 'time': 1565142623.044019, 'duration': 0.016894102096557617, 'type': 'MANIFEST', 'digest': u'sha256:b4a024f0a8acc6be665f291ba4a54f5ecc2973c483cb13946870b2eca123ca4b', 'size': 20})
+sleeping .... .... 1104.2541059/8
+('pull: ', {'onTime': 'yes', 'time': 1565142623.027507, 'duration': 0.24344086647033691, 'type': 'LAYER', 'digest': u'sha256:52ceabbfe33323c545565648ee5c0d8562232ffbc95da1e119884db5e2a4fbad', 'size': 21760609})
+sleeping .... .... 1095.89355913/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:fe03d9f6e8f7e57a4ccc22cb72d17f339d61c5a8a7b0f95bbf1662ec441bf9ca')
+('pull: ', {'onTime': 'yes', 'time': 1565142635.737704, 'duration': 0.017288923263549805, 'type': 'LAYER', 'digest': u'sha256:fe03d9f6e8f7e57a4ccc22cb72d17f339d61c5a8a7b0f95bbf1662ec441bf9ca', 'size': 381967})
+push repo request:
+('push: ', '30784', {'duration': 0.10595893859863281, 'size': 12285, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142658.020021})
+push repo request:
+('push: ', '30780', {'duration': 0.05888700485229492, 'size': 2631, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142661.157948})
+push repo request:
+('push: ', '30781', {'duration': 0.11065793037414551, 'size': 502, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142682.11216})
+push repo request:
+('push: ', '30782', {'duration': 0.11289119720458984, 'size': 524, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142717.088137})
+push repo request:
+('push: ', '30779', {'duration': 0.10186409950256348, 'size': 18572, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142734.393065})
+push repo request:
+('push: ', '30773', {'duration': 0.11326479911804199, 'size': 524, 'type': 'PUSHMANIFEST', 'onTime': 'yes', 'time': 1565142736.965557})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:dfbc437ea753e248ebbb5ff6fee8e50eec3d0e8f1b49af2402b3d9af143ba027')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142760.359256, 'duration': 0.031395912170410156, 'type': 'LAYER', 'digest': u'sha256:dfbc437ea753e248ebbb5ff6fee8e50eec3d0e8f1b49af2402b3d9af143ba027', 'size': 209})
+sleeping .... .... 82.7086040878/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:8711c61896ef81b16d26b34d64cddb8ff2af9ab68b9a3c41e4f2dd2d5dee0043')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142761.193798, 'duration': 0.030022859573364258, 'type': 'LAYER', 'digest': u'sha256:8711c61896ef81b16d26b34d64cddb8ff2af9ab68b9a3c41e4f2dd2d5dee0043', 'size': 176})
+sleeping .... .... 0.268977140427/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:7d835f63588d1049f5812f068c19bfadc7a5a473ea0ad8c9e0098a9ff1874a55')
+('pull: ', {'onTime': 'yes', 'time': 1565142761.258346, 'duration': 0.3175048828125, 'type': 'LAYER', 'digest': u'sha256:7d835f63588d1049f5812f068c19bfadc7a5a473ea0ad8c9e0098a9ff1874a55', 'size': 24677803})
+sleeping .... .... 8.58849511719/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:f3fa5ffa0b615139132201e64112a504d7ecc44b5a3f40cc833632a9e921d2f3')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142762.652283, 'duration': 0.029673099517822266, 'type': 'LAYER', 'digest': u'sha256:f3fa5ffa0b615139132201e64112a504d7ecc44b5a3f40cc833632a9e921d2f3', 'size': 302})
+sleeping .... .... 2.77632690048/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:0e2b89a625e31173d1f3c03ca7b8624c31363bca315b6de0d69f73f8e5e6dd8a')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142763.030469, 'duration': 0.030812978744506836, 'type': 'LAYER', 'digest': u'sha256:0e2b89a625e31173d1f3c03ca7b8624c31363bca315b6de0d69f73f8e5e6dd8a', 'size': 372})
+sleeping .... .... 1.45418702126/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:7c5c1f62288caa5309ba4917640be3ed0a94ce799f1833dd7b815b8d180e8eb9')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142763.244286, 'duration': 0.07526397705078125, 'type': 'LAYER', 'digest': u'sha256:7c5c1f62288caa5309ba4917640be3ed0a94ce799f1833dd7b815b8d180e8eb9', 'size': 456591})
+('==============> processed ', 0.625, ' requests! <=============', 16)
+sleeping .... .... 1.45373602295/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:e2e91b97a60d264cbd8403a9d4b2c0b5a81fed7480502a00277bef41446dd034')
+get repo request:
+get manifest request:
+('pull layer from registry, dgst: ', u'sha256:d8df8f6311f1e56f5b6c16fc3f3edfe555f1072983c14df7777897073dfc4d4d')
+('pull: ', {'onTime': 'yes', 'time': 1565142763.604071, 'duration': 0.012019157409667969, 'type': 'MANIFEST', 'digest': u'sha256:d8df8f6311f1e56f5b6c16fc3f3edfe555f1072983c14df7777897073dfc4d4d', 'size': 21})
+sleeping .... .... 1.10798084259/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:1bcac21412d91135f7a9dafc214d4b27d9fa92655ebb9420bca1755e5282b876')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142763.756253, 'duration': 0.012664079666137695, 'type': 'LAYER', 'digest': u'sha256:1bcac21412d91135f7a9dafc214d4b27d9fa92655ebb9420bca1755e5282b876', 'size': 6})
+sleeping .... .... 0.0713359203339/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142763.778763, 'duration': 0.012980937957763672, 'type': 'LAYER', 'digest': u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d', 'size': 6997})
+sleeping .... .... 6.28501906204/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:af272fd7bcf514f0836547ddf0457a0c0cef8738379ab1215374cca415180198')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142763.502289, 'duration': 1.0816118717193604, 'type': 'LAYER', 'digest': u'sha256:e2e91b97a60d264cbd8403a9d4b2c0b5a81fed7480502a00277bef41446dd034', 'size': 33639533})
+sleeping .... .... 0.0643881282806/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:53a34f2e5215d799e95a582f5885a43b4ad2d4e0defae85289dcb0deb75bd772')
+('pull: ', {'onTime': 'yes', 'time': 1565142764.580265, 'duration': 0.1426708698272705, 'type': 'LAYER', 'digest': u'sha256:af272fd7bcf514f0836547ddf0457a0c0cef8738379ab1215374cca415180198', 'size': 10389245})
+sleeping .... .... 12.4283291302/8
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142764.593778, 'duration': 0.5820071697235107, 'type': 'LAYER', 'digest': u'sha256:53a34f2e5215d799e95a582f5885a43b4ad2d4e0defae85289dcb0deb75bd772', 'size': 5305219})
+sleeping .... .... 0.299992830276/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:333dce24be42eb57245d0b777c569cc939b0d8039761fbca67f3bf580e82b6f7')
+('pull: ', {'onTime': 'yes', 'time': 1565142765.214341, 'duration': 0.1621570587158203, 'type': 'LAYER', 'digest': u'sha256:333dce24be42eb57245d0b777c569cc939b0d8039761fbca67f3bf580e82b6f7', 'size': 12136084})
+sleeping .... .... 0.746842941284/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:0cc239700d49471f2ef9d73afd3b18237ac8ab6a412394239cdaa1590d499fee')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142765.471225, 'duration': 0.01291799545288086, 'type': 'LAYER', 'digest': u'sha256:0cc239700d49471f2ef9d73afd3b18237ac8ab6a412394239cdaa1590d499fee', 'size': 6})
+sleeping .... .... 1.07508200455/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:be34613ab80dd380c9b007be3e57ac47bca5c1840570ad30b7245ce44199628c')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142765.532084, 'duration': 0.010442018508911133, 'type': 'LAYER', 'digest': u'sha256:be34613ab80dd380c9b007be3e57ac47bca5c1840570ad30b7245ce44199628c', 'size': 17117})
+sleeping .... .... 20.0525579815/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:f37b1a2424b372f996179868a278be3230143b93c679750e13cd52eb674e0e44')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142765.619704, 'duration': 0.03376889228820801, 'type': 'LAYER', 'digest': u'sha256:f37b1a2424b372f996179868a278be3230143b93c679750e13cd52eb674e0e44', 'size': 1509})
+sleeping .... .... 2.69823110771/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:8ee6ffd1e5f361f67fc862c6403aeef751e3c8d88bc49dbca884e53135c56831')
+('pull: ', {'onTime': 'yes', 'time': 1565142765.992049, 'duration': 0.15385103225708008, 'type': 'LAYER', 'digest': u'sha256:8ee6ffd1e5f361f67fc862c6403aeef751e3c8d88bc49dbca884e53135c56831', 'size': 13023561})
+sleeping .... .... 45.1461489677/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142766.279218, 'duration': 0.13760995864868164, 'type': 'LAYER', 'digest': u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064', 'size': 9363356})
+sleeping .... .... 0.749390041351/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142766.511576, 'duration': 0.01780414581298828, 'type': 'LAYER', 'digest': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'size': 475})
+sleeping .... .... 1.19819585419/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713')
+('pull: ', {'onTime': 'yes', 'time': 1565142766.680105, 'duration': 0.03631997108459473, 'type': 'LAYER', 'digest': u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713', 'size': 1192606})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142768.053113, 'duration': 0.01406407356262207, 'type': 'LAYER', 'digest': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'size': 475})
+sleeping .... .... 53.5379359264/8
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:e22754d772bf33e45380fcc9c9ce310ecf59268191814b23a1e0d30c72492c79')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142770.740685, 'duration': 0.0685579776763916, 'type': 'LAYER', 'digest': u'sha256:e22754d772bf33e45380fcc9c9ce310ecf59268191814b23a1e0d30c72492c79', 'size': 587050})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:f56bc8bd019fc2fce318ee486d5e819d837810f5afe8b9337b3c4de85de44cad')
+('pull: ', {'onTime': 'yes: wrong digest', 'time': 1565142771.796254, 'duration': 0.03157496452331543, 'type': 'LAYER', 'digest': u'sha256:f56bc8bd019fc2fce318ee486d5e819d837810f5afe8b9337b3c4de85de44cad', 'size': 3959})
+get repo request:
+get normal layer requests:
+('pull layer from registry, dgst: ', u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea')
+('pull: ', {'onTime': 'yes', 'time': 1565142774.767401, 'duration': 0.2659790515899658, 'type': 'LAYER', 'digest': u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea', 'size': 17561639})
