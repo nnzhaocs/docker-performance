@@ -436,11 +436,15 @@ def main():
     print 'warmup threads same as number of clients: ' + str(threads)
 
     global testmode
-    global siftmode
+    global siftmod
     global hotratio
     global nondedupreplicas
     global hotlayers
-    
+    siftmode = 'N/A'
+    hotratio = 0
+    nondedupreplicas = 0
+
+
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
     elif inputs['testmode']['sift'] == True:
