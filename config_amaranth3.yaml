@@ -31,18 +31,18 @@ trace: # mandatory field
 #        - stage-dal-09_total_trace.json
 #        - syd01_total_trace.json
 #        **********************************************
-         - dal09/prod-dal09-logstash-2017.06.20-0.json
+#         - dal09/prod-dal09-logstash-2017.06.20-0.json
 #         ------------------------------------------------
-#         - dev-mon01/dev-mon01-logstash-2017.07.13-0.json
-#         - dev-mon01/dev-mon01-logstash-2017.07.13-1.json  
-#         - dev-mon01/dev-mon01-logstash-2017.07.13-2.json
-#         - dev-mon01/dev-mon01-logstash-2017.07.13-3.json 
-#         - dev-mon01/dev-mon01-logstash-2017.07.14-0.json  
-#         - dev-mon01/dev-mon01-logstash-2017.07.14-1.json  
-#         - dev-mon01/dev-mon01-logstash-2017.07.14-2.json
-#         - dev-mon01/dev-mon01-logstash-2017.07.14-3.json 
-#         - dev-mon01/dev-mon01-logstash-2017.07.15-0.json
-#         - dev-mon01/dev-mon01-logstash-2017.07.15-1.json
+         - dev-mon01/dev-mon01-logstash-2017.07.13-0.json
+         - dev-mon01/dev-mon01-logstash-2017.07.13-1.json  
+         - dev-mon01/dev-mon01-logstash-2017.07.13-2.json
+         - dev-mon01/dev-mon01-logstash-2017.07.13-3.json 
+         - dev-mon01/dev-mon01-logstash-2017.07.14-0.json  
+         - dev-mon01/dev-mon01-logstash-2017.07.14-1.json  
+         - dev-mon01/dev-mon01-logstash-2017.07.14-2.json
+         - dev-mon01/dev-mon01-logstash-2017.07.14-3.json 
+         - dev-mon01/dev-mon01-logstash-2017.07.15-0.json
+         - dev-mon01/dev-mon01-logstash-2017.07.15-1.json
 #         -------------------------------------------------  
 #          - fra02/prod-fra02-logstash-2017.06.20-0.json
 #          - fra02/prod-fra02-logstash-2017.06.20-1.json
@@ -92,17 +92,17 @@ primaryregistry:
 #    - 192.168.0.177:5000
 #    - 192.168.0.179:5000
 #    - 192.168.0.180:5000
-#    - 192.168.0.200:5000           
-#    - 192.168.0.201:5000           
-#    - 192.168.0.202:5000           
-#    - 192.168.0.203:5000           
-#    - 192.168.0.204:5000           
-#    - 192.168.0.205:5000                     
-#    - 192.168.0.208:5000           
-#    - 192.168.0.209:5000           
-#    - 192.168.0.210:5000           
-#    - 192.168.0.211:5000           
-#    - 192.168.0.212:5000           
+    - 192.168.0.200:5000           
+    - 192.168.0.201:5000           
+    - 192.168.0.202:5000           
+    - 192.168.0.203:5000           
+    - 192.168.0.204:5000           
+    - 192.168.0.205:5000                     
+    - 192.168.0.208:5000           
+    - 192.168.0.209:5000           
+    - 192.168.0.210:5000           
+    - 192.168.0.211:5000           
+    - 192.168.0.212:5000           
     - 192.168.0.213:5000           
     - 192.168.0.214:5000           
     - 192.168.0.215:5000           
@@ -130,10 +130,10 @@ dedupregistry:
     - 192.168.0.204:5000           
     - 192.168.0.205:5000                     
     - 192.168.0.208:5000           
-    - 192.168.0.209:5000           
-    - 192.168.0.210:5000           
-    - 192.168.0.211:5000           
-    - 192.168.0.212:5000           
+#    - 192.168.0.209:5000           
+#    - 192.168.0.210:5000           
+#    - 192.168.0.211:5000           
+#    - 192.168.0.212:5000           
 #    - 192.168.0.213:5000           
 #    - 192.168.0.214:5000           
 #    - 192.168.0.215:5000           
@@ -162,7 +162,7 @@ testmode: # required for simulate mode
     restore: False
 
 siftparams:  
-    mode: standard
+    mode: selective
     selective: 
         hotratio: 0.25
     standard: 
