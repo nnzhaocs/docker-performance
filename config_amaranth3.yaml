@@ -162,7 +162,7 @@ testmode: # required for simulate mode
     restore: False
 
 siftparams:  
-    mode: selective
+    mode: standard
     selective: 
         hotratio: 0.25
     standard: 
