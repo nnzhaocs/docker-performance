@@ -320,7 +320,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
             except Exception as e:
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
-        stats(results)
+    stats(results)
     
 
     with open(results_dir+out_file, 'w') as f:
