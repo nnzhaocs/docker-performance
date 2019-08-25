@@ -287,10 +287,10 @@ def stats(responses):
         
     if warmuptotalmanifest > 0:
         print 'Average warmup manifest latency: ' + str(1.*warmupmanifestlatency/warmuptotalmanifest) + ' seconds/request'
-        print("50th percentile of durations : ", np.percentile(warmuplayerlatencies, 50))  
-        print("75th percentile of durations : ", np.percentile(warmuplayerlatencies, 75))
-        print("95th percentile of durations : ", np.percentile(warmuplayerlatencies, 95))
-        print("99th percentile of durations : ", np.percentile(warmuplayerlatencies, 99))
+        print("50th percentile of durations : ", np.percentile(warmupmanifestlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(warmupmanifestlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(warmupmanifestlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(warmupmanifestlatencies, 99))
         
     if warmuptotallayer > 0:
         print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
