@@ -287,10 +287,10 @@ def stats(responses):
         
     if warmuptotalmanifest > 0:
         print 'Average warmup manifest latency: ' + str(1.*warmupmanifestlatency/warmuptotalmanifest) + ' seconds/request'
-        print("50th percentile of durations : ", np.percentile(warmuplayerlatencies, 50))  
-        print("75th percentile of durations : ", np.percentile(warmuplayerlatencies, 75))
-        print("95th percentile of durations : ", np.percentile(warmuplayerlatencies, 95))
-        print("99th percentile of durations : ", np.percentile(warmuplayerlatencies, 99))
+        print("50th percentile of durations : ", np.percentile(warmupmanifestlatencies, 50))  
+        print("75th percentile of durations : ", np.percentile(warmupmanifestlatencies, 75))
+        print("95th percentile of durations : ", np.percentile(warmupmanifestlatencies, 95))
+        print("99th percentile of durations : ", np.percentile(warmupmanifestlatencies, 99))
         
     if warmuptotallayer > 0:
         print 'Average warmup layer latency: ' + str(1.*warmuplayerlatency/warmuptotallayer) + ' seconds/request'
@@ -320,17 +320,17 @@ def get_blobs(data, numclients, out_file):#, testmode):
             except Exception as e:
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
-        stats(results)
+    #stats(results)
     
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
     #""" # end for run
-    """ # for just extract result 
+    """ # for just extract result """
     with open(results_dir+out_file) as f:
         results = json.load(f)
     stats(results)
-    """ # end for extracting
+    """ # end for extracting"""
 
 def main():
 
@@ -436,11 +436,15 @@ def main():
     print 'warmup threads same as number of clients: ' + str(threads)
 
     global testmode
-    global siftmode
+    global siftmod
     global hotratio
     global nondedupreplicas
     global hotlayers
-    
+    siftmode = 'N/A'
+    hotratio = 0
+    nondedupreplicas = 0
+
+
     if inputs['testmode']['nodedup'] == True:
         testmode = 'nodedup'
     elif inputs['testmode']['sift'] == True:

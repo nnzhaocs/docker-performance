@@ -31,7 +31,7 @@ trace: # mandatory field
 #        - stage-dal-09_total_trace.json
 #        - syd01_total_trace.json
 #        **********************************************
-         - dal09/prod-dal09-logstash-2017.06.20-0.json
+#         - dal09/prod-dal09-logstash-2017.06.20-0.json
 #         ------------------------------------------------
 #         - dev-mon01/dev-mon01-logstash-2017.07.13-0.json
 #         - dev-mon01/dev-mon01-logstash-2017.07.13-1.json  
@@ -69,14 +69,14 @@ trace: # mandatory field
 #          ----------------------------------------------------------
 #          - stage-dal09/stage-dal09-logstash-2017.06.27-0.json
 #          ---------------------------------------------------------
-#          - syd01/prod-syd01-logstash-2017.07.01-0.json  
-#          - syd01/prod-syd01-logstash-2017.07.01-1.json
-#          - syd01/prod-syd01-logstash-2017.07.01-2.json
-#          - syd01/prod-syd01-logstash-2017.07.01-3.json
-#          - syd01/prod-syd01-logstash-2017.07.02-0.json
-#          - syd01/prod-syd01-logstash-2017.07.02-1.json
-#          - syd01/prod-syd01-logstash-2017.07.02-2.json
-#          - syd01/prod-syd01-logstash-2017.07.02-3.json
+          - syd01/prod-syd01-logstash-2017.07.01-0.json  
+          - syd01/prod-syd01-logstash-2017.07.01-1.json
+          - syd01/prod-syd01-logstash-2017.07.01-2.json
+          - syd01/prod-syd01-logstash-2017.07.01-3.json
+          - syd01/prod-syd01-logstash-2017.07.02-0.json
+          - syd01/prod-syd01-logstash-2017.07.02-1.json
+          - syd01/prod-syd01-logstash-2017.07.02-2.json
+          - syd01/prod-syd01-logstash-2017.07.02-3.json
     
     limit: # entire trace used if limit not speciiied
         amount: 5000
@@ -92,13 +92,13 @@ primaryregistry:
 #    - 192.168.0.177:5000
 #    - 192.168.0.179:5000
 #    - 192.168.0.180:5000
-    - 192.168.0.200:5000           
-    - 192.168.0.201:5000           
-    - 192.168.0.202:5000           
-    - 192.168.0.203:5000           
-    - 192.168.0.204:5000           
-    - 192.168.0.205:5000                     
-    - 192.168.0.208:5000           
+#    - 192.168.0.200:5000           
+#    - 192.168.0.201:5000           
+#    - 192.168.0.202:5000           
+#    - 192.168.0.203:5000           
+#    - 192.168.0.204:5000           
+#    - 192.168.0.205:5000                     
+#    - 192.168.0.208:5000           
     - 192.168.0.209:5000           
     - 192.168.0.210:5000           
     - 192.168.0.211:5000           
@@ -130,10 +130,10 @@ dedupregistry:
     - 192.168.0.204:5000           
     - 192.168.0.205:5000                     
     - 192.168.0.208:5000           
-    - 192.168.0.209:5000           
-    - 192.168.0.210:5000           
-    - 192.168.0.211:5000           
-    - 192.168.0.212:5000           
+#    - 192.168.0.209:5000           
+#    - 192.168.0.210:5000           
+#    - 192.168.0.211:5000           
+#    - 192.168.0.212:5000           
 #    - 192.168.0.213:5000           
 #    - 192.168.0.214:5000           
 #    - 192.168.0.215:5000           
@@ -157,12 +157,12 @@ warmup: # required for run and warmup mode
     threads: 20 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: True # nnzhaocs/distribution:original  
-    sift: False #False #False #True  # nnzhaocs/distribution:distributioncache 
+    nodedup: False # nnzhaocs/distribution:original  
+    sift: True #False #False #True  # nnzhaocs/distribution:distributioncache 
     restore: False
 
 siftparams:  
-    mode: selective
+    mode: selectove
     selective: 
         hotratio: 0.25
     standard: 
@@ -172,7 +172,7 @@ simulate:
     wait: True  #True # or no delay
 #    getonly: False
 #    gettype: layer
-    accelerater: 12
+    accelerater: 60
 #    tracetype: first1tracefile # durationday #topnclients # first1tracefile
 #    biglayer: True
     replicalevel: 3
