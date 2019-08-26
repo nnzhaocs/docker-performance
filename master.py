@@ -123,7 +123,7 @@ def warmup(out_trace, threads):
                 except Exception as e:
                     print('warmup: something generated an exception: %s', e)
         #break     
-        stats(results)
+        #stats(results)
         #time.sleep(600)
 
     with open(out_trace, 'w') as f:
