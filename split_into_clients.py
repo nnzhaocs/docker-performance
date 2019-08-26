@@ -300,7 +300,7 @@ def get_hotlayers(requests, hotratio, clients):
             layeridtopop[layer_id] += 1
         except Exception as e:
             layeridtopop[layer_id] = 1
-            
+    #print len(layeridtopop)        
     selected = len(layeridtopop) * hotratio 
     print('selected: ', selected)
     i = 0       

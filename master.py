@@ -150,6 +150,8 @@ def warmup(out_trace, threads):
 ##############
  
 def stats(responses):   
+    if len(responses) == 0:
+        return
     responses.sort(key = lambda x: x['time'])
 
     endtime = 0
