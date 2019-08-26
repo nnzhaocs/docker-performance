@@ -149,7 +149,7 @@ clients:
     - 192.168.0.151
     - 192.168.0.153
     - 192.168.0.154
-    - 192.168.0.156
+      #    - 192.168.0.156
           
 warmup: # required for run and warmup mode
     output: warmup_output.json # name of file that holds mapping between trace uri's and hashes

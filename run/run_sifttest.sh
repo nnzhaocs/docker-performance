@@ -44,8 +44,8 @@ hostip=$thorip
 cmd=$(printf "!!!!! You are choosing to using Hostip: %b, 192.168.xxx.xxx is hulks, and 192.168.0.2xx is thors" "$hostip")
 echo $cmd
 
-filecachecap=203 #3524
-layercachecap=203 #3524
+filecachecap=32 #203 #3524
+layercachecap=32 #203 #3524
 stype="MB" #"B"
 repullcntthres=3
 comprlevel=4
