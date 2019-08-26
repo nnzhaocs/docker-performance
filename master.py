@@ -320,17 +320,17 @@ def get_blobs(data, numclients, out_file):#, testmode):
             except Exception as e:
                 print('get_blobs: something generated an exception: %s', e)
         print "start stats"
-    stats(results)
+    #stats(results)
     
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
     #""" # end for run
-    """ # for just extract result 
+    """ # for just extract result """
     with open(results_dir+out_file) as f:
         results = json.load(f)
     stats(results)
-    """ # end for extracting
+    """ # end for extracting"""
 
 def main():
 
