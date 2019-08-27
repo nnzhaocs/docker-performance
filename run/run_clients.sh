@@ -14,7 +14,7 @@
 echo "Hello! You are gonna start the following clients to do test: "
 cat $4
 
-cmd=$(printf "The input parameters: %s %s %s" "$1" "$2" "$3" "$4")
+cmd=$(printf "The input parameters: \n %s \n %s \n %s \n %s \n" "$1" "$2" "$3" "$4")
 echo $cmd
 
 echo "Update docker-performance repository!"
