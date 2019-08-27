@@ -84,21 +84,21 @@ trace: # mandatory field
     output: results.json # only used in run mode, produced output trace with latencies
  
 primaryregistry:   
-        #    - 192.168.0.170:5000
-        #    - 192.168.0.171:5000
-        #    - 192.168.0.172:5000
-        #    - 192.168.0.174:5000
-        #- 192.168.0.176:5000
-        #- 192.168.0.177:5000
-        #- 192.168.0.179:5000
-        #- 192.168.0.180:5000
-        #- 192.168.0.200:5000           
-        #- 192.168.0.201:5000           
-        #- 192.168.0.202:5000           
-        #- 192.168.0.203:5000           
-        #- 192.168.0.204:5000           
-        #- 192.168.0.205:5000                     
-        #- 192.168.0.208:5000           
+        #       - 192.168.0.170:5000
+        #       - 192.168.0.171:5000
+        #       - 192.168.0.172:5000
+        #       - 192.168.0.174:5000
+        #       - 192.168.0.176:5000
+        #       - 192.168.0.177:5000
+        #       - 192.168.0.179:5000
+        #       - 192.168.0.180:5000
+    - 192.168.0.200:5000           
+    - 192.168.0.201:5000           
+    - 192.168.0.202:5000           
+    - 192.168.0.203:5000           
+    - 192.168.0.204:5000           
+    - 192.168.0.205:5000                     
+    - 192.168.0.208:5000           
     - 192.168.0.209:5000           
     - 192.168.0.210:5000           
     - 192.168.0.211:5000           
@@ -156,8 +156,8 @@ warmup: # required for run and warmup mode
     threads: 100 #00 # how many clients used to push/pull blobs to registry
 
 testmode: # required for simulate mode
-    nodedup: False # nnzhaocs/distribution:original  
-    sift: True #False #False #False #True  # nnzhaocs/distribution:distributioncache
+    nodedup: True #False # nnzhaocs/distribution:original  
+    sift: False #False #False #True  # nnzhaocs/distribution:distributioncache
             #nnzhaocs/distribution:distributionthors0-12
     restore: False
 
