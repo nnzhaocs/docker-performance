@@ -121,7 +121,7 @@ def getSkewness(total_trace):
     urfoutname = '-repo_access_cnt'
     ufoutname = '-usr_access_cnt'
     
-    getCnt(total_trace, lfname, lfoutname)
+    getCnt_layer(total_trace, lfname, lfoutname)
     #pullSizeRelationAnalyze(total_trace)
 
     getCnt(total_trace, urfname, urfoutname)
@@ -160,9 +160,24 @@ def getCnt(total_trace, fname2, fnameout):
     
     for k in usrrepoTOtimedic:
         val = usrrepoTOtimedic[k]
-        f.write(str(val[0])+'\t' + str(val[1]) + '\n')
+        f.write(str(val) + '\t\n')
     f.close()
         
+def getCnt_layer(total_trace, fname2, fnameout):
+    print 'in get count'
+    interaccess = []
+    fname = os.path.basename(total_trace)
+    with open(os.path.join(input_dir, fname + fname2), 'r') as fp:
+        usrrepoTOtimedic = json.load(fp)
+
+    f = open(input_dir +'temperalTrend/' + fname + fnameout+'.lst', 'w')
+
+
+    for k in usrrepoTOtimedic:
+        val = usrrepoTOtimedic[k]
+        f.write(str(val[0])+'\t' + str(val[1]) + '\t\n')
+    f.close()
+
 def pullSizeRelationAnalyze(total_trace):
     print 'in calculation'
     data = []

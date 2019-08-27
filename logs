@@ -1,0 +1,154 @@
+Input traces
+/home/nannan/dockerimages/docker-traces/data_centers/dal09/prod-dal09-logstash-2017.06.20-0.json
+('primaryregistries: ', ['192.168.0.176:5000', '192.168.0.177:5000', '192.168.0.179:5000', '192.168.0.180:5000'])
+('dedupregistries: ', ['192.168.0.170:5000', '192.168.0.171:5000', '192.168.0.172:5000', '192.168.0.174:5000'])
+['192.168.0.152', '192.168.0.153', '192.168.0.154', '192.168.0.156']
+('wait or not? ', True)
+('accelerater:  ', 8)
+('replica_level:  ', 3)
+warmup threads same as number of clients: 20
+('siftmode:  ', 'standard')
+('nondedupreplicas:  ', 2)
+('The testmode is: ', 'sift')
+('The replica_level is: ', 3)
+('The Wait is: ', True)
+('The Accelerater is: ', 8)
+('===========> Testing dedupregistries <============', ['192.168.0.170:5000', '192.168.0.171:5000', '192.168.0.172:5000', '192.168.0.174:5000'])
+('==========> Testing dedupregistries HULKS <============: ', [{'host': '192.168.0.170', 'port': '7000'}, {'host': '192.168.0.170', 'port': '7001'}, {'host': '192.168.0.171', 'port': '7000'}, {'host': '192.168.0.171', 'port': '7001'}, {'host': '192.168.0.172', 'port': '7000'}, {'host': '192.168.0.172', 'port': '7001'}, {'host': '192.168.0.174', 'port': '7000'}, {'host': '192.168.0.174', 'port': '7001'}, {'host': '192.168.0.176', 'port': '7000'}, {'host': '192.168.0.176', 'port': '7001'}, {'host': '192.168.0.177', 'port': '7000'}, {'host': '192.168.0.177', 'port': '7001'}, {'host': '192.168.0.179', 'port': '7000'}, {'host': '192.168.0.179', 'port': '7001'}, {'host': '192.168.0.180', 'port': '7000'}, {'host': '192.168.0.180', 'port': '7001'}])
+('hot layers are: ', [u'b1ca9623', u'2c96e307', u'bddc059f', u'2b1521eb', u'2bee5a5e', u'fa4a3a31', u'1c91392a', u'e18ad8f6', u'326ceca2', u'c0454ce8', u'530b03ca', u'7a2a4d41', u'5cefcaba'])
+run mode
+get_requests ... 
+load number of unique get requests: 14
+load number of replay requests: 20
+('number of real clients:', 8)
+('number of request for client:', 8)
+('number of request for client:', 4)
+('number of request for client:', 3)
+('number of request for client:', 3)
+('number of request for client:', 2)
+('total number of replay requests are: ', 20)
+('request: ', {'uri': u'v2/a9cb77c4/37773f3b/manifests/406251de', 'delay': datetime.datetime(2017, 6, 20, 1, 15, 42, 938000), 'client': u'6d01dffe', 'sleep': 0, 'blob': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'duration': 0.582301788, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.180:5000', 'testrepo'), '192.168.0.180:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443533.184039, 'duration': 0.03142499923706055, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642})
+sleeping .... .... 411.383575001/8
+('request: ', {'uri': u'v2/a9cb77c4/37773f3b/manifests/406251de', 'delay': datetime.datetime(2017, 6, 20, 1, 22, 34, 353000), 'client': u'6d01dffe', 'sleep': 411.415, 'blob': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'duration': 0.996194591, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443584.690077, 'duration': 0.015056848526000977, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642})
+sleeping .... .... 118.346943151/8
+('request: ', {'uri': u'v2/bf8e5550/c9ca0833/blobs/uploads/1d4c8c9c', 'delay': datetime.datetime(2017, 6, 20, 1, 24, 32, 715000), 'client': u'fd01e51c', 'sleep': 118.362, 'duration': 1.986880748, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-b5ce6955d2aa482a424e3afad53f5751b5d86abec098f5ff33db4263b3d75f56-1501516398.17', 'method': 'PUT', 'size': 932})
+('request: ', {'uri': u'v2/4715bf52/958c3568/blobs/1c91392a', 'delay': datetime.datetime(2017, 6, 20, 1, 17, 38, 519000), 'client': u'797fdd32', 'sleep': 0, 'blob': u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07', 'duration': 2.93527966, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07-1514527842.99', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.176:5000', 'testrepo'), '192.168.0.176:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443533.183221, 'duration': 0.02783489227294922, 'type': 'LAYER', 'digest': u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07', 'size': 92})
+sleeping .... .... 1860.35616511/8
+('request: ', {'uri': u'v2/4715bf52/98b638a6/manifests/851723aa', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 38, 903000), 'client': u'797fdd32', 'sleep': 1860.384, 'blob': u'sha256:37e5402f07f3a1785a900f4cfa93bd3ba40dead33577e9daeebbbfc25cde8108', 'duration': 0.568296579, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.177:5000', 'testrepo'), '192.168.0.177:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443765.787947, 'duration': 0.01634812355041504, 'type': 'MANIFEST', 'digest': u'sha256:37e5402f07f3a1785a900f4cfa93bd3ba40dead33577e9daeebbbfc25cde8108', 'size': 929})
+sleeping .... .... 1.10365187645/8
+('request: ', {'uri': u'v2/4715bf52/98b638a6/blobs/8f0fd731', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 40, 23000), 'client': u'797fdd32', 'sleep': 1.12, 'blob': u'sha256:1bcac21412d91135f7a9dafc214d4b27d9fa92655ebb9420bca1755e5282b876', 'duration': 1.089008072, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-1bcac21412d91135f7a9dafc214d4b27d9fa92655ebb9420bca1755e5282b876-1515064574.97', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.177:5000', 'testrepo'), '192.168.0.177:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443765.942705, 'duration': 0.015894174575805664, 'type': 'LAYER', 'digest': u'sha256:1bcac21412d91135f7a9dafc214d4b27d9fa92655ebb9420bca1755e5282b876', 'size': 156})
+sleeping .... .... 0.0681058254242/8
+('request: ', {'uri': u'v2/4715bf52/98b638a6/blobs/2bee5a5e', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 40, 107000), 'client': u'797fdd32', 'sleep': 0.084, 'blob': u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d', 'duration': 1.16999807, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d-1501497413.26', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.180:5000', 'testrepo'), '192.168.0.180:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443765.967408, 'duration': 0.012489080429077148, 'type': 'LAYER', 'digest': u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d', 'size': 6175})
+sleeping .... .... 6.28551091957/8
+('request: ', {'uri': u'v2/4715bf52/437c49db/blobs/93054319', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 46, 405000), 'client': u'797fdd32', 'sleep': 6.298, 'blob': u'sha256:af272fd7bcf514f0836547ddf0457a0c0cef8738379ab1215374cca415180198', 'duration': 0.785245453, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-af272fd7bcf514f0836547ddf0457a0c0cef8738379ab1215374cca415180198-1515963272.58', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443766.766601, 'duration': 0.1280229091644287, 'type': 'LAYER', 'digest': u'sha256:af272fd7bcf514f0836547ddf0457a0c0cef8738379ab1215374cca415180198', 'size': 10389245})
+sleeping .... .... 12.4429770908/8
+('request: ', {'uri': u'v2/4715bf52/437c49db/blobs/b1ca9623', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 58, 976000), 'client': u'797fdd32', 'sleep': 12.571, 'blob': u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064', 'duration': 7.850993872, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha2start stats
+{'onTime': 'yes', 'time': 1566443533.183221, 'duration': 0.02783489227294922, 'type': 'LAYER', 'digest': u'sha256:86c4d51685157d5fe8bd1f8da6014020fd46e42a39b062e597603f1dc7671b07', 'size': 92}
+{'onTime': 'yes', 'time': 1566443533.18342, 'duration': 0.01986217498779297, 'type': 'LAYER', 'digest': u'sha256:11cb57b1ef590b1e01e167554cacdb7ca3ca192eafd26d40e2d53c432437b240', 'size': 1230}
+{'onTime': 'yes', 'time': 1566443533.183909, 'duration': 0.03308296203613281, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642}
+{'onTime': 'yes', 'time': 1566443533.184039, 'duration': 0.03142499923706055, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642}
+{'onTime': 'yes', 'time': 1566443533.184183, 'duration': 0.03582620620727539, 'type': 'LAYER', 'digest': u'sha256:6e44c66f93c4b724f9269f807b277ce727285d948d420041eada778960471339', 'size': 189}
+{'onTime': 'yes', 'time': 1566443546.806267, 'duration': 0.013345003128051758, 'type': 'MANIFEST', 'digest': u'sha256:a5ac119d441400749147435d446f3560cbc65f964a074cfe65bd608a0a2eed39', 'size': 7488}
+{'onTime': 'yes', 'time': 1566443547.023092, 'duration': 0.013885974884033203, 'type': 'MANIFEST', 'digest': u'sha256:a5ac119d441400749147435d446f3560cbc65f964a074cfe65bd608a0a2eed39', 'size': 7488}
+{'onTime': 'yes', 'time': 1566443584.690077, 'duration': 0.015056848526000977, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642}
+{'duration': 0.10707712173461914, 'time': 1566443599.513543, 'type': 'PUSHLAYER', 'onTime': 'yes', 'size': 932}
+{'onTime': 'yes', 'time': 1566443663.309926, 'duration': 0.01578688621520996, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642}
+{'onTime': 'yes', 'time': 1566443765.787947, 'duration': 0.01634812355041504, 'type': 'MANIFEST', 'digest': u'sha256:37e5402f07f3a1785a900f4cfa93bd3ba40dead33577e9daeebbbfc25cde8108', 'size': 929}
+{'onTime': 'yes', 'time': 1566443765.942705, 'duration': 0.015894174575805664, 'type': 'LAYER', 'digest': u'sha256:1bcac21412d91135f7a9dafc214d4b27d9fa92655ebb9420bca1755e5282b876', 'size': 156}
+{'onTime': 'yes', 'time': 1566443765.967408, 'duration': 0.012489080429077148, 'type': 'LAYER', 'digest': u'sha256:44a6fe4eca987a147f65ad798a78498534f38e54461e035436e4f1704f40b14d', 'size': 6175}
+{'onTime': 'yes', 'time': 1566443766.766601, 'duration': 0.1280229091644287, 'type': 'LAYER', 'digest': u'sha256:af272fd7bcf514f0836547ddf0457a0c0cef8738379ab1215374cca415180198', 'size': 10389245}
+{'onTime': 'yes', 'time': 1566443767.748646, 'duration': 0.014477968215942383, 'type': 'LAYER', 'digest': u'sha256:be34613ab80dd380c9b007be3e57ac47bca5c1840570ad30b7245ce44199628c', 'size': 15910}
+{'onTime': 'yes', 'time': 1566443768.451958, 'duration': 0.13189005851745605, 'type': 'LAYER', 'digest': u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064', 'size': 9362874}
+{'onTime': 'yes', 'time': 1566443768.678519, 'duration': 0.015202045440673828, 'type': 'LAYER', 'digest': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'size': 472}
+{'onTime': 'yes', 'time': 1566443768.844195, 'duration': 0.026051998138427734, 'type': 'LAYER', 'digest': u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713', 'size': 1192606}
+{'onTime': 'yes', 'time': 1566443770.27197, 'duration': 0.01545405387878418, 'type': 'LAYER', 'digest': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'size': 472}
+{'onTime': 'yes', 'time': 1566443776.986418, 'duration': 0.2059159278869629, 'type': 'LAYER', 'digest': u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea', 'size': 17561639}
+Statistics
+accelerater: 8
+testmode: sift
+Successful Requests: 20
+Failed Requests: 0
+Duration: 244.009112835
+Data Transfered: 38558465 bytes
+Average Latency: 0.0447464704514
+Throughput: 0.0819641519435 requests/second
+Total GET layer: ('request: ', {'uri': u'v2/634674f1/53cc9671/blobs/c0454ce8', 'delay': datetime.datetime(2017, 6, 20, 1, 15, 8, 54000), 'client': u'405384d8', 'sleep': 0, 'blob': u'sha256:6e44c66f93c4b724f9269f807b277ce727285d948d420041eada778960471339', 'duration': 54.763897849, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-6e44c66f93c4b724f9269f807b277ce727285d948d420041eada778960471339-1501332365.65', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.177:5000', 'testrepo'), '192.168.0.177:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443533.184183, 'duration': 0.03582620620727539, 'type': 'LAYER', 'digest': u'sha256:6e44c66f93c4b724f9269f807b277ce727285d948d420041eada778960471339', 'size': 189})
+sleeping .... .... 110.312173794/8
+('request: ', {'uri': u'v2/47cbd874/338a3330/manifests/817c8a39', 'delay': datetime.datetime(2017, 6, 20, 1, 16, 58, 402000), 'client': u'82760689', 'sleep': 110.348, 'blob': u'sha256:a5ac119d441400749147435d446f3560cbc65f964a074cfe65bd608a0a2eed39', 'duration': 0.245638644, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.176:5000', 'testrepo'), '192.168.0.176:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443547.023092, 'duration': 0.013885974884033203, 'type': 'MANIFEST', 'digest': u'sha256:a5ac119d441400749147435d446f3560cbc65f964a074cfe65bd608a0a2eed39', 'size': 7488})
+('put_request: ', {'duration': 0.10707712173461914, 'size': 932, 'type': 'PUSHLAYER', 'onTime': 'yes', 'time': 1566443599.513543})
+('request: ', {'uri': u'v2/05f068dc/37773f3b/manifests/406251de', 'delay': datetime.datetime(2017, 6, 20, 1, 22, 3, 999000), 'client': u'2a15e5da', 'sleep': 0, 'blob': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'duration': 0.44975570699999995, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.180:5000', 'testrepo'), '192.168.0.180:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443533.183909, 'duration': 0.03308296203613281, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642})
+sleeping .... .... 108.689917038/8
+('request: ', {'uri': u'v2/47cbd874/018b6a7a/manifests/817c8a39', 'delay': datetime.datetime(2017, 6, 20, 1, 23, 52, 722000), 'client': u'b2861610', 'sleep': 108.723, 'blob': u'sha256:a5ac119d441400749147435d446f3560cbc65f964a074cfe65bd608a0a2eed39', 'duration': 0.253952235, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.176:5000', 'testrepo'), '192.168.0.176:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443546.806267, 'duration': 0.013345003128051758, 'type': 'MANIFEST', 'digest': u'sha256:a5ac119d441400749147435d446f3560cbc65f964a074cfe65bd608a0a2eed39', 'size': 7488})
+sleeping .... .... 931.246654997/8
+('request: ', {'uri': u'v2/05f068dc/37773f3b/manifests/406251de', 'delay': datetime.datetime(2017, 6, 20, 1, 39, 23, 982000), 'client': u'2a15e5da', 'sleep': 931.26, 'blob': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'duration': 0.430082668, 'data': None, 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443663.309926, 'duration': 0.01578688621520996, 'type': 'MANIFEST', 'digest': u'sha256:8937190b6d568743c380963bf4574e3dc1fab5a5da203928774f7e5d741ce8e3', 'size': 2642})
+56-42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064-1514608544.3', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.177:5000', 'testrepo'), '192.168.0.177:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443768.451958, 'duration': 0.13189005851745605, 'type': 'LAYER', 'digest': u'sha256:42a56a1a368233c05da0109c10f8fe02bc39ac9caa05cd695db82fcab9dae064', 'size': 9362874})
+sleeping .... .... 0.755109941483/8
+('request: ', {'uri': u'v2/4715bf52/437c49db/blobs/bddc059f', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 59, 863000), 'client': u'797fdd32', 'sleep': 0.887, 'blob': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'duration': 0.858731452, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada-1514521920.83', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443768.678519, 'duration': 0.015202045440673828, 'type': 'LAYER', 'digest': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'size': 472})
+sleeping .... .... 1.20079795456/8
+('request: ', {'uri': u'v2/4715bf52/437c49db/blobs/fa4a3a31', 'delay': datetime.datetime(2017, 6, 20, 1, 49, 1, 79000), 'client': u'797fdd32', 'sleep': 1.216, 'blob': u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713', 'duration': 1.184668536, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713-1515022619.48', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.176:5000', 'testrepo'), '192.168.0.176:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443768.844195, 'duration': 0.026051998138427734, 'type': 'LAYER', 'digest': u'sha256:7caaae7daa3b620e16ad13aa21cfa91493a9aa57f9ffb2ce7feed512b2052713', 'size': 1192606})
+('request: ', {'uri': u'v2/4715bf52/958c3568/blobs/4d21fddb', 'delay': datetime.datetime(2017, 6, 20, 1, 15, 43, 431000), 'client': u'b40b861c', 'sleep': 0, 'blob': u'sha256:11cb57b1ef590b1e01e167554cacdb7ca3ca192eafd26d40e2d53c432437b240', 'duration': 23.01431721, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-11cb57b1ef590b1e01e167554cacdb7ca3ca192eafd26d40e2d53c432437b240-1501415646.55', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443533.18342, 'duration': 0.01986217498779297, 'type': 'LAYER', 'digest': u'sha256:11cb57b1ef590b1e01e167554cacdb7ca3ca192eafd26d40e2d53c432437b240', 'size': 1230})
+sleeping .... .... 1875.56013783/8
+('request: ', {'uri': u'v2/4715bf52/98b638a6/blobs/83d6821d', 'delay': datetime.datetime(2017, 6, 20, 1, 46, 59, 11000), 'client': u'b40b861c', 'sleep': 1875.58, 'blob': u'sha256:be34613ab80dd380c9b007be3e57ac47bca5c1840570ad30b7245ce44199628c', 'duration': 1.077926472, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-be34613ab80dd380c9b007be3e57ac47bca5c1840570ad30b7245ce44199628c-1518307787.15', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.180:5000', 'testrepo'), '192.168.0.180:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443767.748646, 'duration': 0.014477968215942383, 'type': 'LAYER', 'digest': u'sha256:be34613ab80dd380c9b007be3e57ac47bca5c1840570ad30b7245ce44199628c', 'size': 15910})
+sleeping .... .... 20.0485220318/8
+('request: ', {'uri': u'v2/4715bf52/437c49db/blobs/bddc059f', 'delay': datetime.datetime(2017, 6, 20, 1, 47, 19, 74000), 'client': u'b40b861c', 'sleep': 20.063, 'blob': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'duration': 0.8379458949999999, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada-1514521920.83', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443770.27197, 'duration': 0.01545405387878418, 'type': 'LAYER', 'digest': u'sha256:150841481fe61450892837daa6ed43be5ed4c9ab7f2f68b5889d94dabd5f6ada', 'size': 472})
+sleeping .... .... 53.5365459461/8
+('request: ', {'uri': u'v2/4715bf52/958c3568/blobs/e18ad8f6', 'delay': datetime.datetime(2017, 6, 20, 1, 48, 12, 626000), 'client': u'b40b861c', 'sleep': 53.552, 'blob': u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea', 'duration': 1.06344556, 'data': u'/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m/sha256-1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea-1501510181.0', 'method': 'GET'})
+('tup, registry_tmp: ', ('192.168.0.179:5000', 'testrepo'), '192.168.0.179:5000')
+('get_request: ', {'onTime': 'yes', 'time': 1566443776.986418, 'duration': 0.2059159278869629, 'type': 'LAYER', 'digest': u'sha256:1928b55aeab16bcc93f00946ccdd67ec9624291ef036765cc6ddcca6949e4dea', 'size': 17561639})
+12
+Total GET manifest: 7
+Total PUT layer: 1
+Total PUT Manifest: 0
+Total WAMRUP layer: 0
+Total WAMRUP manifest: 0
+Average get layer latency: 0.0540767908096 seconds/request
+('50th percentile of durations : ', 0.022957086563110352)
+('75th percentile of durations : ', 0.058875381946563721)
+('95th percentile of durations : ', 0.16520169973373408)
+('99th percentile of durations : ', 0.19777308225631718)
+Average put layer latency: 0.107077121735 seconds/request
+('50th percentile of durations : ', 0.10707712173461914)
+('75th percentile of durations : ', 0.10707712173461914)
+('95th percentile of durations : ', 0.10707712173461914)
+('99th percentile of durations : ', 0.10707712173461914)
+Average get manifest latency: 0.0198472567967 seconds/request
+('50th percentile of durations : ', 0.015786886215209961)
+('75th percentile of durations : ', 0.023886561393737793)
+('95th percentile of durations : ', 0.03258557319641113)
+('99th percentile of durations : ', 0.032983484268188479)

@@ -6,18 +6,21 @@
 #2. random read
 #1. launch redis from each server
 #2. launch original image from each server
-
+# example
+#./run_sifttest.sh nnzhaoxxxx remotehostsxxxx
 ####:============ run sift registry cluster======================######
 #1. one cluster: original registry with local redis
 #2. dedup cluster: sift image
-
+# ./run_sifttest.sh nnzhaocs/distribution:original remotehostshulksnodedup.txt
+# ./run_sifttest.sh nnzhaocs/distribution:distributionhulks0-4 remotehostshulksdedup.txt
 
 ####=================== END ==============================#####
 
-echo "Hello! You have two Docker image choices: "
+echo "Hello! You have many Docker image choices: "
 
-echo "nnzhaocs/distribution:original"
-echo "nnzhaocs/distribution:distributioncache"
+#echo "If you wanna run original registry, plz use: nnzhaocs/distribution:original"
+#echo "If you wanna run sift registry, with hulks, plz use: nnzhaocs/distribution:distributioncache"
+#echo "If you wanna run sift registry, with thors, plz use: nnzhaocs/distribution:distributionthors" 
 
 cmd=$(printf "The input parameters: %s %s" $1 $2)
 echo $cmd
@@ -31,29 +34,30 @@ pssh -h $2 -l root -A -i $cmd
 
 echo "GET IP FROM HULKS"
 hulkip="\$(ip -4 addr |grep 192.168. |grep -Po 'inet \K[\d.]+')"
-#hulkip='ip -4 addr |grep 192.168 |grep -Po \"inet \K[\d.]+\"'
 echo $hulkip
+
 echo "GET IP FROM THORS"
-#\$(ip -4 addr |grep 192.168.0.2 |grep -Po \"inet \K[\d.]+\")\"
 thorip="\$(ip -4 addr |grep 192.168.0.2 |grep -Po 'inet \K[\d.]+')"
 echo $thorip
 
-filecachecap=203 #3524
-layercachecap=203 #3524
+hostip=$thorip
+cmd=$(printf "!!!!! You are choosing to using Hostip: %b, 192.168.xxx.xxx is hulks, and 192.168.0.2xx is thors" "$hostip")
+echo $cmd
+
+filecachecap=32 #203 #3524
+layercachecap=32 #203 #3524
 stype="MB" #"B"
 repullcntthres=3
 comprlevel=4
 layerslicingfcntthres=7
-layerslicingdirsizethres=5 #(MB)
+layerslicingdirsizethres=5 
 ttl=7000
 compressmethod="pgzip"
-hostip=$hulkip
+redisaddr="192.168.0.220:6379"
 
-cmd=$(printf "Hostip: %b" "$hostip")
-echo $cmd
 
 echo 'run containers as following'
-cmd1=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" --name registry-cluster %s" "$hostip" $1)
+cmd1=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" -e \"REGISTRY_REDIS_ADDR=%s\" --name registry-cluster %s" "$hostip" $redisaddr $1)
 
 cmd2=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_REDIS_ADDR=%s:6379\" --name registry-cluster %s" "$hostip" $1)
 
