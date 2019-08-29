@@ -27,10 +27,10 @@ echo $cmd
 
 echo "docker pull images: $1"
 cmd=$(printf "docker pull %s" $1)
-pssh -h $2 -l root -A -i -t 600 $cmd
+sshpass -p 'kevin123' pssh -h $2 -l root -A -i -t 600 $cmd
 
 echo 'check pulling finishing'
-pssh -h $2 -l root -A -i $cmd
+sshpass -p 'kevin123' pssh -h $2 -l root -A -i $cmd
 
 echo "GET IP FROM HULKS"
 hulkip="\$(ip -4 addr |grep 192.168. |grep -Po 'inet \K[\d.]+')"
@@ -67,10 +67,10 @@ if [ $1 == "nnzhaocs/distribution:original" ]; then
 	cmd=$cmd2
 	echo "run redis for each registry"
 	echo $cmd3
-	pssh -h $2 -l root -A -i $cmd3
+	sshpass -p 'kevin123' pssh -h $2 -l root -A -i $cmd3
 else
 	cmd=$cmd1	
 fi;
 echo $cmd
-pssh -h $2 -l root -A -i $cmd
+sshpass -p 'kevin123' pssh -h $2 -l root -A -i $cmd
 

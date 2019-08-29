@@ -20,13 +20,13 @@ echo $cmd
 echo "Update docker-performance repository!"
 cmd=$(printf "cd %s; git pull;" $3)
 echo $cmd
-pssh -h $4 -l nannan -A -i -t 600 $cmd
+sshpass -p 'nannan' pssh -h $4 -l nannan -A -i -t 600 $cmd
 echo "PUll again!"
-pssh -h $4 -l nannan -A -i -t 600 $cmd
+sshpass -p 'nannan' pssh -h $4 -l nannan -A -i -t 600 $cmd
 
 cmd=$(printf "cd %s ; python master.py -i %s -c %s &> logs &" $3 $1 $2)
 echo $cmd
-pssh -h $4 -l nannan -A -i -t 600 $cmd
+sshpass -p 'nannan' pssh -h $4 -l nannan -A -i -t 600 $cmd
 
 
 

@@ -13,7 +13,7 @@ warmupthreads = 100 # number of total clients
 hotratio = 0.25
 nondedupreplicas = 2
 replicalevel = 3
-wait = "True"
+wait = True
 
 dir = '/home/nannan/docker-performance/'
 
@@ -41,7 +41,8 @@ def createwarmup(threads):
     warmup = {
         "output": "warmup_output.json",
         "threads": threads,
-        }    
+        } 
+    return warmup
     
 def createtestmode(testmode):
     nodedup = False
@@ -180,17 +181,18 @@ def main():
                         help = 'input numofclients: int')
     
     args = parser.parse_args()
-    
+    print args
     client_info = createclientinfo(realblobfiles[args.realblobfiles])
     testingtrace = createtrace(traces[args.tracefiles], limitamount)
-    testingclients = clients[:,args.numofclients]
+
+    testingclients = clients[:args.numofclients]
     warmup = createwarmup(warmupthreads)
     
     if args.testmode == "nondedup":
         primaryregistry = registries #registries(:,len(registries)-args.numofdedupregistries)
     else:
-        primaryregistry = registries[:,len(registries)-args.numofdedupregistries]
-        dedupregistry = registries[-args.numofdedupregistries:]
+        dedupregistry = registries[:args.numofdedupregistries]
+        primaryregistry = registries[-(len(registries)-args.numofdedupregistries):]
         
     testingmode = createtestmode(args.testmode)
     testingsiftmode = createsiftparams(args.siftmode, hotratio, nondedupreplicas)
@@ -199,21 +201,31 @@ def main():
         "client_info": client_info,
         "trace": testingtrace,
         "primaryregistry": primaryregistry,
-        "dedupregistry": dedupregistry
-        "clients": clients,
+        "dedupregistry": dedupregistry,
+        "clients": testingclients,
         "warmup": warmup,
         "testmode": testingmode,
         "siftparams": testingsiftmode,
         "simulate": simulate,
         }
-    
+    print config
     with open(os.path.join(dir, "config.yaml"), 'w') as fp:
         yaml.dump(config, fp, default_flow_style=False)
     with open(os.path.join(dir, "run/clients.txt"), 'w') as fp:
         for i in testingclients:
-            fp.write(i+'\n')
+            fp.write(i+':22\n')
+    with open(os.path.join(dir, "run/dedupregistries.txt"), 'w') as fp:
+        for i in dedupregistry:
+            tmp = i.split(':')[0]
+            fp.write(tmp+':22\n')
+    with open(os.path.join(dir, "run/primaryregistries.txt"), 'w') as fp:
+        for i in primaryregistry:
+            tmp = i.split(':')[0]
+            fp.write(tmp+':22\n')
+
             
     
     
     
-    
+if __name__ == "__main__":
+        main()
