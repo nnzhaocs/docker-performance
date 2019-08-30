@@ -3,6 +3,7 @@
 #-----------
 # ./create_yaml.sh 
 # python create_yaml.py -r 50mb -t dal -m sift -s selective -a 8 -n 7 -c 4
+# sshpass -p 'kevin123' pssh -h remotehostthors.txt -l root -A -t 400 -i "docker ps"
 #----------
 
 date
@@ -96,4 +97,4 @@ sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tai
 
 ./get_results_fromclients.sh $testingmachine clients.txt
 
-
+./get_alllogs_thors.sh $testingmachine

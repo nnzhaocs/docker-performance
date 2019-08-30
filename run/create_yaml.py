@@ -185,14 +185,19 @@ def main():
     client_info = createclientinfo(realblobfiles[args.realblobfiles])
     testingtrace = createtrace(traces[args.tracefiles], limitamount)
 
+    primaryregistry=[]
+    dedupregistry=[]
+
     testingclients = clients[:args.numofclients]
     warmup = createwarmup(warmupthreads)
     
     if args.testmode == "nondedup":
         primaryregistry = registries #registries(:,len(registries)-args.numofdedupregistries)
-    else:
+    elif args.testmode == "sift":
         dedupregistry = registries[:args.numofdedupregistries]
         primaryregistry = registries[-(len(registries)-args.numofdedupregistries):]
+    elif args.testmode == "restore":
+        dedupregistry = registries[:args.numofdedupregistries]
         
     testingmode = createtestmode(args.testmode)
     testingsiftmode = createsiftparams(args.siftmode, hotratio, nondedupreplicas)

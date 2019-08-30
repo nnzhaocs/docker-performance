@@ -142,7 +142,7 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
         dgst = r['blob'] 
         registry_tmp = redis_stat_recipe_serverips(dgst)
         #print"GET: ips retrieved from redis for blob "+dgst+" is "+str(serverIps)
-        if not serverIps:
+        if not registry_tmp:
             registry_tmp = ringdedup.get_node(layer_id)
         return [(registry_tmp, dedupreponame)]
     elif Testmode == 'sift':
