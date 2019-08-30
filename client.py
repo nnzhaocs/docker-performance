@@ -85,9 +85,14 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
          
     uri = r['uri']
     id = uri.split('/')[-1]
+    
     # *************** registry_tmps: [x, x, dedup] ************  
     registry_tmps = []
-    if ('manifest' in r['uri']) or (Testmode == 'nodedup'): 
+    if Testmode == 'restore':
+        registry_tmps.append((ringdedup.get_node(id), dedupreponame))
+        #print Testmode
+        #print registry_tmps
+    elif ('manifest' in r['uri']) or (Testmode == 'nodedup'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
             registry_tmps.append((i['nodename'], nodedupreponame))
@@ -107,10 +112,6 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
             else:
                 registry_tmps.append((ring.get_node(id), nodedupreponame))
                 registry_tmps.append((ringdedup.get_node(id), dedupreponame))
-                 
-    elif Testmode == 'restore':
-        registry_tmps.append((ringdedup.get_node(id), dedupreponame))
-            
     return registry_tmps 
 
 

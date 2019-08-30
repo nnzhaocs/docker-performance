@@ -306,12 +306,12 @@ def stats(responses):
 def get_blobs(data, numclients, out_file):#, testmode):
     results = []
     i = 0
-    """ # for debugging
+    #""" # for debugging
     for reqlst in data:
 	x = send_requests(reqlst)
 	results.extend(x)
-    """ # end debugging
-    #""" # for run
+    #""" # end debugging
+    """ # for run
     
     with ProcessPoolExecutor(max_workers = numclients) as executor:
         futures = [executor.submit(send_requests, reqlst) for reqlst in data]
@@ -327,7 +327,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
 
     with open(results_dir+out_file, 'w') as f:
         json.dump(results, f)
-    #""" # end for run
+    """ # end for run
     """ # for just extract result """
     with open(results_dir+out_file) as f:
         results = json.load(f)
