@@ -22,7 +22,7 @@ echo "Hello! You have many Docker image choices: "
 #echo "If you wanna run sift registry, with hulks, plz use: nnzhaocs/distribution:distributioncache"
 #echo "If you wanna run sift registry, with thors, plz use: nnzhaocs/distribution:distributionthors" 
 
-cmd=$(printf "The input parameters: %s %s" $1 $2)
+cmd=$(printf "The input parameters: %s %s %s %s" $1 $2 $3 $4)
 echo $cmd
 
 echo "docker pull images: $1"
@@ -44,10 +44,10 @@ hostip=$thorip
 cmd=$(printf "!!!!! You are choosing to using Hostip: %b, 192.168.xxx.xxx is hulks, and 192.168.0.2xx is thors" "$hostip")
 echo $cmd
 
-filecachecap=32 #203 #3524
-layercachecap=32 #203 #3524
+filecachecap=$3 #203 #3524
+layercachecap=$3 #203 #3524
 stype="MB" #"B"
-repullcntthres=3
+repullcntthres=$4
 comprlevel=4
 layerslicingfcntthres=7
 layerslicingdirsizethres=5 
@@ -73,4 +73,7 @@ else
 fi;
 echo $cmd
 sshpass -p 'kevin123' pssh -h $2 -l root -A -i $cmd
+
+#echo "sleep 10s"
+#sshpass -p 'kevin123' pssh -h $2 -l root -A -i "docker logs -f $(docker ps -a)"
 

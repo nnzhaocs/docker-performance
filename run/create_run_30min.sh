@@ -19,15 +19,23 @@ echo $7
 
 codedir="/home/nannan/docker-performance"
 testingmachine=3
+cachesizeratio=0.25
+repullthres=3
 
-echo "cleanup thors\n"
+echo "cleanup thors..."
 ./cleanup_thors.sh
 
-echo "create config, registry, and client file\n"
+echo "sleep 30 s, wait for cleaning"
+sleep 30
+
+echo "create config, registry, and client file"
 python create_yaml.py -r $1 -t $2 -m $3 -s $4 -a $5 -n $6 -c $7
 
-echo "cp config.yaml file to other client machines \n"
+echo "cp config.yaml file to other client machines"
 sshpass -p 'nannan' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
+
+echo "sleep 30 s, wait for cp config.yml"
+sleep 30
 
 echo "kill all old pythons"
 sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 'pkill -9 python'
@@ -35,7 +43,7 @@ sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 'pkill -9 python'
 # first run match
 cd $codedir
 
-echo "run match\n"
+echo "run match"
 python master.py -c match -i config.yaml
 
 # second run sift containers
@@ -43,58 +51,66 @@ python master.py -c match -i config.yaml
 # dedup registries count: 3, 6, 9, 12, 15, 18, 21
 
 # ------------------------------------------
-# nnzhaocs/distribution:distributionthors3
-# nnzhaocs/distribution:distributionthors6
-# nnzhaocs/distribution:distributionthors9
-# nnzhaocs/distribution:distributionthors12
-# nnzhaocs/distribution:distributionthors15
-# nnzhaocs/distribution:distributionthors18
-# nnzhaocs/distribution:distributionthors21
-
 
 dedupimagearr=("nnzhaocs/distribution:distributionthors3" "nnzhaocs/distribution:distributionthors6" "nnzhaocs/distribution:distributionthors9" "nnzhaocs/distribution:distributionthors12" "nnzhaocs/distribution:distributionthors15" "nnzhaocs/distribution:distributionthors18" "nnzhaocs/distribution:distributionthors21")
+declare -A sizearr
+sizearr["dal"]=6.583
+sizearr+=(["dev"]=4.743 ["fra"]=2.351 ["lon"]=3.955 ["prestage"]=20.679 ["stage"]=2.821 ["syd"]=0.875)
+cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
+echo "cachesize:"
+echo $cachesize
 
-echo "start containers ......\n"
+echo "start containers ......"
 
 imageno=$(echo "$6/3-1"|bc)
 
 cd $codedir"/run"
 
 echo ${dedupimagearr[$imageno]}
-./run_sifttest.sh ${dedupimagearr[$imageno]} dedupregistries.txt
+./run_sifttest.sh ${dedupimagearr[$imageno]} dedupregistries.txt $cachesize $repullthres
 
-echo "sleep 20 s"
+echo "sleep 20 s, wait for dedup registries to start"
 sleep 20
 
-./run_sifttest.sh nnzhaocs/distribution:original primaryregistries.txt
+echo "save dedup registry containers' logs"
+sshpass -p 'kevin123' pssh -h dedupregistries.txt -l root -A -i 'docker logs -f $(docker ps -a -q) &>> /home/nannan/logs-nondedup &'
+
+echo "sleep 20 s, wait for dedup registries to run a while"
+sleep 20
+
+./run_sifttest.sh nnzhaocs/distribution:original primaryregistries.txt $cachesize $repullthres
+
+echo "sleep 20 s, wait for primary registries to start"
+sleep 20
 
 echo "start clients .......\n"
 echo "warmup ....."
 ./run_clients.sh config.yaml warmup $codedir clients.txt
 
-echo "sleep 20 s"
+echo "sleep 20 s, wait for client to start sending warmup requests"
 sleep 20
 
 sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 50 logs"
 
-echo "sleep 30 min"
-sleep 1800
+echo "sleep 30 min, wait for warmup to finish"
+sleep 1200
 
 sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
 echo "run ...."
 ./run_clients.sh config.yaml run $codedir clients.txt
 
-echo "sleep 30 s"
+echo "sleep 30 s, wait for client to start sending run requests"
 sleep 30
 sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 50 logs"
 
-echo "sleep 50 min"
-
+echo "sleep 50 min, wait for run to finish"
 sleep 3000
 
 sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
 ./get_results_fromclients.sh $testingmachine clients.txt
 
+echo "sleep 20 s, wait for getting clients results.json file"
+sleep 20
 ./get_alllogs_thors.sh $testingmachine

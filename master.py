@@ -438,11 +438,12 @@ def main():
     print 'warmup threads same as number of clients: ' + str(threads)
 
     global testmode
-    global siftmod
+    global siftmode
     global hotratio
     global nondedupreplicas
     global hotlayers
-    siftmode = 'N/A'
+    testmode = ''
+    siftmode = ''
     hotratio = 0
     nondedupreplicas = 0
 

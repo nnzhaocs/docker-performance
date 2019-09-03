@@ -12,7 +12,7 @@ echo "layer request"
 grep ', LAYERCONSTRUCT:' data > tmp
 awk -F'metadata lookup time:' '{print $2}' tmp > tmp1
 awk -F',' '{print $1}' tmp1 > metadatalookuptime
-
+echo $metadatalookuptime
 awk -F'layer transfer and merge time:' '{print $2}' tmp > tmp1
 awk -F',' '{print $1}' tmp1 > layerconstructtime
 

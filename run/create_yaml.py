@@ -9,10 +9,10 @@ import time
 traces = {}
 realblobfiles = {}
 limitamount = 5000
-warmupthreads = 100 # number of total clients
+warmupthreads = 60 # number of total clients
 hotratio = 0.25
 nondedupreplicas = 2
-replicalevel = 3
+replicalevel = 6
 wait = True
 
 dir = '/home/nannan/docker-performance/'
@@ -191,7 +191,7 @@ def main():
     testingclients = clients[:args.numofclients]
     warmup = createwarmup(warmupthreads)
     
-    if args.testmode == "nondedup":
+    if args.testmode == "nodedup":
         primaryregistry = registries #registries(:,len(registries)-args.numofdedupregistries)
     elif args.testmode == "sift":
         dedupregistry = registries[:args.numofdedupregistries]

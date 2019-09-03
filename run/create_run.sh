@@ -15,9 +15,11 @@ echo $4
 echo $5
 echo $6
 echo $7
+echo $8
 
 codedir="/home/nannan/docker-performance"
 testingmachine=3
+cachesizeratio=0.25
 
 echo "cleanup thors\n"
 ./cleanup_thors.sh
@@ -41,17 +43,14 @@ python master.py -c match -i config.yaml
 # nnzhaocs/distribution:original
 # dedup registries count: 3, 6, 9, 12, 15, 18, 21
 
-# ------------------------------------------
-# nnzhaocs/distribution:distributionthors3
-# nnzhaocs/distribution:distributionthors6
-# nnzhaocs/distribution:distributionthors9
-# nnzhaocs/distribution:distributionthors12
-# nnzhaocs/distribution:distributionthors15
-# nnzhaocs/distribution:distributionthors18
-# nnzhaocs/distribution:distributionthors21
-
-
 dedupimagearr=("nnzhaocs/distribution:distributionthors3" "nnzhaocs/distribution:distributionthors6" "nnzhaocs/distribution:distributionthors9" "nnzhaocs/distribution:distributionthors12" "nnzhaocs/distribution:distributionthors15" "nnzhaocs/distribution:distributionthors18" "nnzhaocs/distribution:distributionthors21")
+declare -A sizearr
+sizearr["dal"]=6.583
+sizearr+=(["dev"]=4.743 ["fra"]=2.351 ["lon"]=3.955 ["prestage"]=20.679 ["stage"]=2.821 ["syd"]=0.875)
+
+cachesize=$(echo "${sizearr[$1]}*1024*$cachesizeratio/$6+1"|bc)
+echo "cachesize:"
+echo $cachesize
 
 echo "start containers ......\n"
 
@@ -60,12 +59,12 @@ imageno=$(echo "$6/3-1"|bc)
 cd $codedir"/run"
 
 echo ${dedupimagearr[$imageno]}
-./run_sifttest.sh ${dedupimagearr[$imageno]} dedupregistries.txt
+./run_sifttest.sh ${dedupimagearr[$imageno]} dedupregistries.txt $cachesize
 
 echo "sleep 20 s"
 sleep 20
 
-./run_sifttest.sh nnzhaocs/distribution:original primaryregistries.txt
+./run_sifttest.sh nnzhaocs/distribution:original primaryregistries.txt $cachesize
 
 echo "start clients .......\n"
 echo "warmup ....."
