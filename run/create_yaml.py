@@ -16,11 +16,12 @@ replicalevel = 3
 wait = True
 
 dir = '/home/nannan/docker-performance/'
+layerfiledir = '/home/nannan/dockerimages/layers/hulk1'
 
-def createclientinfo(realblobs):
+def createclientinfo(trace):
     client_info = {
         "threads": 1,
-        "realblobs": realblobs,
+        "realblobs": os.path.join(layerfiledir, trace+'_layers.lst'),
             
             }
     return client_info
@@ -85,6 +86,10 @@ def createsimulate(wait, accelerater, replicalevel):
     
     return simulate
 
+"""
+dal_layers.lst  fra_layers.lst  prestage_layers.lst  syd_layers.lst
+dev_layers.lst  lon_layers.lst  stage_layers.lst     testing_layers.lst
+"""
 
 def main():
     #first add traces
@@ -158,8 +163,8 @@ def main():
     
     
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
-    parser.add_argument('-r', '--realblobfiles', dest='realblobfiles', type=str, required=True, 
-                        help = 'input realblob files: 50m or 1gb')
+#     parser.add_argument('-r', '--realblobfiles', dest='realblobfiles', type=str, required=True, 
+#                         help = 'input realblob files: 50m or 1gb')
     parser.add_argument('-t', '--tracefiles', dest='tracefiles', type=str, required=True, 
                         help = 'input trace file: dal, dev, fra, prestage, or syd, lon')
     parser.add_argument('-m', '--testmode', dest='testmode', type=str, required=True, 
@@ -175,7 +180,7 @@ def main():
     
     args = parser.parse_args()
     print args
-    client_info = createclientinfo(realblobfiles[args.realblobfiles])
+    client_info = createclientinfo(args.tracefiles)
     testingtrace = createtrace(traces[args.tracefiles], limitamount)
 
     primaryregistry=[]
