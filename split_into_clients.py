@@ -85,7 +85,7 @@ def match(realblob_location_files, tracedata, layeridmap):
     print "match ... "
     print realblob_location_files #, trace_files
 
-    blob_locations = sampleLayers(realblob_location_files, tracedata, layeridmap)
+    blob_locations = [] #sampleLayers(realblob_location_files, tracedata, layeridmap)
     lTOblobdic = {}
     mdic = {}
         
@@ -93,15 +93,15 @@ def match(realblob_location_files, tracedata, layeridmap):
     count = 0
     uniq_layerdataset_size = 0
     
-#     for realblob_location_file in realblob_location_files:
-#         print "File: "+realblob_location_file+" has the following blobs"
-#     
-#         with open(realblob_location_file, 'r') as f:
-#             for line in f:
-#                 #print line
-#                 if line:
-#                     blob_locations.append(line.replace("\n", ""))
-    #print 'blob locations count: ' + str(len(blob_locations))
+    for realblob_location_file in realblob_location_files:
+        print "File: "+realblob_location_file+" has the following blobs"
+    
+        with open(realblob_location_file, 'r') as f:
+            for line in f:
+                #print line
+                if line:
+                    blob_locations.append(line.replace("\n", ""))
+     #print 'blob locations count: ' + str(len(blob_locations))
 
     ret = []  
     fcnt = 0

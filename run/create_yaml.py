@@ -9,7 +9,8 @@ import time
 traces = {}
 realblobfiles = {}
 limitamount = 5000
-warmupthreads = 60 # number of total clients
+# 24 32 40 48 64 
+warmupthreads = 32 # number of total clients
 hotratio = 0.25
 nondedupreplicas = 2
 replicalevel = 3
@@ -21,7 +22,7 @@ layerfiledir = '/home/nannan/dockerimages/layers/hulk1'
 def createclientinfo(trace):
     client_info = {
         "threads": 1,
-        "realblobs": os.path.join(layerfiledir, trace+'_layers.lst'),
+        "realblobs": [os.path.join(layerfiledir, trace+'_layers.lst')],
             
             }
     return client_info

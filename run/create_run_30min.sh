@@ -2,14 +2,14 @@
 
 #-----------
 # ./create_yaml.sh 
-# python create_yaml.py -r 50mb -t dal -m sift -s selective -a 8 -n 7 -c 4
+# python create_yaml.py -t dal -m sift -s selective -a 8 -n 7 -c 4
 # sshpass -p 'kevin123' pssh -h remotehostthors.txt -l root -A -t 400 -i "docker ps"
 #----------
 
 date
 
 echo "testing params:"
-echo $1
+#echo $1
 echo $2
 echo $3
 echo $4
@@ -29,7 +29,7 @@ echo "sleep 30 s, wait for cleaning"
 sleep 30
 
 echo "create config, registry, and client file"
-python create_yaml.py -r $1 -t $2 -m $3 -s $4 -a $5 -n $6 -c $7
+python create_yaml.py -t $2 -m $3 -s $4 -a $5 -n $6 -c $7
 
 echo "cp config.yaml file to other client machines"
 sshpass -p 'nannan' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
@@ -54,8 +54,8 @@ python master.py -c match -i config.yaml
 
 dedupimagearr=("nnzhaocs/distribution:distributionthors3" "nnzhaocs/distribution:distributionthors6" "nnzhaocs/distribution:distributionthors9" "nnzhaocs/distribution:distributionthors12" "nnzhaocs/distribution:distributionthors15" "nnzhaocs/distribution:distributionthors18" "nnzhaocs/distribution:distributionthors21")
 declare -A sizearr
-sizearr["dal"]=6.583
-sizearr+=(["dev"]=4.743 ["fra"]=2.351 ["lon"]=3.955 ["prestage"]=20.679 ["stage"]=2.821 ["syd"]=0.875)
+sizearr["dal"]=30
+sizearr+=(["dev"]=21 ["fra"]=8 ["lon"]=14 ["prestage"]=86 ["stage"]=12 ["syd"]=3)
 cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
 echo "cachesize:"
 echo $cachesize
