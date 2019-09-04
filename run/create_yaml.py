@@ -156,13 +156,6 @@ def main():
                "192.168.0.154",
                "192.168.0.156"]
     
-    realblobfiles["50mb"] = ["/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_50m.lst"]
-    realblobfiles["1gb"] = ["/home/nannan/dockerimages/layers/hulk1/hulk1_layers_less_1g.lst"]
-    realblobfiles["diffsize"] = ["/home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_5MB.lst",
-                                 "/home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_10MB.lst",
-                                 "/home/nannan/dockerimages/layers/hulk1/hulk_layers_approx_20MB.lst",
-                                 ]
-    
     
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
     parser.add_argument('-r', '--realblobfiles', dest='realblobfiles', type=str, required=True, 
