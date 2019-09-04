@@ -18,11 +18,69 @@ from utilities import *
 
 realblobtrace_dir = "/home/nannan/testing/realblobtraces/"
 
+
+def sampleLayers(realblob_location_files, tracedata, layeridmap):
+    print "sampling ... "
+    print realblob_location_files #, trace_files
+    layerdict = {}
+   
+    for realblob_location_file in realblob_location_files:
+        print "File: "+realblob_location_file+" has the following blobs"
+    
+        with open(realblob_location_file, 'r') as f:
+            for line in f:
+                if line:
+                    blob_locations.append(line.replace("\n", ""))
+  
+    for request in tracedata:
+        method = request['http.request.method']
+        uri = request['http.request.uri']
+        if 'GET' == method and 'manifest' in uri:
+            pass       
+        elif 'PUT' == method and 'blobs' in uri:
+            parts = uri.split('/')
+            reponame = parts[1] + '/' + parts[2] 
+            newid = reponame + '/' + str(size)
+            try: 
+                newuri = layeridmap[newid]
+                if newuri != '':
+                    uri = newuri
+                else:
+                    pass
+            except Exception as e:
+                print "######## didn't find get uri for this PUT req: "+uri+', '+newid
+                continue
+        elif 'GET' == method and 'blobs' in uri:            
+            parts = uri.split('/')
+            reponame = parts[1] + '/' + parts[2] 
+            newid = reponame + '/' + str(size)
+            try:
+                newuri = layeridmap[newid]               
+            except Exception as e:
+                pass
+        elif 'PUT' == method and 'manifest' in uri:
+            pass
+        else:
+            print request
+        
+        layer_id = uri.rsplit('/', 1)[1] #dict[-1] == trailing
+        if 'manifest' in uri:
+            pass
+        else:
+            try:
+                x = layerdict[layer_id]
+            except Exception as e:
+                layerdict[layer_id] = 1
+    
+    print "the number of uniq layers are: "+str(len(layerdict))
+    layersamples = random.sample(blob_locations, len(layerdict))
+    return layersamples
+
 def match(realblob_location_files, tracedata, layeridmap):
     print "match ... "
     print realblob_location_files #, trace_files
 
-    blob_locations = []
+    blob_locations = sampleLayers(realblob_location_files, tracedata, layeridmap)
     lTOblobdic = {}
     mdic = {}
         
@@ -30,14 +88,14 @@ def match(realblob_location_files, tracedata, layeridmap):
     count = 0
     uniq_layerdataset_size = 0
     
-    for realblob_location_file in realblob_location_files:
-        print "File: "+realblob_location_file+" has the following blobs"
-    
-        with open(realblob_location_file, 'r') as f:
-            for line in f:
-                #print line
-                if line:
-                    blob_locations.append(line.replace("\n", ""))
+#     for realblob_location_file in realblob_location_files:
+#         print "File: "+realblob_location_file+" has the following blobs"
+#     
+#         with open(realblob_location_file, 'r') as f:
+#             for line in f:
+#                 #print line
+#                 if line:
+#                     blob_locations.append(line.replace("\n", ""))
     #print 'blob locations count: ' + str(len(blob_locations))
 
     ret = []  
