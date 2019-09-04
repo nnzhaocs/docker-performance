@@ -76,6 +76,9 @@ def sampleLayers(realblob_location_files, tracedata, layeridmap):
     
     print "the number of uniq layers are: "+str(len(layerdict))
     layersamples = random.sample(blob_locations, len(layerdict))
+    with open(realblobtrace_dir+'input_tracefile'+'-layers.lst', 'w') as fp:
+        for l in layersamples:
+            fp.write(l+'\n')
     return layersamples
 
 def match(realblob_location_files, tracedata, layeridmap):
