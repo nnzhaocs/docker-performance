@@ -124,7 +124,7 @@ def warmup(out_trace, threads):
                     print('warmup: something generated an exception: %s', e)
         #break     
         #stats(results)
-        #time.sleep(600)
+        time.sleep(30)
 
     with open(out_trace, 'w') as f:
         json.dump(trace, f)
