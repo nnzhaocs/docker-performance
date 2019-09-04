@@ -23,7 +23,8 @@ def sampleLayers(realblob_location_files, tracedata, layeridmap):
     print "sampling ... "
     print realblob_location_files #, trace_files
     layerdict = {}
-   
+    blob_locations = []
+  
     for realblob_location_file in realblob_location_files:
         print "File: "+realblob_location_file+" has the following blobs"
     
@@ -35,6 +36,7 @@ def sampleLayers(realblob_location_files, tracedata, layeridmap):
     for request in tracedata:
         method = request['http.request.method']
         uri = request['http.request.uri']
+	size = request['http.response.written']
         if 'GET' == method and 'manifest' in uri:
             pass       
         elif 'PUT' == method and 'blobs' in uri:
@@ -180,7 +182,7 @@ def match(realblob_location_files, tracedata, layeridmap):
                 "timestamp": request['timestamp'],
                 'data': blob
             }
-            print r
+            #print r
             ret.append(r)
             count += 1
             fcnt += 1
