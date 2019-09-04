@@ -12,7 +12,7 @@ limitamount = 5000
 warmupthreads = 60 # number of total clients
 hotratio = 0.25
 nondedupreplicas = 2
-replicalevel = 6
+replicalevel = 3
 wait = True
 
 dir = '/home/nannan/docker-performance/'

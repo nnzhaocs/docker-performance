@@ -7,7 +7,8 @@ cat $1/*.log > $1/logs
 # ******* get layer ********
 
 grep 'NANNAN: layer construct:' $1/logs > tmp
-grep 'reqtype: LAYER' tmp > data
+cat tmp > data
+#grep 'reqtype: LAYER' tmp > data
 echo "layer request"
 grep ', LAYERCONSTRUCT:' data > tmp
 awk -F'metadata lookup time:' '{print $2}' tmp > tmp1
@@ -56,7 +57,8 @@ paste -d"\t" layerconstructtime layertransfertime comprssize uncomprssize comprs
 # ********* get slice ***********
 echo "slice construct:"
 grep 'NANNAN: slice construct:' $1/logs > tmp
-grep 'reqtype: SLICE' tmp > data
+cat tmp > data
+#grep 'reqtype: SLICE' tmp > data
 
 grep ', SLICECONSTRUCT:' data > tmp
 
