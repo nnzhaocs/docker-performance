@@ -459,9 +459,14 @@ def main():
             print ("hotratio:  ", hotratio)
         elif 'standard' == siftmode:
             nondedupreplicas = inputs['siftparams']['standard']['nondedupreplicas']
-            print ("nondedupreplicas:  ", nondedupreplicas)        
+            print ("nondedupreplicas:  ", nondedupreplicas)  
+    elif inputs['testmode']['primary'] == True:
+        testmode = 'primary'
+        
     elif inputs['testmode']['restore'] == True:
-        testmode = 'restore'       
+        testmode = 'restore'  
+             
+    print("testmode: ", testmode)
     
     if args.command == 'match':    
         if 'realblobs' in inputs['client_info']:

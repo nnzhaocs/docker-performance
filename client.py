@@ -92,10 +92,14 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
         #print Testmode
         #print registry_tmps
-    elif ('manifest' in r['uri']) or (Testmode == 'nodedup'): 
+    elif ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
             registry_tmps.append((i['nodename'], nodedupreponame))
+        if Testmode == 'primary':
+            # add to redis
+            redis_set_recipe_serverips(dgst, registry_tmps)
+        
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
@@ -132,7 +136,7 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
     layer_id = uri.split('/')[-1] #(r['method'] == 'PUT') or 
     
     registry_tmps = []
-    if ('manifest' in r['uri']) or (Testmode == 'nodedup'):
+    if ('manifest' in r['uri']) or (Testmode == 'nodedup')or (Testmode == 'primary'): 
         registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
         registry_tmp = random.choice(registry_tmps) 
        
@@ -163,6 +167,17 @@ def redis_stat_recipe_serverips(dgst):
     serverIps = []
    
     return serverIps.append(recipe['MasterIp']) 
+
+
+def redis_set_recipe_serverips(dgst, registries):
+    global rediscli_dbrecipe
+    
+    key = "Layer:Recipe::"+dgst 
+    des = {
+        "HostServerIps": registries,
+        }   
+    rediscli_dbrecipe.execute_command('SET', key, json.dumps(des))
+    return 
 
 
 def get_request_registries(r):
