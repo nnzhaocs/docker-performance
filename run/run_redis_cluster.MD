@@ -9,6 +9,7 @@ cd /home/nannan/distribution/run/7000
 or 
 cd /home/nannan/distribution/run/7001
 
+rm -rf appendonly.aof  dump.rdb
 /home/nannan/redis-stable/src/redis-server redis.conf &
 /home/nannan/redis-stable/src/redis-cli --cluster create 192.168.0.170:7000 192.168.0.170:7001 \
     192.168.0.171:7000 192.168.0.171:7001 \

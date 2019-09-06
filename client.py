@@ -88,31 +88,52 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     
     # *************** registry_tmps: [x, x, dedup] ************  
     registry_tmps = []
+    ptargenodes = []
     if Testmode == 'restore':
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
         #print Testmode
         #print registry_tmps
-    elif ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Testmode == 'primary'): 
+    #elif ('manifest' in r['uri']) or 
+    elif (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
-            registry_tmps.append((i['nodename'], nodedupreponame))
-        if Testmode == 'primary':
+            if Testmode == 'primary':
+                ptargenodes.append(i['nodename'])
+                registry_tmps.append((i['nodename'], dedupreponame))
+            else:
+                registry_tmps.append((i['nodename'], nodedupreponame))
+        if Testmode == 'primary' and 'manifest' not in r['uri']:
             # add to redis
-            redis_set_recipe_serverips(dgst, registry_tmps)
+            #for i in noderange:
+            #    ptargenodes.append(i['nodename'])
+            dgst = "sha256:"+r['data'].split('-')[1]
+            print dgst
+            redis_set_recipe_serverips(dgst, ptargenodes)
         
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
             noderange = ring.range(id, nondedupreplicas, True)
             for i in noderange:
+                ptargenodes.append(i['nodename'])
                 registry_tmps.append((i['nodename'], nodedupreponame))
+            if 'manifest' not in r['uri']:
+                dgst = "sha256:"+r['data'].split('-')[1]
+                print dgst
+                redis_set_recipe_serverips(dgst, ptargenodes)
             # *********** 1 replica send to dedup nodes ************      
             registry_tmps.append((ringdedup.get_node(id), dedupreponame))
+
         elif 'selective' == siftmode:
             if id in hotlayers:
                 noderange = ring.range(id, replica_level, True)
                 for i in noderange:
+                    ptargenodes.append(i['nodename'])
                     registry_tmps.append((i['nodename'], nodedupreponame))
+                if 'manifest' not in r['uri']:
+                    dgst = "sha256:"+r['data'].split('-')[1]
+                    print dgst
+                    redis_set_recipe_serverips(dgst, ptargenodes)
             else:
                 registry_tmps.append((ring.get_node(id), nodedupreponame))
                 registry_tmps.append((ringdedup.get_node(id), dedupreponame))
@@ -370,7 +391,7 @@ def send_requests(requests):
     return  results_all     
     
 
-def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input, nondedupreplicas_input): 
+def config_client(ring_input, ringdedup_input, primaryregistries, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input, nondedupreplicas_input): 
 
     global rediscli_dbrecipe
     global rjpool_dbNoBFRecipe
@@ -405,8 +426,12 @@ def config_client(ring_input, ringdedup_input, dedupregistries, hotlayers_input,
 
     print("===========> Testing dedupregistries <============", dedupregistries)
     
-    if Testmode != 'nodedup':    
-        if "192.168.0.17" in dedupregistries[0]:
+    if Testmode != 'nodedup':
+        if not len(dedupregistries):
+            registries = primaryregistries
+        else:
+            registries = dedupregistries
+        if "192.168.0.17" in registries[0]:
             startupnodes = startup_nodes_hulks
             print("==========> Testing dedupregistries HULKS <============: ", startupnodes)
         else:    

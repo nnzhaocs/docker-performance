@@ -9,10 +9,10 @@ import time
 traces = {}
 realblobfiles = {}
 limitamount = 5000
-# 24 32 40 48 64 
+# 24 32 48 64 
 warmupthreads = 32 # number of total clients
 hotratio = 0.25
-nondedupreplicas = 2
+#nondedupreplicas = 2
 replicalevel = 3
 wait = True
 
@@ -50,6 +50,7 @@ def createtestmode(testmode):
     nodedup = False
     sift = False
     restore = False
+    primary = False
     
     if testmode == "nodedup":
         nodedup = True
@@ -57,11 +58,14 @@ def createtestmode(testmode):
         sift = True
     if testmode == "restore":
         restore = True
+    if testmode == "primary":
+        primary = True
     
     testmode = {
         "nodedup": nodedup,
         "sift": sift,
         "restore": restore,
+        "primary": primary,
         }
     
     return testmode
@@ -178,6 +182,9 @@ def main():
                         help = 'input numofdedupregistries: int')
     parser.add_argument('-c', '--numofclients', dest='numofclients', type=int, required=True, 
                         help = 'input numofclients: int')
+    parser.add_argument('-p', '--nondedupreplicas', dest='nondedupreplicas', type=int, required=True,
+                                    help = 'input nondedupreplicas: int')
+
     
     args = parser.parse_args()
     print args
@@ -189,17 +196,27 @@ def main():
 
     testingclients = clients[:args.numofclients]
     warmup = createwarmup(warmupthreads)
-    
-    if args.testmode == "nodedup":
+    """
+    nodedup: original registry;
+    primary: b-mode 3
+    restore: b-mode 0
+    sift:
+    standard: b-mode 2 or b-mode 1
+    selective: 
+    """
+    if args.testmode == "nodedup" or args.testmode == "primary":
         primaryregistry = registries #registries(:,len(registries)-args.numofdedupregistries)
     elif args.testmode == "sift":
         dedupregistry = registries[:args.numofdedupregistries]
         primaryregistry = registries[-(len(registries)-args.numofdedupregistries):]
     elif args.testmode == "restore":
         dedupregistry = registries[:args.numofdedupregistries]
+#    elif args.testmode == "primary":
+#        dedupregistry = registries[:args.numofdedupregistries]
+#        primaryregistry = registries[-(len(registries)-args.numofdedupregistries):]
         
     testingmode = createtestmode(args.testmode)
-    testingsiftmode = createsiftparams(args.siftmode, hotratio, nondedupreplicas)
+    testingsiftmode = createsiftparams(args.siftmode, hotratio, args.nondedupreplicas)
     simulate = createsimulate(wait, args.accelerater, replicalevel)
     config = {
         "client_info": client_info,

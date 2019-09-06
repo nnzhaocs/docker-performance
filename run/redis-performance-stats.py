@@ -2,6 +2,30 @@ import os
 import json
 from rediscluster import StrictRedisCluster
 
+startup_nodes_thors =[{"host": "192.168.0.214", "port": "7000"},
+                {"host": "192.168.0.214", "port": "7001"},
+                 {"host": "192.168.0.215", "port": "7000"},
+                 {"host": "192.168.0.215", "port": "7001"},
+                 {"host": "192.168.0.216", "port": "7000"},
+                 {"host": "192.168.0.216", "port": "7001"},
+                                                        {"host": "192.168.0.217", "port": "7000"},
+                                                                {"host": "192.168.0.217", "port": "7001"},
+
+                                                                        {"host": "192.168.0.218", "port": "7000"},
+                                                                                {"host": "192.168.0.218", "port": "7001"},
+
+                                                                                        {"host": "192.168.0.219", "port": "7000"},
+                                                                                                {"host": "192.168.0.219", "port": "7001"},
+
+                                                                                                        {"host": "192.168.0.221", "port": "7000"},
+                                                                                                                {"host": "192.168.0.221", "port": "7001"},
+
+                                                                                                                        {"host": "192.168.0.222", "port": "7000"},
+                                                                                                                                {"host": "192.168.0.222", "port": "7001"},
+
+                                                                                                                                        {"host": "192.168.0.223", "port": "7000"},
+                                                                                                                                                {"host": "192.168.0.223", "port": "7001"}]
+
 startup_nodes = [
              {"host": "192.168.0.170", "port": "7000"}, \
             {"host": "192.168.0.170", "port": "7001"}, \
@@ -29,7 +53,14 @@ f = 'File::*'
 ulmap = 'ULMap::*'
 rlmap = 'RLMap::*'
 
-rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+rj_dbNoBFRecipe = StrictRedisCluster(startup_nodes=startup_nodes_thors, decode_responses=True)
+def setItem():
+        key = "hello:world"
+        des = {
+                "MasterIp": ["192.168.0.22"],
+                }
+        rj_dbNoBFRecipe.execute_command('SET', key, json.dumps(des))
+        return 
 
 def getItem(key):
 	value = rj_dbNoBFRecipe.execute_command('GET', key)
@@ -52,9 +83,12 @@ def getItems(k):
 
 def main():
 	key = '*52299ff7366c1b477b283eea121fa6001a9af556528c2c1dfeabce02de845546'
-
-
-	getItems(key)
+        setItem()
+        getItems("hello:world")
+        getItems("*sha256:978b356c054cb2c8d3bcfab47afc1069edc69de79dad9e519c022adc96650222")
+        #getItems("Layer:Recipe::sha256:c6327de0331b9538dc3f56aac344e783f6d1e1b10e509ea93a1b3e41151c3a1a")
+        getItems("Layer:Recipe::*")
+	#getItems(key)
 
 
 if __name__ == "__main__":

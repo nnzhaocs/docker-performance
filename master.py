@@ -483,7 +483,7 @@ def main():
     with open(fname, 'r') as fp:
         hotlayers = json.load(fp)
 
-    config_client(ring, ringdedup, dedupregistries, hotlayers, testmode, wait, accelerater, replica_level, siftmode, nondedupreplicas) 
+    config_client(ring, ringdedup, primaryregistries, dedupregistries, hotlayers, testmode, wait, accelerater, replica_level, siftmode, nondedupreplicas) 
         
     print("hot layers are: ", hotlayers)    
          
