@@ -332,19 +332,19 @@ def distribute_put_requests(request, tp, registries):
         tpp = 'warmuplayer'
         
     #add to redis    
-    ptargenodes = [] 
+    targenodes = [] 
     if 'manifest' not in uri: 
         if Testmode == 'primary':       
             for tup in registries:
                 registry_tmp = tup[0]
                 targenodes.append(registry_tmp)
-                redis_set_recipe_serverips(dgst, ptargenodes)  
+                redis_set_recipe_serverips(dgst, targenodes)  
             
         if Testmode == 'sift': 
             for tup in registries[:len(registries)-1]:
                 registry_tmp = tup[0]
                 targenodes.append(registry_tmp)  
-                redis_set_recipe_serverips(dgst, ptargenodes)  
+                redis_set_recipe_serverips(dgst, targenodes)  
 
     if 'WARMUP' == tp:    
         result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tpp}
