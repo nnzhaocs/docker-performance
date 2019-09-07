@@ -102,13 +102,13 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
                 registry_tmps.append((i['nodename'], dedupreponame))
             else:
                 registry_tmps.append((i['nodename'], nodedupreponame))
-        if Testmode == 'primary' and 'manifest' not in r['uri']:
+#         if Testmode == 'primary' and 'manifest' not in r['uri']:
             # add to redis
             #for i in noderange:
             #    ptargenodes.append(i['nodename'])
-            dgst = "sha256:"+r['data'].split('-')[1]
-            print dgst
-            redis_set_recipe_serverips(dgst, ptargenodes)
+#             dgst = "sha256:"+r['data'].split('-')[1]
+#             print dgst
+#             redis_set_recipe_serverips(dgst, ptargenodes)
         
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
@@ -117,10 +117,10 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
             for i in noderange:
                 ptargenodes.append(i['nodename'])
                 registry_tmps.append((i['nodename'], nodedupreponame))
-            if 'manifest' not in r['uri']:
-                dgst = "sha256:"+r['data'].split('-')[1]
-                print dgst
-                redis_set_recipe_serverips(dgst, ptargenodes)
+#             if 'manifest' not in r['uri']:
+#                 dgst = "sha256:"+r['data'].split('-')[1]
+#                 print dgst
+#                 redis_set_recipe_serverips(dgst, ptargenodes)
             # *********** 1 replica send to dedup nodes ************      
             registry_tmps.append((ringdedup.get_node(id), dedupreponame))
 
@@ -130,10 +130,10 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
                 for i in noderange:
                     ptargenodes.append(i['nodename'])
                     registry_tmps.append((i['nodename'], nodedupreponame))
-                if 'manifest' not in r['uri']:
-                    dgst = "sha256:"+r['data'].split('-')[1]
-                    print dgst
-                    redis_set_recipe_serverips(dgst, ptargenodes)
+#                 if 'manifest' not in r['uri']:
+#                     dgst = "sha256:"+r['data'].split('-')[1]
+#                     print dgst
+#                     redis_set_recipe_serverips(dgst, ptargenodes)
             else:
                 registry_tmps.append((ring.get_node(id), nodedupreponame))
                 registry_tmps.append((ringdedup.get_node(id), dedupreponame))
@@ -330,6 +330,21 @@ def distribute_put_requests(request, tp, registries):
         tpp = 'warmupmanifest'          
     elif 'WARMUPLAYER' == type:
         tpp = 'warmuplayer'
+        
+    #add to redis    
+    ptargenodes = [] 
+    if 'manifest' not in uri: 
+        if Testmode == 'primary':       
+            for tup in registries:
+                registry_tmp = tup[0]
+                targenodes.append(registry_tmp)
+                redis_set_recipe_serverips(dgst, ptargenodes)  
+            
+        if Testmode == 'sift': 
+            for tup in registries[:len(registries)-1]:
+                registry_tmp = tup[0]
+                targenodes.append(registry_tmp)  
+                redis_set_recipe_serverips(dgst, ptargenodes)  
 
     if 'WARMUP' == tp:    
         result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tpp}
