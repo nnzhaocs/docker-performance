@@ -155,7 +155,7 @@ def match(realblob_location_files, tracedata, layeridmap):
 	    
         layer_id = uri.rsplit('/', 1)[1] #dict[-1] == trailing
 
-        if i < len(blob_locations):
+        if i <= len(blob_locations):
             if 'manifest' in uri:# NOT SURE if a proceeding manifest
                 blob = None
                 try:

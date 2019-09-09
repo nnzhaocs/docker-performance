@@ -15,7 +15,7 @@ echo "layer cache miss count: "$misscnt
 stagehitcnt=$(grep "layer stage hit" $1/logs | wc -l | cut -f1 -d' ')
 echo "layer stage area hit count: "$stagehitcnt
 
-waitlayercnt=$(grep "layer construct: reqtype: LAYER, WAITLAYERCONSTRUCT" $1/logs | wc -l | cut -f1 -d' ')
+waitlayercnt=$(grep "layer construct waiting" $1/logs | wc -l | cut -f1 -d' ')
 echo "waiting for restoring layer count: "$waitlayercnt
 
 cmd=$(printf "scale=3; %d/(%d+%d)"  $hitcnt $hitcnt $misscnt ) 

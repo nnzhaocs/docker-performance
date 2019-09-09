@@ -10,7 +10,7 @@ echo "test b-mode 0"
 echo "test b-mode 1 (14 primary nodes)"
 ./create_run_30min.sh 50mb fra sift standard 48 7 4 1 &> resultsfra-b-mode-1.log
 echo "test b-mode 2 (14 primary nodes)" 
-./create_run_30min.sh 50mb fra sift standard 48 7 4  2 &> resultsfra.log
+./create_run_30min.sh 50mb fra sift standard 48 7 4  2 &> resultsfra-b-mode-2.log
 echo "test s-mode"
 ./create_run_30min.sh 50mb fra sift selective 48 7 4 2 &> resultsfra-s-mode.log
 
