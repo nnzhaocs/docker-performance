@@ -59,7 +59,8 @@ def createtestmode(testmode):
     if testmode == "restore":
         restore = True
     if testmode == "primary":
-        primary = True
+        nodedup = True
+        #primary = True
     
     testmode = {
         "nodedup": nodedup,

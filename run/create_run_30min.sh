@@ -67,11 +67,11 @@ python master.py -c match -i config.yaml
 
 dedupimagearr=("nnzhaocs/distribution:distributionthors7" "nnzhaocs/distribution:distributionthors14" "nnzhaocs/distribution:distributionthors21")
 originalimage="nnzhaocs/distribution:original"
-primaryimagearr=("nnzhaocs/distribution:primarythors7" "nnzhaocs/distribution:primarythors14" "nnzhaocs/distribution:primarythors21")
+#primaryimagearr=("nnzhaocs/distribution:primarythors7" "nnzhaocs/distribution:primarythors14" "nnzhaocs/distribution:primarythors21")
 
 declare -A sizearr
-sizearr["dal"]=30
-sizearr+=(["dev"]=21 ["fra"]=8 ["lon"]=14 ["prestage"]=86 ["stage"]=12 ["syd"]=3)
+sizearr["dal"]=20
+sizearr+=(["dev"]=13 ["fra"]=6 ["lon"]=10 ["prestage"]=60 ["stage"]=7 ["syd"]=2)
 
 echo "start containers ......"
 cd $codedir"/run"
@@ -94,41 +94,20 @@ if [ $3 == "restore" ]; then
 	sshpass -p 'kevin123' pssh -h dedupregistries.txt -l root -A -i 'docker logs -f $(docker ps -a -q) &>> /home/nannan/logs-nondedup &'
 
 elif [ $3 == "sift" ]; then
-	cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
-	echo "cachesize:"
-	echo $cachesize
-
-	./run_sifttest.sh nnzhaocs/distribution:original dedupregistries.txt $cachesize $repullthres
+	./run_sifttest.sh $originalimage dedupregistries.txt
 fi;
 
 echo "sleep 20 s, wait for dedup registries to run a while if any"
 sleep 20
 
-echo "first start primary containers----------->"
+echo "second start primary containers----------->"
 
 if [ $3 == "nodedup" ]; then
-	./run_sifttest.sh nnzhaocs/distribution:original primaryregistries.txt 100 $repullthres
+	./run_sifttest_original.sh $originalimage primaryregistries.txt
 elif [ $3 == "sift" ]; then
-	# either 7 or 14
-	cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
-	echo "cachesize:"
-	echo $cachesize
-
-	imageno=$(echo "2-($6/7)"|bc)
-	echo ${primaryimagearr[$imageno]}
-	newcachesize=$(echo "$cachesize*(3-$6/7)"|bc)
-	echo $newcachesize
-	./run_sifttest.sh ${primaryimagearr[$imageno]} primaryregistries.txt $newcachesize $repullthres
+	./run_sifttest_primary.sh $originalimage primaryregistries.txt 
 elif [ $3 == "primary" ]; then
-	echo ${primaryimagearr[2]}
-
-	cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/21+1"|bc)
-	echo "cachesize:"
-	echo $cachesize
-
-	newcachesize=$(echo "$cachesize*3"|bc)
-	echo $newcachesize
-	./run_sifttest.sh ${primaryimagearr[2]} primaryregistries.txt $newcachesize $repullthres
+	./run_sifttest_primary.sh $originalimage primaryregistries.txt 
 fi;
 
 echo "sleep 20 s, wait for primary registries to start"

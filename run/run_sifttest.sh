@@ -63,18 +63,21 @@ cmd2=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/v
 
 cmd3="docker run --rm -d -p 6379:6379 --name redis-rejson redislabs/rejson:latest"
 
-#cmd3=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry --mount type=bind,source=/home/nannan/testing/tmpfs,target=/var/lib/registry/docker/registry/v2/diskcache -e \"REGISTRY_STORAGE_CACHE_HOSTIP=\$(ip -4 addr |grep 192.168.0.2 |grep -Po \"inet \K[\d.]+\")\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=291\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=291\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=291\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=40000\" --name registry-cluster %s" $1)
+cmd5=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" -e \"REGISTRY_REDIS_ADDR=%s:6379\" --name registry-cluster %s" "$hostip" "$hostip" $1)
 
+cmd6=$(printf "docker run --rm -d -p 5000:5000 --mount type=tmpfs,destination=/var/lib/registry -e \"REGISTRY_REDIS_ADDR=%s:6379\" --name registry-cluster %s" "$hostip" $1)
 
-cmd4=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry --mount type=bind,source=/home/nannan/testing/tmpfs,target=/var/lib/registry/docker/registry/v2/diskcache  -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" -e \"REGISTRY_REDIS_ADDR=%s:6379\" --name registry-cluster %s" "$hostip" "$hostip" $1)
+#--mount type=tmpfs,destination=/var/lib/registry/docker/registry/v2/diskcache
+
+cmd4=$(printf "docker run --rm -d -p 5000:5000 -v=/home/nannan/testing/layers:/var/lib/registry --mount type=tmpfs,destination=/var/lib/registry/docker/registry/v2/diskcache -e \"REGISTRY_STORAGE_CACHE_HOSTIP=%s\" -e \"REGISTRY_STORAGE_CACHEPARAMS_FILECACHECAP=$filecachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_LAYERCACHECAP=$layercachecap\" -e \"REGISTRY_STORAGE_CACHEPARAMS_SLICECACHECAP=10\" -e \"REGISTRY_STORAGE_CACHEPARAMS_TTL=$ttl\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_STYPE=$stype\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_REPULLCNTTHRES=$repullcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSLEVEL=$comprlevel\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGFCNTTHRES=$layerslicingfcntthres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_LAYERSLICINGDIRSIZETHRES=$layerslicingdirsizethres\" -e \"REGISTRY_STORAGE_REGISTRYPARAMS_COMPRESSMETHOD=$compressmethod\" -e \"REGISTRY_REDIS_ADDR=%s:6379\" --name registry-cluster %s" "$hostip" "$hostip" $1)
 
 if [ $1 == "nnzhaocs/distribution:original" ]; then 
-	cmd=$cmd2
+	cmd=$cmd6
 	echo "run redis for each registry"
 	echo $cmd3
 	sshpass -p 'kevin123' pssh -h $2 -l root -A -i $cmd3
 elif [[ $1 == *primary* ]]; then
-	cmd=$cmd4
+	cmd=$cmd6
 	echo "run redis for each registry"
 	echo $cmd3
 	sshpass -p 'kevin123' pssh -h $2 -l root -A -i $cmd3

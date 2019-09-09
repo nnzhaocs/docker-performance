@@ -22,10 +22,6 @@ def pull_from_registry(dgst, tup, type):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
-#    if Testmode != "nodedup":
-#        newreponame = 'TYPE'+type+'USRADDR'+client+'REPONAME'+reponame
-#    else:
-#        newreponame = "testrepo"
 
     dxf = DXF(registry_tmp, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     #print("newreponame: ", newreponame)   
@@ -97,46 +93,25 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     elif (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
-            if Testmode == 'primary':
-                ptargenodes.append(i['nodename'])
-                registry_tmps.append((i['nodename'], dedupreponame))
-            else:
                 registry_tmps.append((i['nodename'], nodedupreponame))
-#         if Testmode == 'primary' and 'manifest' not in r['uri']:
-            # add to redis
-            #for i in noderange:
-            #    ptargenodes.append(i['nodename'])
-#             dgst = "sha256:"+r['data'].split('-')[1]
-#             print dgst
-#             redis_set_recipe_serverips(dgst, ptargenodes)
-        
+       
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
             noderange = ring.range(id, nondedupreplicas, True)
-            for i in noderange:
-                ptargenodes.append(i['nodename'])
+            for i in noderange:    
                 registry_tmps.append((i['nodename'], nodedupreponame))
-#             if 'manifest' not in r['uri']:
-#                 dgst = "sha256:"+r['data'].split('-')[1]
-#                 print dgst
-#                 redis_set_recipe_serverips(dgst, ptargenodes)
             # *********** 1 replica send to dedup nodes ************      
-            registry_tmps.append((ringdedup.get_node(id), dedupreponame))
+            registry_tmps.append((ringdedup.get_node(id), nodedupreponame))
 
         elif 'selective' == siftmode:
             if id in hotlayers:
                 noderange = ring.range(id, replica_level, True)
                 for i in noderange:
-                    ptargenodes.append(i['nodename'])
                     registry_tmps.append((i['nodename'], nodedupreponame))
-#                 if 'manifest' not in r['uri']:
-#                     dgst = "sha256:"+r['data'].split('-')[1]
-#                     print dgst
-#                     redis_set_recipe_serverips(dgst, ptargenodes)
             else:
                 registry_tmps.append((ring.get_node(id), nodedupreponame))
-                registry_tmps.append((ringdedup.get_node(id), dedupreponame))
+                registry_tmps.append((ringdedup.get_node(id), nodedupreponame))
     return registry_tmps 
 
 
@@ -157,7 +132,7 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
     layer_id = uri.split('/')[-1] #(r['method'] == 'PUT') or 
     
     registry_tmps = []
-    if ('manifest' in r['uri']) or (Testmode == 'nodedup')or (Testmode == 'primary'): 
+    if (Testmode == 'nodedup')or (Testmode == 'primary'): 
         registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
         registry_tmp = random.choice(registry_tmps) 
        
@@ -331,21 +306,6 @@ def distribute_put_requests(request, tp, registries):
     elif 'WARMUPLAYER' == type:
         tpp = 'warmuplayer'
         
-    #add to redis    
-    targenodes = [] 
-    if 'manifest' not in uri: 
-        if Testmode == 'primary':       
-            for tup in registries:
-                registry_tmp = tup[0]
-                targenodes.append(registry_tmp)
-                redis_set_recipe_serverips(dgst, targenodes)  
-            
-        if Testmode == 'sift': 
-            for tup in registries[:len(registries)-1]:
-                registry_tmp = tup[0]
-                targenodes.append(registry_tmp)  
-                redis_set_recipe_serverips(dgst, targenodes)  
-
     if 'WARMUP' == tp:    
         result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tpp}
         #print result

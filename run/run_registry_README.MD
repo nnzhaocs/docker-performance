@@ -30,6 +30,7 @@ docker push nnzhaocs/distribution:latest
 docker tag nnzhaocs/distribution:latest nnzhaocs/socc-sfit-dedup
 
 pssh -h remotehostthors.txt -l root -A -i 'mount -t tmpfs -o size=8G tmpfs /home/nannan/testing/tmpfs'
+pssh -h primaryregistries.txt -l root -A -i 'df -h|grep /home/nannan/testing/tmpfs'
 
 sudo mount 192.168.0.174:/home/nannan/dockerimages/layers hulk4
 sudo mount 192.168.0.171:/home/nannan/dockerimages/layers hulk1
