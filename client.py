@@ -17,8 +17,8 @@ def pull_from_registry(dgst, tup, type):
     result = {}
     size = 0
     global Testmode
-        
-    if ":5000" not in registry_tmp:
+
+    if (":5001" not in registry_tmp) and (":5000" not in registry_tmp):
         registry_tmp = registry_tmp+":5000"
     #print "layer/manifest: "+dgst+" goest to registry: "+registry_tmp
     onTime = 'yes'    
