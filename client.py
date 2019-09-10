@@ -49,7 +49,7 @@ def push_to_registry(blobfname, tup):
     
     registry = tup[0]
     newreponame = tup[1]
-    
+    print tup
     onTime = 'yes'
     dxf = DXF(registry, newreponame.lower(), insecure=True) #DXF(registry_tmp, 'test_repo', insecure=True)
     
@@ -161,7 +161,7 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
             if layer_id in hotlayers:
                 registry_tmp = random.choice(registry_tmps)
             else:
-                registry_tmp = random.choice(registry_tmps[-(replica_level-1)])
+                registry_tmp = registry_tmps[0] #random.choice(registry_tmps[-(replica_level-1)])
         return [registry_tmp] 
 
 
