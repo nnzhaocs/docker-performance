@@ -76,7 +76,7 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     global siftmode
     global hotratio
     global nondedupreplicas
-    
+    global restorering
     global hotlayers
          
     uri = r['uri']
@@ -87,10 +87,13 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     ptargenodes = []
     if Testmode == 'restore':
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
+        noderange = restorering.range(id, replica_level-1, True)
+        for i in noderange:
+            registry_tmps.append((i['nodename'], nodedupreponame))
         #print Testmode
         #print registry_tmps
-    #elif ('manifest' in r['uri']) or 
-    elif (Testmode == 'nodedup') or (Testmode == 'primary'): 
+    #elif 
+    elif ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
                 registry_tmps.append((i['nodename'], nodedupreponame))
@@ -101,8 +104,10 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
             noderange = ring.range(id, nondedupreplicas, True)
             for i in noderange:    
                 registry_tmps.append((i['nodename'], nodedupreponame))
-            # *********** 1 replica send to dedup nodes ************      
-            registry_tmps.append((ringdedup.get_node(id), nodedupreponame))
+            # *********** r-1 replicas send to dedup nodes ************  
+            deduprange = ringdedup.range(id, replica_level-nondedupreplicas, True)
+            for i in deduprange:
+                registry_tmps.append((i['nodename'], nodedupreponame))
 
         elif 'selective' == siftmode:
             if id in hotlayers:
@@ -111,7 +116,9 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
                     registry_tmps.append((i['nodename'], nodedupreponame))
             else:
                 registry_tmps.append((ring.get_node(id), nodedupreponame))
-                registry_tmps.append((ringdedup.get_node(id), nodedupreponame))
+                deduprange = ringdedup.range(id, replica_level-1, True)
+                for i in deduprange:
+                    registry_tmps.append((i['nodename'], nodedupreponame))
     return registry_tmps 
 
 
@@ -132,7 +139,7 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
     layer_id = uri.split('/')[-1] #(r['method'] == 'PUT') or 
     
     registry_tmps = []
-    if (Testmode == 'nodedup')or (Testmode == 'primary'): 
+    if (Testmode == 'nodedup')or (Testmode == 'primary') or ('manifest' in r['uri']): 
         registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
         registry_tmp = random.choice(registry_tmps) 
        
@@ -148,7 +155,13 @@ def get_read_registries(r, dedupreponame, nodedupreponame):
         return [(registry_tmp, dedupreponame)]
     elif Testmode == 'sift':
         registry_tmps = get_write_registries(r, dedupreponame, nodedupreponame)
-        registry_tmp = random.choice(registry_tmps[:len(registry_tmps)-1])
+        if 'standard' == siftmode:
+            registry_tmp = random.choice(registry_tmps[:nondedupreplicas])
+        if 'selective' == siftmode:
+            if layer_id in hotlayers:
+                registry_tmp = random.choice(registry_tmps)
+            else:
+                registry_tmp = random.choice(registry_tmps[-(replica_level-1)])
         return [registry_tmp] 
 
 
@@ -382,6 +395,8 @@ def config_client(ring_input, ringdedup_input, primaryregistries, dedupregistrie
     global siftmode
     global nondedupreplicas
 
+    global restorering
+
     nondedupreplicas = nondedupreplicas_input
     siftmode = siftmode_input
     ring = ring_input
@@ -399,8 +414,17 @@ def config_client(ring_input, ringdedup_input, primaryregistries, dedupregistrie
     print("The Wait is: ", Wait)
     print("The Accelerater is: ", Accelerater)
 
+    restoreregistries=[]
     print("===========> Testing dedupregistries <============", dedupregistries)
-    
+    if Testmode == 'restore':
+        for registry in dedupregistries:
+            ip = registry.split(':')[0]
+            print ip
+            restoreregistry = ip+":5001"
+            restoreregistries.append(restoreregistry)
+        print restoreregistries
+        restorering = HashRing(nodes = restoreregistries)
+
     if Testmode != 'nodedup':
         if not len(dedupregistries):
             registries = primaryregistries

@@ -92,7 +92,7 @@ if [ $3 == "restore" ]; then
 	sleep 20
 	echo "save dedup registry containers' logs"
 	sshpass -p 'kevin123' pssh -h dedupregistries.txt -l root -A -i 'docker logs -f $(docker ps -a -q) &>> /home/nannan/logs-nondedup &'
-
+	./run_sifttest_original.sh $originalimage dedupregistries.txt
 elif [ $3 == "sift" ]; then
 	./run_sifttest.sh $originalimage dedupregistries.txt
 fi;
@@ -122,8 +122,8 @@ sleep 20
 
 sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 50 logs"
 
-if [ $2 == "prestage" ]; then
-	echo "sleep 20 min, wait for warmup to finish"
+if [ $3 == "restore" ]; then
+	echo "sleep 30 min, wait for warmup to finish"
 	sleep 1800
 else
 	echo "sleep 20 min, wait for warmup to finish"
