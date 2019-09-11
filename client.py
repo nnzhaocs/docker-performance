@@ -84,7 +84,7 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     
     # *************** registry_tmps: [x, x, dedup] ************  
     registry_tmps = []
-    ptargenodes = []
+#     ptargenodes = []
     if Testmode == 'restore':
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
         noderange = restorering.range(id, replica_level-1, True)
@@ -97,7 +97,6 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
         noderange = ring.range(id, replica_level, True)
         for i in noderange:
                 registry_tmps.append((i['nodename'], nodedupreponame))
-       
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
@@ -318,6 +317,29 @@ def distribute_put_requests(request, tp, registries):
         tpp = 'warmupmanifest'          
     elif 'WARMUPLAYER' == type:
         tpp = 'warmuplayer'
+        
+    targenodes = [] 
+    if 'manifest' not in uri: 
+        if Testmode == 'primary':       
+            for tup in registries:
+                registry_tmp = tup[0]
+                targenodes.append(registry_tmp)
+            redis_set_recipe_serverips(dgst, targenodes)  
+            
+#         if Testmode == 'sift': 
+#             if 'standard' == siftmode:
+#                 for tup 
+#                 registry_tmp = random.choice(registry_tmps[:nondedupreplicas])
+#             if 'selective' == siftmode:
+#                 if layer_id in hotlayers:
+#                     registry_tmp = random.choice(registry_tmps)
+#                 else:
+#                     registry_tmp = registry_tmps[0] #random.choice(registry_tmps[-(replica_level-1)])
+#     
+#             for tup in registries[:len(registries)-1]:
+#                 registry_tmp = tup[0]
+#                 targenodes.append(registry_tmp)  
+#             redis_set_recipe_serverips(dgst, targenodes) 
         
     if 'WARMUP' == tp:    
         result = {'time': now, 'size': request['size'], 'onTime': onTime, 'duration': t, 'type': tpp}
