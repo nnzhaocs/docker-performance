@@ -95,8 +95,13 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     #elif 
     elif ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
+        name = ''
+        if Testmode == 'nodedup':
+            name = nodedupreponame
+        else:
+            name = dedupreponame
         for i in noderange:
-                registry_tmps.append((i['nodename'], nodedupreponame))
+                registry_tmps.append((i['nodename'], name))
        
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
