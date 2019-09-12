@@ -328,13 +328,13 @@ def distribute_put_requests(request, tp, registries):
     elif 'WARMUPLAYER' == type:
         tpp = 'warmuplayer'
         
-    targenodes = [] 
-    if 'manifest' not in uri: 
-        if Testmode == 'primary':       
-            for tup in registries:
-                registry_tmp = tup[0]
-                targenodes.append(registry_tmp)
-            redis_set_recipe_serverips(dgst, targenodes)  
+#    targenodes = [] 
+#    if 'manifest' not in uri: 
+#        if Testmode == 'primary':       
+#            for tup in registries:
+#                registry_tmp = tup[0]
+#                targenodes.append(registry_tmp)
+#            redis_set_recipe_serverips(dgst, targenodes)  
             
 #         if Testmode == 'sift': 
 #             if 'standard' == siftmode:
