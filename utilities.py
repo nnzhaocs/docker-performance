@@ -61,7 +61,7 @@ def mk_dir(newdir):
 
 
 def send_to_client(fname, clientaddr, targetname):
-    cmd = 'sshpass -p \'nannan\' scp %s root@%s:%s' % (fname, clientaddr, targetname)
+    cmd = 'sshpass -p \'kevin123\' scp %s root@%s:%s' % (fname, clientaddr, targetname)
     #sshpass -p 'nannan' scp /home/nannan/testing/results/results.json root@amaranth$1:/home/nannan/testing/resultslogs/$dir
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
