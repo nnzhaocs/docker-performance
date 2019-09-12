@@ -84,7 +84,6 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     
     # *************** registry_tmps: [x, x, dedup] ************  
     registry_tmps = []
-#     ptargenodes = []
     if Testmode == 'restore':
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
         noderange = restorering.range(id, replica_level-1, True)
@@ -95,18 +94,9 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     #elif 
     elif ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
-        name = ''
-        if Testmode == 'nodedup':
-            name = nodedupreponame
-        else:
-            name = dedupreponame
         for i in noderange:
-#<<<<<<< HEAD
-                registry_tmps.append((i['nodename'], name))
-       
-#=======
-#                registry_tmps.append((i['nodename'], nodedupreponame))
-#>>>>>>> 4bd69a931154505fb637b556613fb6fedf57668f
+            registry_tmps.append((i['nodename'], nodedupreponame))
+
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
