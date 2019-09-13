@@ -82,6 +82,31 @@ awk -F'\' '{print $1}' tmp1 > comprsratio
 
 paste -d"\t" metadatalookuptime sliceconstructtime slicetransfertime comprssize uncomprssize comprsratio > $1/registry_results_slice_construct.lst
 
+# ********* get dedup times ***********
+echo "dedup layers:"
+grep 'NANNAN: Dodedup:' $1/logs > tmp
+
+
+awk -F'decompression time:' '{print $2}' tmp > tmp1
+awk -F',' '{print $1}' tmp1 > decompressiontime
+
+awk -F'dedup remove dup file time:' '{print $2}' tmp > tmp1
+awk -F',' '{print $1}' tmp1 > removeduptime
+
+awk -F'dedup set recipe time:' '{print $2}' tmp > tmp1
+awk -F',' '{print $1}' tmp1 > setrecipetime
+
+awk -F'slice forward time:' '{print $2}' tmp > tmp1
+awk -F',' '{print $1}' tmp1 > slicefortime
+
+awk -F'compressed size:' '{print $2}' tmp > tmp1
+awk -F',' '{print $1}' tmp1 > comprssize
+
+awk -F'uncompression size:' '{print $2}' tmp > tmp1
+awk -F'\' '{print $1}' tmp1 > comprsratio
+
+paste -d"\t"  decompressiontime removedupime setrecipetime slicefortime comprssize uncomprssize comprsratio > $1/registry_results_dedup_construct.lst
+
 rm -f metadatalookuptime *time *ratio *size tmp* data 
 
 cd $1
