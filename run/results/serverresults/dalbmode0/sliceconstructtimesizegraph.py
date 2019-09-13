@@ -29,7 +29,7 @@ def draw_graph(datadict, gname):
         label='Slice Construct Time',
         marker='^',
     )
-    ax.set(xlabel='Uncompressed size of the layer (mb)', ylabel='latency (seconds)', title=gname)
+    ax.set(xlabel='Uncompressed size of the slice (mb)', ylabel='latency (seconds)', title=gname)
     ax.legend()
     ax.grid()
     fig.savefig(gname)
