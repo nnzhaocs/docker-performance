@@ -84,6 +84,7 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     
     # *************** registry_tmps: [x, x, dedup] ************  
     registry_tmps = []
+#     ptargenodes = []
     if Testmode == 'restore':
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
         noderange = restorering.range(id, replica_level-1, True)
@@ -94,9 +95,18 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
     #elif 
     elif ('manifest' in r['uri']) or (Testmode == 'nodedup') or (Testmode == 'primary'): 
         noderange = ring.range(id, replica_level, True)
+        name = ''
+        if Testmode == 'nodedup':
+            name = nodedupreponame
+        else:
+            name = dedupreponame
         for i in noderange:
-            registry_tmps.append((i['nodename'], nodedupreponame))
-
+#<<<<<<< HEAD
+                registry_tmps.append((i['nodename'], name))
+       
+#=======
+#                registry_tmps.append((i['nodename'], nodedupreponame))
+#>>>>>>> 4bd69a931154505fb637b556613fb6fedf57668f
     elif Testmode == 'sift': 
         if 'standard' == siftmode:
             # *********** nondedupreplicas send to primary nodes ************  
@@ -318,13 +328,13 @@ def distribute_put_requests(request, tp, registries):
     elif 'WARMUPLAYER' == type:
         tpp = 'warmuplayer'
         
-#    targenodes = [] 
-#    if 'manifest' not in uri: 
-#        if Testmode == 'primary':       
-#            for tup in registries:
-#                registry_tmp = tup[0]
-#                targenodes.append(registry_tmp)
-#            redis_set_recipe_serverips(dgst, targenodes)  
+    targenodes = [] 
+    if 'manifest' not in uri: 
+        if Testmode == 'primary':       
+            for tup in registries:
+                registry_tmp = tup[0]
+                targenodes.append(registry_tmp)
+            redis_set_recipe_serverips(dgst, targenodes)  
             
 #         if Testmode == 'sift': 
 #             if 'standard' == siftmode:
