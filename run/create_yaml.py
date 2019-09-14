@@ -19,10 +19,15 @@ wait = True
 dir = '/home/nannan/docker-performance/'
 layerfiledir = '/home/nannan/dockerimages/layers/hulk1'
 
-def createclientinfo(trace):
+def createclientinfo(trace, realload):
+    load = []
+    if realload == True:
+        load = [os.path.join(layerfiledir, trace+'_layers.lst')]
+    else:
+        load = [os.path.join(layerfiledir, realblobfiles[trace])]
     client_info = {
         "threads": 1,
-        "realblobs": [os.path.join(layerfiledir, trace+'_layers.lst')],
+        "realblobs": load,#
             
             }
     return client_info
@@ -99,6 +104,20 @@ dev_layers.lst  lon_layers.lst  stage_layers.lst     testing_layers.lst
 
 def main():
     #first add traces
+    
+    realblobfiles['1mb'] = 'hulk_layers_approx_1MB.lst'
+    realblobfiles['5mb'] = 'hulk_layers_approx_5MB.lst'
+    realblobfiles['10mb'] = 'hulk_layers_approx_10MB.lst'
+    realblobfiles['15mb'] = 'hulk_layers_approx_15MB.lst'
+    realblobfiles['20mb'] = 'hulk_layers_approx_20MB.lst'
+    realblobfiles['25mb'] = 'hulk_layers_approx_25MB.lst'
+    realblobfiles['30mb'] = 'hulk_layers_approx_30MB.lst'
+    realblobfiles['35mb'] = 'hulk_layers_approx_35MB.lst'
+    realblobfiles['40mb'] = 'hulk_layers_approx_40MB.lst'
+    realblobfiles['45mb'] = 'hulk_layers_approx_45MB.lst'
+    realblobfiles['50mb'] = 'hulk_layers_approx_50MB.lst' 
+    
+    
     traces["dal"] = ["dal09/prod-dal09-logstash-2017.06.20-0.json"]
     traces["dev"] = ["dev-mon01/dev-mon01-logstash-2017.07.13-0.json", 
                      "dev-mon01/dev-mon01-logstash-2017.07.13-1.json",
@@ -169,8 +188,8 @@ def main():
     
     
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
-#     parser.add_argument('-r', '--realblobfiles', dest='realblobfiles', type=str, required=True, 
-#                         help = 'input realblob files: 50m or 1gb')
+    parser.add_argument('-r', '--realblobfiles', dest='realblobfiles', type=str, required=True, 
+                        help = 'input realblob files: 50m or 1gb')
     parser.add_argument('-t', '--tracefiles', dest='tracefiles', type=str, required=True, 
                         help = 'input trace file: dal, dev, fra, prestage, or syd, lon')
     parser.add_argument('-m', '--testmode', dest='testmode', type=str, required=True, 
@@ -189,7 +208,11 @@ def main():
     
     args = parser.parse_args()
     print args
-    client_info = createclientinfo(args.tracefiles)
+    if args.realblobfiles == 0:
+        client_info = createclientinfo(args.tracefiles, True)
+    else:
+        client_info = createclientinfo(args.realblobfiles, False)
+    #
     testingtrace = createtrace(traces[args.tracefiles], limitamount)
 
     primaryregistry=[]
