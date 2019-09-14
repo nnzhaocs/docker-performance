@@ -18,6 +18,7 @@ wait = True
 
 dir = '/home/nannan/docker-performance/'
 layerfiledir = '/home/nannan/dockerimages/layers/hulk1'
+hulk1layerfiledir = '/home/nannan/dockerimages/layers'
 
 def createclientinfo(trace):
     client_info = {
@@ -162,10 +163,22 @@ def main():
                 "192.168.0.222:5000",
                 "192.168.0.223:5000"]
     
-    clients = ["192.168.0.151",
+    clients_amaranths = ["192.168.0.151",
                "192.168.0.153",
                "192.168.0.154",
                "192.168.0.156"]
+
+    clients = ["192.168.0.220"]
+
+    clients_hulks = ["192.168.0.170",
+            "192.168.0.171",
+            "192.168.0.172",
+            "192.168.0.174",
+           "192.168.0.176",
+           "192.168.0.177",
+           "192.168.0.179",
+           "192.168.0.180"]
+
     
     
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
