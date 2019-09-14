@@ -87,9 +87,9 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
 #     ptargenodes = []
     if Testmode == 'restore':
         registry_tmps.append((ringdedup.get_node(id), dedupreponame))
-        noderange = restorering.range(id, replica_level-1, True)
-        for i in noderange:
-            registry_tmps.append((i['nodename'], nodedupreponame))
+        #noderange = restorering.range(id, replica_level-1, True)
+        #for i in noderange:
+        #    registry_tmps.append((i['nodename'], nodedupreponame))
         #print Testmode
         #print registry_tmps
     #elif 
