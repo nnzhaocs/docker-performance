@@ -8,9 +8,9 @@ import time
 # default setting
 traces = {}
 realblobfiles = {}
-limitamount = 1000 #5000
+limitamount = 500 #5000
 # 24 32 48 64 
-warmupthreads = 100 # number of total clients
+warmupthreads = 8 # number of total clients
 hotratio = 0.25
 #nondedupreplicas = 2
 replicalevel = 1
@@ -18,14 +18,16 @@ wait = True
 
 dir = '/home/nannan/docker-performance/'
 layerfiledir = '/home/nannan/dockerimages/layers/hulk1'
+#realblobfiledir = ''
 hulk1layerfiledir = '/home/nannan/dockerimages/layers'
 
-def createclientinfo(trace):
+def createclientinfo(trace, realload):
     load = []
     if realload == True:
         load = [os.path.join(layerfiledir, trace+'_layers.lst')]
     else:
-        load = [os.path.join(layerfiledir, realblobfiles[trace])]
+        load = [os.path.join(layerfiledir, 'pri_'+trace+'.lst')]
+        #load = [os.path.join(layerfiledir, realblobfiles[trace])]
     client_info = {
         "threads": 1,
         "realblobs": load,#
@@ -209,7 +211,7 @@ def main():
     
     parser = ArgumentParser(description='Trace Player, allows for anonymized traces to be replayed to a registry, or for caching and prefecting simulations.')
     parser.add_argument('-r', '--realblobfiles', dest='realblobfiles', type=str, required=True, 
-#                         help = 'input realblob files: 50m or 1gb')
+                         help = 'input realblob files: 50m or 1gb')
     parser.add_argument('-t', '--tracefiles', dest='tracefiles', type=str, required=True, 
                         help = 'input trace file: dal, dev, fra, prestage, or syd, lon')
     parser.add_argument('-m', '--testmode', dest='testmode', type=str, required=True, 
