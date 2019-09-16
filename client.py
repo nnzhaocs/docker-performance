@@ -187,6 +187,17 @@ def redis_stat_recipe_serverips(dgst):
     return serverIps.append(recipe['MasterIp']) 
 
 
+def redis_stat_rlmap(reponame):
+    global rediscli_dbrecipe
+    
+    key = "RLMap::"+reponame 
+    if not rediscli_dbrecipe.exists(key):
+        print "################ cannot find rlmap for redis_stat_rlmap ############" + reponame
+        return None 
+    rlentry = json.loads(rediscli_dbrecipe.execute_command('GET', key))
+    return rlentry
+
+
 def redis_set_recipe_serverips(dgst, registries):
     global rediscli_dbrecipe
     
@@ -196,6 +207,20 @@ def redis_set_recipe_serverips(dgst, registries):
         }   
     rediscli_dbrecipe.execute_command('SET', key, json.dumps(des))
     return 
+# type RLmapEntry struct {
+#     Dgstmap map[digest.Digest]int64
+#     //Dgstlst []digest.Digest
+#     //Pullcnt int64
+# }
+def redis_set_rlmap(reponame, rlentry):
+    global rediscli_dbrecipe
+    
+    key = "RLMap::"+reponame 
+#     des = {
+#         "Dgstmap": rlentry,
+#         }   
+    rediscli_dbrecipe.execute_command('SET', key, json.dumps(rlentry))
+    return     
 
 
 def get_request_registries(r):
@@ -385,9 +410,13 @@ def send_requests(requests):
         i += 1
         if print_cnt == i:
             print ("==============> processed ", i*1.0/totalcnt, " requests! <=============", totalcnt) 
-        if True == Wait and r['sleep'] > prev:
-            print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(Accelerater)
-            time.sleep((r['sleep'] - prev)/Accelerater)
+        if 'manifest' in r['uri']:
+            pass
+        else:
+            if True == Wait: # and r['sleep'] > prev:
+                time.sleep(1)
+            #print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(Accelerater)
+            #time.sleep((r['sleep'] - prev)/Accelerater)
             
         if 'GET' == r['method']:
             #print "get repo request: "
@@ -408,9 +437,50 @@ def send_requests(requests):
         results_all.extend(result) 
         prev = result[0]['duration']
 
-    return  results_all     
-    
+    return  results_all    
 
+# type RLmapEntry struct {
+#     Dgstmap map[digest.Digest]int64
+#     //Dgstlst []digest.Digest
+#     //Pullcnt int64
+# }
+
+def setup_rlmaps(requests):
+    
+#     repoldict = {}
+    
+    change = False 
+    for r in requests:
+        if 'manifest' in r['uri']:
+            pass
+	if 'GET' != r['method']:
+	    pass
+        else:
+            uri = r['uri']
+            parts = uri.split('/')
+            reponame = parts[1] + parts[2]
+#             id = uri.split('/')[-1]
+#             client = r['client']
+            dgst = r['blob']
+
+            rlmapentry = redis_stat_rlmap(reponame)
+            if rlmapentry != None:
+                try:
+                    x = rlmapentry['Dgstmap'][dgst]
+                except:
+                    change = True
+                    rlmapentry['Dgstmap'][dgst] = 1
+            else:
+                change = True
+                rlmapentry = {}
+                rlmapentry['Dgstmap'] = {}
+                rlmapentry['Dgstmap'][dgst] = 1
+                        
+            if change:
+                print rlmapentry
+                redis_set_rlmap(reponame, rlmapentry)        
+    
+    
 def config_client(ring_input, ringdedup_input, primaryregistries, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input, nondedupreplicas_input): 
 
     global rediscli_dbrecipe

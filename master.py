@@ -306,6 +306,15 @@ def stats(responses):
 def get_blobs(data, numclients, out_file):#, testmode):
     results = []
     i = 0
+    
+    print "================> First set rlmap!================>"
+    for reqlst in data:
+        print "processing a list"
+        setup_rlmaps(reqlst)
+        
+    print "done set up rlmap ===============>"
+    
+    #return None
     """ # for debugging
     for reqlst in data:
 	x = send_requests(reqlst)
