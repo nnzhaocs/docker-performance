@@ -6,10 +6,10 @@ echo "test original registry"
 #echo "test b-mode 3"
 #./create_run_30min_onenode.sh $1 dal primary standard 12 0 1 2 &> resultsdal-b-mode-3.log
 echo "test with preconstruct"
-#./create_run_30min_onenode.sh $1 dal restore standard 12 1 1 2 preconstruct &> resultsdal-b-mode-0.log
-echo "test without preconstruct"
+./create_run_30min_onenode.sh $1 dal restore standard 12 1 1 2 preconstruct &> resultsdal-b-mode-0.log
+echo "test without cache"
 ./create_run_30min_onenode.sh $1 dal restore standard 12 1 1 2 nocache  &> resultsdal-b-mode-0-nocache.log
-echo "test with a normal cache"
+echo "test with normal cache"
 ./create_run_30min_onenode.sh $1 dal restore standard 12 1 1 2 normallcache  &> resultsdal-b-mode-0-normalcache.log
 
 

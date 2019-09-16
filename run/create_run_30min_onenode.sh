@@ -34,7 +34,7 @@ echo "create config, registry, and client file"
 python create_yaml_onenode.py -r $1 -t $2 -m $3 -s $4 -a $5 -n $6 -c $7 -p $8
 
 echo "cp config.yaml file to other client machines"
-sshpass -p 'kevin123' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
+#sshpass -p 'kevin123' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
 
 echo "sleep 5 s, wait for cp config.yml"
 sleep 5
@@ -85,7 +85,8 @@ elif [ $3 == "restore" ] && [ $9 == "nocache" ]; then
                 echo "cachesize:"
                 echo $cachesize
                 #imageno=$(echo "$6/7-1"|bc)
-		./run_sifttest.sh nnzhaocs/distribution:onenowithoutdepreconstruct  dedupregistries.txt $cachesize $repullthres
+		#nocache
+		./run_sifttest.sh nnzhaocs/distribution:nocache  dedupregistries.txt $cachesize $repullthres
 elif [ $3 == "restore" ] && [ $9 == "normallcache" ]; then
         cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
         echo "cachesize:"
@@ -158,7 +159,7 @@ python master.py -i config.yaml -c warmup
 
 if [ $3 == "restore" ]; then
 	echo "sleep 2 min, wait for warmup to finish"
-	sleep 120
+	sleep 300
 else
 	echo "sleep 20 second, wait for warmup to finish"
 	sleep 20
@@ -188,8 +189,10 @@ python master.py -i config.yaml -c run
 
 #sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
-./get_results_fromclients.sh $testingmachine clients.txt
-
-echo "sleep 20 s, wait for getting clients results.json file"
-sleep 20
-./get_alllogs_thors.sh $testingmachine
+#./get_results_fromclient_one.sh $testingmachine clients.txt
+cd ./run
+./get_results_fromclient_one.sh
+echo "sleep 1 s, wait for getting clients results.json file"
+sleep 1
+./get_alllogs_thors_one.sh
+#./get_alllogs_thors_one.sh
