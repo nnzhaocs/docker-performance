@@ -457,6 +457,7 @@ def setup_rlmaps(requests):
             reponame = parts[1] + parts[2]
             id = uri.split('/')[-1]
 #             client = r['client']
+
             rlmapentry = redis_stat_rlmap(reponame)
             if rlmapentry:
                 if len(rlmapentry['Dgstmap']) > 0:
@@ -465,6 +466,11 @@ def setup_rlmaps(requests):
                     except:
                         change = True
                         rlmapentry['Dgstmap'][id] = 1
+            else:
+                change = True
+                rlmapentry = {}
+                rlmapentry['Dgstmap'] = {}
+                rlmapentry['Dgstmap'][id] = 1
                         
     if change:
         print rlmapentry
