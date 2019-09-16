@@ -235,6 +235,7 @@ def fix_put_id(trace_files, limit):
     ret = []
     manifestidmap = {} # put manifest request
     reputm = 0
+    getmaifest = {}
 
     for trace_file in trace_files:
         print 'trace file: ' + trace_file
@@ -255,6 +256,19 @@ def fix_put_id(trace_files, limit):
                     continue
                 if count >= limit:
                     break
+                
+                parts = uri.split('/')
+                reponame = parts[1] + parts[2]
+                client = request['http.request.remoteaddr']
+                
+                if 'GET' == method and 'manifest' in uri:
+                    try:
+                        x = getmaifest[client]
+                        if reponame in x:
+                            pass
+                    except:
+                        getmaifest[client].append(reponame)
+                # *********** then check *************        
 
                 if 'PUT' == method and 'manifest' in uri:
                     # ***** remove same manifest ******
@@ -266,7 +280,17 @@ def fix_put_id(trace_files, limit):
                         continue
                     except Exception as e:
                         manifestidmap[manifest_id] = 1
+                        
                 elif 'GET' == method and 'blobs' in uri:
+                    # *********** then check *************     
+                    try:
+                        x = getmaifest[client]
+                        if reponame in x:
+                            pass
+                    except:
+                        continue
+                    
+                    
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
                     newid = reponame + '/' + str(size)
