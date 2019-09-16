@@ -389,7 +389,7 @@ def send_requests(requests):
             pass
         else:
             if True == Wait and r['sleep'] > prev:
-                time.sleep((r['sleep'] - prev))
+                time.sleep(1)
             #print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(Accelerater)
             #time.sleep((r['sleep'] - prev)/Accelerater)
             
