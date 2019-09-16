@@ -216,10 +216,10 @@ def redis_set_rlmap(reponame, rlentry):
     global rediscli_dbrecipe
     
     key = "RLMap::"+reponame 
-    des = {
-        "Dgstmap": rlentry,
-        }   
-    rediscli_dbrecipe.execute_command('SET', key, json.dumps(des))
+#     des = {
+#         "Dgstmap": rlentry,
+#         }   
+    rediscli_dbrecipe.execute_command('SET', key, json.dumps(rlentry))
     return     
 
 
@@ -460,12 +460,11 @@ def setup_rlmaps(requests):
 
             rlmapentry = redis_stat_rlmap(reponame)
             if rlmapentry != None:
-                if len(rlmapentry['Dgstmap']) > 0:
-                    try:
-                        x = rlmapentry['Dgstmap'][id]
-                    except:
-                        change = True
-                        rlmapentry['Dgstmap'][id] = 1
+                try:
+                    x = rlmapentry['Dgstmap'][id]
+                except:
+                    change = True
+                    rlmapentry['Dgstmap'][id] = 1
             else:
                 change = True
                 rlmapentry = {}
