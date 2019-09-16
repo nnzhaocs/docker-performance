@@ -309,7 +309,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
     
     print "================> First set rlmap!================>"
     for reqlst in data:
-        print "finshed one list"
+        print "processing a list"
         setup_rlmaps(reqlst)
         
     print "done set up rlmap ===============>"

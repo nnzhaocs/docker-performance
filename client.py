@@ -471,9 +471,9 @@ def setup_rlmaps(requests):
                 rlmapentry['Dgstmap'] = {}
                 rlmapentry['Dgstmap'][id] = 1
                         
-    if change:
-        print rlmapentry
-        redis_set_rlmap(reponame, rlmapentry)        
+            if change:
+                print rlmapentry
+                redis_set_rlmap(reponame, rlmapentry)        
     
     
 def config_client(ring_input, ringdedup_input, primaryregistries, dedupregistries, hotlayers_input, testmode, wait, accelerater, replica_level_input, siftmode_input, nondedupreplicas_input): 
