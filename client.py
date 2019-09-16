@@ -447,6 +447,8 @@ def send_requests(requests):
 
 def setup_rlmaps(requests):
     
+#     repoldict = {}
+    
     change = False 
     for r in requests:
         if 'manifest' in r['uri']:
@@ -455,21 +457,22 @@ def setup_rlmaps(requests):
             uri = r['uri']
             parts = uri.split('/')
             reponame = parts[1] + parts[2]
-            id = uri.split('/')[-1]
+#             id = uri.split('/')[-1]
 #             client = r['client']
+            dgst = r['blob']
 
             rlmapentry = redis_stat_rlmap(reponame)
             if rlmapentry != None:
                 try:
-                    x = rlmapentry['Dgstmap'][id]
+                    x = rlmapentry['Dgstmap'][dgst]
                 except:
                     change = True
-                    rlmapentry['Dgstmap'][id] = 1
+                    rlmapentry['Dgstmap'][dgst] = 1
             else:
                 change = True
                 rlmapentry = {}
                 rlmapentry['Dgstmap'] = {}
-                rlmapentry['Dgstmap'][id] = 1
+                rlmapentry['Dgstmap'][dgst] = 1
                         
             if change:
                 print rlmapentry
