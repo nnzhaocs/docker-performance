@@ -1,4 +1,6 @@
 
+beware of 174 171 and 172
+
 git clone docker-performance
 
 mkdir -p /home/nannan/testing/realblobtraces

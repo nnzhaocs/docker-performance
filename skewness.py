@@ -20,7 +20,7 @@ for req in data:
 
 print layeridmap
 
-with open('syd1000.lst', 'w') as fp:
+with open('dal1500.lst', 'w') as fp:
 	for _, val in layeridmap.items():
 		fp.write(str(val)+'\t\n')
 

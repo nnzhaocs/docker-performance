@@ -83,14 +83,14 @@ def getItems(k):
 
 def main():
 	key = '*52299ff7366c1b477b283eea121fa6001a9af556528c2c1dfeabce02de845546'
-        setItem()
-        getItems("hello:world")
-        getItems("*1e02dfd6c1522e0182a3b2779ae88931ae65a0419e156b0524c0ce1329006017")
+        #setItem()
+        getItems("*623d895b040ce9d")
+        #getItems(rlmap)
         #getItems("*23078bcef4d525dfa597ad3f454e6ec16316fd6486fab372ca1a47eeb9066591")
         #getItems("*sha256:978b356c054cb2c8d3bcfab47afc1069edc69de79dad9e519c022adc96650222")
         #getItems("Layer:Recipe::sha256:c6327de0331b9538dc3f56aac344e783f6d1e1b10e509ea93a1b3e41151c3a1a")
         #getItems("Layer:Recipe::*")
-	#getItems(key)
+	#getItems('*a9cb77c437773f3b')
 
 
 if __name__ == "__main__":

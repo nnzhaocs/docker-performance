@@ -66,8 +66,14 @@ def send_to_client(fname, clientaddr, targetname):
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
     except subprocess.CalledProcessError as e:
-        print('IGNORE THIS ERROR! ###################%s: exit code: ###################',
-                      fname, clientaddr, e.returncode, e.output)
+        #print('IGNORE THIS ERROR! ###################%s: exit code: ###################',
+                      #fname, clientaddr, e.returncode, e.output)
+        cmd = 'sshpass -p \'nannan\' scp %s root@%s:%s' % (fname, clientaddr, targetname)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, universal_newlines=True)
+        except subprocess.CalledProcessError as e:
+            print('IGNORE THIS ERROR! ###################%s: exit code: ###################',
+                                          fname, clientaddr, e.returncode, e.output)
         return False
     return True
 

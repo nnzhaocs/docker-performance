@@ -33,13 +33,13 @@ echo "create config, registry, and client file"
 python create_yaml.py -t $2 -m $3 -s $4 -a $5 -n $6 -c $7 -p $8
 
 echo "cp config.yaml file to other client machines"
-sshpass -p 'nannan' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
+sshpass -p 'kevin123' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
 
 echo "sleep 10 s, wait for cp config.yml"
 sleep 10
 
 echo "kill all old pythons"
-sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 'pkill -9 python'
+sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 'pkill -9 python'
 
 # first run match
 cd $codedir
@@ -92,9 +92,11 @@ if [ $3 == "restore" ]; then
 	sleep 20
 	echo "save dedup registry containers' logs"
 	sshpass -p 'kevin123' pssh -h dedupregistries.txt -l root -A -i 'docker logs -f $(docker ps -a -q) &>> /home/nannan/logs-nondedup &'
-	./run_sifttest_original.sh $originalimage dedupregistries.txt
+	sleep 20 
+	echo "sleep 20 s, wait for dedup registries to start"
+	./run_sifttest_restore.sh $originalimage dedupregistries.txt
 elif [ $3 == "sift" ]; then
-	./run_sifttest.sh $originalimage dedupregistries.txt
+	./run_sifttest_original.sh $originalimage dedupregistries.txt
 fi;
 
 echo "sleep 20 s, wait for dedup registries to run a while if any"
@@ -120,29 +122,29 @@ echo "warmup ....."
 echo "sleep 20 s, wait for client to start sending warmup requests"
 sleep 20
 
-sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 50 logs"
+sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 50 logs"
 
 if [ $3 == "restore" ]; then
-	echo "sleep 30 min, wait for warmup to finish"
-	sleep 1800
+	echo "sleep 20 min, wait for warmup to finish"
+	sleep 1200
 else
 	echo "sleep 20 min, wait for warmup to finish"
 	sleep 1200
 fi;
 
-sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 20 logs"
+sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
 echo "run ...."
 ./run_clients.sh config.yaml run $codedir clients.txt
 
 echo "sleep 20 s, wait for client to start sending run requests"
 sleep 20
-sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 50 logs"
+sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 50 logs"
 
 echo "sleep 40 min, wait for run to finish"
 sleep 2400
 
-sshpass -p 'nannan' pssh -h clients.txt -l nannan -A -i -t 600 "cd $codedir; tail -n 20 logs"
+sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
 ./get_results_fromclients.sh $testingmachine clients.txt
 

@@ -8,9 +8,9 @@ import time
 # default setting
 traces = {}
 realblobfiles = {}
-limitamount = 1500
+limitamount = 500 #5000
 # 24 32 48 64 
-warmupthreads = 1 # number of total clients
+warmupthreads = 8 # number of total clients
 hotratio = 0.25
 #nondedupreplicas = 2
 replicalevel = 1
@@ -168,7 +168,7 @@ def main():
                      "syd01/prod-syd01-logstash-2017.07.02-2.json",
                      "syd01/prod-syd01-logstash-2017.07.02-3.json"]
     
-    registries=["192.168.0.200:5000",
+    registries=["192.168.0.170:5000",
                 #"192.168.0.201:5000",
                 #"192.168.0.202:5000",
                 #"192.168.0.203:5000",
@@ -196,7 +196,7 @@ def main():
                "192.168.0.154",
                "192.168.0.156"]
 
-    clients = ["192.168.0.220"]
+    clients = ["192.168.0.180"]
 
     clients_hulks = ["192.168.0.170",
             "192.168.0.171",

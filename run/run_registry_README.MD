@@ -5,6 +5,7 @@
 # Third, RUN client match -> warmup -> run
 # Fourth, collect container logs.
 
+ps -eo pid,lstart,cmd | grep create_run_30min.sh
 
 #! THIS IS AN EXAMPLE SHOWING HOW TO IMPORT CODE TO CONTAINER AND BUILD AS AN IMAGE
 #
@@ -23,6 +24,8 @@ docker stop container_id
 docker rmi $(docker images -a -q)
 #==========================>
 ps axf | grep docker | grep -v grep | awk '{print "kill -9 " (}' | sudo sh')}'
+
+awk '{ if($1 > 0) sum += $1;if($1>0) n++ } END { if (n > 0) print sum / n; print n; }' totaltime
 
 docker login
 

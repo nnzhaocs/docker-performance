@@ -12,6 +12,9 @@ sshpass -p 'kevin123' pssh -h remotehostthors.txt -l root -A -i 'rm -rf /home/na
 echo "sleep 5 s"
 sleep 5
 sshpass -p 'kevin123' pssh -h remotehostthors.txt -l root -A -i 'rm -rf /home/nannan/testing/layers/*'
+sleep 5
+sshpass -p 'kevin123' pssh -h remotehostthors.txt -l root -A -i 'rm -rf /home/nannan/testing/layers2/*'
+
 echo "sleep 5 s"
 sleep 5
 sshpass -p 'kevin123' pssh -h remotehostthors.txt -l root -A -i 'ls /home/nannan/testing/layers/'
