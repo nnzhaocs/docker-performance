@@ -314,7 +314,7 @@ def get_blobs(data, numclients, out_file):#, testmode):
         
     print "done set up rlmap ===============>"
     
-    return None
+    #return None
     """ # for debugging
     for reqlst in data:
 	x = send_requests(reqlst)

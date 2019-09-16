@@ -413,8 +413,8 @@ def send_requests(requests):
         if 'manifest' in r['uri']:
             pass
         else:
-            if True == Wait and r['sleep'] > prev:
-                time.sleep(2)
+            if True == Wait: # and r['sleep'] > prev:
+                time.sleep(1)
             #print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(Accelerater)
             #time.sleep((r['sleep'] - prev)/Accelerater)
             
@@ -453,6 +453,8 @@ def setup_rlmaps(requests):
     for r in requests:
         if 'manifest' in r['uri']:
             pass
+	if 'GET' != r['method']:
+	    pass
         else:
             uri = r['uri']
             parts = uri.split('/')
