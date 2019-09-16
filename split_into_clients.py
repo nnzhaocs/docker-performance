@@ -288,6 +288,8 @@ def fix_put_id(trace_files, limit):
                         x = getmaifest[client]
                         if reponame in x:
                             pass
+                        else:
+                            continue
                     except:
                         continue
                     
