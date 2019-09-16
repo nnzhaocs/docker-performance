@@ -459,7 +459,7 @@ def setup_rlmaps(requests):
 #             client = r['client']
 
             rlmapentry = redis_stat_rlmap(reponame)
-            if rlmapentry:
+            if rlmapentry != None:
                 if len(rlmapentry['Dgstmap']) > 0:
                     try:
                         x = rlmapentry['Dgstmap'][id]
