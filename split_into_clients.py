@@ -267,6 +267,7 @@ def fix_put_id(trace_files, limit):
                         if reponame in x:
                             pass
                     except:
+                        getmaifest[client] = []
                         getmaifest[client].append(reponame)
                 # *********** then check *************        
 
