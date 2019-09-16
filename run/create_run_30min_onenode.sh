@@ -9,7 +9,7 @@
 date
 
 echo "testing params:"
-#echo $1
+echo $1
 echo $2
 echo $3
 echo $4
@@ -22,13 +22,13 @@ echo $9
 codedir="/home/nannan/docker-performance"
 testingmachine=3
 cachesizeratio=0.25
-repullthres=3
+repullthres=1
 
 echo "cleanup thors..."
 ./cleanup_thors.sh
 
-echo "sleep 10 s, wait for cleaning"
-sleep 10
+echo "sleep 5 s, wait for cleaning"
+sleep 5
 
 echo "create config, registry, and client file"
 python create_yaml_onenode.py -r $1 -t $2 -m $3 -s $4 -a $5 -n $6 -c $7 -p $8
@@ -36,8 +36,8 @@ python create_yaml_onenode.py -r $1 -t $2 -m $3 -s $4 -a $5 -n $6 -c $7 -p $8
 echo "cp config.yaml file to other client machines"
 sshpass -p 'kevin123' pssh -h clients.txt  -l root -A -i "sshpass -p 'nannan' scp nannan@amaranth$testingmachine:$codedir/config.yaml  $codedir/"
 
-echo "sleep 10 s, wait for cp config.yml"
-sleep 10
+echo "sleep 5 s, wait for cp config.yml"
+sleep 5
 
 echo "kill all old pythons"
 sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 'pkill -9 python'
@@ -49,22 +49,6 @@ echo "run match"
 python master.py -c match -i config.yaml
 
 # Second run containers
-# -----------------------------------------
-# nodedup:     nnzhaocs/distribution:original
-# primary: b-mode 3:  nnzhaocs/distribution:primary-b-mode3
-# restore:
-#  (1) nnzhaocs/distribution:distributionthors7
-#  (2) nnzhaocs/distribution:distributionthors14
-# b-mode 0: 
-# nnzhaocs/distribution:b-mode-0 (21 nodes)
-# sift: standard:
-# nnzhaocs/distribution:primary14 + nnzhaocs/distribution:original
-# nnzhaocs/distribution:primary14 + nnzhaocs/distribution:original
-# <shrink to 7> 
-# sift: selective:
-# same as standard
-# 
-# ------------------------------------------
 
 dedupimagearr=("nnzhaocs/distribution:distributionthors7" "nnzhaocs/distribution:distributionthors14" "nnzhaocs/distribution:distributionthors21")
 originalimage="nnzhaocs/distribution:original"
@@ -96,19 +80,26 @@ if [ $3 == "restore" ] && [ $9 == "preconstruct" ]; then
 		#sleep 20 
 		#echo "sleep 20 s, wait for dedup registries to start"
 		#./run_sifttest_restore.sh $originalimage dedupregistries.txt
-elif [ $3 == "restore" ] && [ $9 == "nopreconstruct" ]; then
+elif [ $3 == "restore" ] && [ $9 == "nocache" ]; then
 		cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
                 echo "cachesize:"
                 echo $cachesize
                 #imageno=$(echo "$6/7-1"|bc)
 		./run_sifttest.sh nnzhaocs/distribution:onenowithoutdepreconstruct  dedupregistries.txt $cachesize $repullthres
-		
+elif [ $3 == "restore" ] && [ $9 == "normallcache" ]; then
+        cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/$6+1"|bc)
+        echo "cachesize:"
+        echo $cachesize
+        #imageno=$(echo "$6/7-1"|bc)
+        ./run_sifttest.sh nnzhaocs/distribution:normallcache dedupregistries.txt $cachesize $repullthres
+
+
 elif [ $3 == "sift" ]; then
 	./run_sifttest_original.sh $originalimage dedupregistries.txt
 fi;
 
-echo "sleep 20 s, wait for dedup registries to run a while if any"
-sleep 20
+echo "sleep 5 s, wait for dedup registries to run a while if any"
+sleep 5
 
 echo "second start primary containers----------->"
 
@@ -117,7 +108,7 @@ if [ $3 == "nodedup" ]; then
        #cachesize=$(echo "${sizearr[$2]}*1024*$cachesizeratio/1+1"|bc)
        #echo "cachesize:"
        #echo $cachesize
-       newcachesize=100 #$(echo "$cachesize"|bc) #100B
+       newcachesize=10 #$(echo "$cachesize"|bc) #100B
        echo $newcachesize
        ./run_sifttest_inmemory_nodedup.sh nnzhaocs/distribution:inmemoryonenode primaryregistries.txt $newcachesize $repullthres
 
@@ -135,46 +126,67 @@ elif [ $3 == "primary" ]; then
 	#./run_sifttest_inmemory.sh nnzhaocs/distribution:inmemoryonenodesmall4 primaryregistries.txt $newcachesize $repullthres
 fi;
 
-echo "sleep 20 s, wait for primary registries to start"
-sleep 20
+echo "sleep 5 s, wait for primary registries to start"
+sleep 5
 
 echo "start clients .......\n"
 echo "warmup ....."
-./run_clients.sh config.yaml warmup $codedir clients.txt
+#./run_clients.sh config.yaml warmup $codedir clients.txt
 
-echo "sleep 20 s, wait for client to start sending warmup requests"
-sleep 20
+#echo "sleep 20 s, wait for client to start sending warmup requests"
+#sleep 20
 
-sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 50 logs"
+#sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 50 logs"
+echo "Hello! You are gonna start the this client to do test: "
+#cat $4
+
+#cmd=$(printf "The input parameters: \n %s \n %s \n %s \n %s \n" "$1" "$2" "$3" "$4")
+#echo $cmd
+
+echo "Update docker-performance repository!"
+cd $codedir
+git pull
+#echo $cmd
+#sshpass -p 'nannan' pssh -h $4 -l nannan -A -i -t 600 $cmd
+echo "PUll again!"
+git pull
+#sshpass -p 'nannan' pssh -h $4 -l nannan -A -i -t 600 $cmd
+
+python master.py -i config.yaml -c warmup
+#echo $cmd
+#sshpass -p 'nannan' pssh -h $4 -l nannan -A -i -t 600 $cmd
 
 if [ $3 == "restore" ]; then
-	echo "sleep 20 min, wait for warmup to finish"
-	sleep 600
+	echo "sleep 2 min, wait for warmup to finish"
+	sleep 120
 else
-	echo "sleep 20 min, wait for warmup to finish"
-	sleep 300
+	echo "sleep 20 second, wait for warmup to finish"
+	sleep 20
 fi;
 
-sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
+# sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd /home/nannan/docker-performance; tail -n 20 logs"
+#sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
 echo "run ...."
-./run_clients.sh config.yaml run $codedir clients.txt
+#./run_clients.sh config.yaml run $codedir clients.txt
 
-echo "sleep 20 s, wait for client to start sending run requests"
-sleep 20
-sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 50 logs"
+python master.py -i config.yaml -c run
+
+#echo "sleep 20 s, wait for client to start sending run requests"
+#sleep 20
+#sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 50 logs"
 
 #echo "sleep 10 min, wait for run to finish"
 #sleep 660
-if [ $3 == "restore" ]; then
-	echo "sleep 20 min, wait for run to finish"
-	sleep 1200
-else
-        echo "sleep 20 min, wait for run to finish"
-        sleep 600
-fi;
+#if [ $3 == "restore" ]; then
+#	echo "sleep 40 min, wait for run to finish"
+#	sleep 1300
+#else
+#        echo "sleep 20 min, wait for run to finish"
+#        sleep 1200
+#fi;
 
-sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
+#sshpass -p 'kevin123' pssh -h clients.txt -l root -A -i -t 600 "cd $codedir; tail -n 20 logs"
 
 ./get_results_fromclients.sh $testingmachine clients.txt
 
