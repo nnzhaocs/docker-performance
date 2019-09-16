@@ -445,7 +445,7 @@ def send_requests(requests):
 #     //Pullcnt int64
 # }
 
-def setup_rlmaps(request):
+def setup_rlmaps(requests):
     
     change = False 
     for r in requests:
