@@ -266,6 +266,8 @@ def fix_put_id(trace_files, limit):
                         x = getmaifest[client]
                         if reponame in x:
                             pass
+			else:
+			    getmaifest[client].append(reponame)
                     except:
                         getmaifest[client] = []
                         getmaifest[client].append(reponame)
@@ -292,7 +294,6 @@ def fix_put_id(trace_files, limit):
                             continue
                     except:
                         continue
-                    
                     
                     parts = uri.split('/')
                     reponame = parts[1] + '/' + parts[2] 
