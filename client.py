@@ -112,7 +112,7 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
             # *********** nondedupreplicas send to primary nodes ************  
             noderange = ring.range(id, nondedupreplicas, True)
             for i in noderange:    
-                registry_tmps.append((i['nodename'], nodedupreponame))
+                registry_tmps.append((i['nodename'], dedupreponame))
             # *********** r-1 replicas send to dedup nodes ************  
             deduprange = ringdedup.range(id, replica_level-nondedupreplicas, True)
             for i in deduprange:
@@ -122,9 +122,9 @@ def get_write_registries(r, dedupreponame, nodedupreponame):
             if id in hotlayers:
                 noderange = ring.range(id, replica_level, True)
                 for i in noderange:
-                    registry_tmps.append((i['nodename'], nodedupreponame))
+                    registry_tmps.append((i['nodename'], dedupreponame))
             else:
-                registry_tmps.append((ring.get_node(id), nodedupreponame))
+                registry_tmps.append((ring.get_node(id), dedupreponame))
                 deduprange = ringdedup.range(id, replica_level-1, True)
                 for i in deduprange:
                     registry_tmps.append((i['nodename'], nodedupreponame))
@@ -355,7 +355,7 @@ def distribute_put_requests(request, tp, registries):
         
     targenodes = [] 
     if 'manifest' not in uri: 
-        if Testmode == 'primary':       
+        if Testmode == 'primary' or Testmode == 'sift':       
             for tup in registries:
                 registry_tmp = tup[0]
                 targenodes.append(registry_tmp)
@@ -413,8 +413,12 @@ def send_requests(requests):
         if 'manifest' in r['uri']:
             pass
         else:
-            if True == Wait: # and r['sleep'] > prev:
-                time.sleep(1)
+            if True == Wait and  r['sleep'] > prev:
+                if (r['sleep'] - prev) > 1:
+                    time.sleep(1)
+                else:
+                    time.sleep((r['sleep'] - prev))
+        
             #print "sleeping .... .... " + str(r['sleep'] - prev) + '/' + str(Accelerater)
             #time.sleep((r['sleep'] - prev)/Accelerater)
             

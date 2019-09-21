@@ -8,9 +8,9 @@ import time
 # default setting
 traces = {}
 realblobfiles = {}
-limitamount = 5000
+limitamount = 2000
 # 24 32 48 64 
-warmupthreads = 32 # number of total clients
+warmupthreads = 30 # number of total clients
 hotratio = 0.25
 #nondedupreplicas = 2
 replicalevel = 3
@@ -25,7 +25,8 @@ def createclientinfo(trace, realload):
     if realload == True:
         load = [os.path.join(layerfiledir, trace+'_layers.lst')]
     else:
-        load = [os.path.join(layerfiledir, realblobfiles[trace])]
+        #load = [os.path.join(layerfiledir, realblobfiles[trace])]
+	load = [os.path.join(layerfiledir, 'hulk_layers_approx_'+trace+'MB.lst')]
     client_info = {
         "threads": 1,
         "realblobs": load,#
@@ -59,14 +60,15 @@ def createtestmode(testmode):
     primary = False
     
     if testmode == "nodedup":
-        nodedup = True
+        #nodedup = True
+	primary = True
     if testmode == "sift":
         sift = True
     if testmode == "restore":
         restore = True
     if testmode == "primary":
-        nodedup = True
-        #primary = True
+        #nodedup = True
+        primary = True
     
     testmode = {
         "nodedup": nodedup,
@@ -168,26 +170,27 @@ def main():
                 "192.168.0.205:5000",
                 "192.168.0.208:5000",
                 "192.168.0.209:5000",
-                "192.168.0.210:5000",
-                "192.168.0.211:5000",
-                "192.168.0.212:5000",
-                "192.168.0.213:5000",
-                "192.168.0.214:5000",
-                "192.168.0.215:5000",
-                "192.168.0.216:5000",
-                "192.168.0.217:5000",
-                "192.168.0.218:5000",
-                "192.168.0.219:5000",
-                "192.168.0.221:5000",
-                "192.168.0.222:5000",
-                "192.168.0.223:5000"]
+                "192.168.0.210:5000"
+                #"192.168.0.211:5000",
+                #"192.168.0.212:5000",
+                #"192.168.0.213:5000",
+                #"192.168.0.214:5000",
+                #"192.168.0.215:5000",
+                #"192.168.0.216:5000",
+                #"192.168.0.217:5000",
+                #"192.168.0.218:5000",
+                #"192.168.0.219:5000",
+                #"192.168.0.221:5000",
+                #"192.168.0.222:5000",
+                #"192.168.0.223:5000"
+		]
     
     clients_amaranths = ["192.168.0.151",
                "192.168.0.153",
                "192.168.0.154",
                "192.168.0.156"]
 
-    clients = ["192.168.0.220"]
+    clients = ["192.168.0.222"]
 
     clients_hulks = ["192.168.0.170",
             "192.168.0.171",
@@ -242,19 +245,22 @@ def main():
     selective: 
     """
     if args.testmode == "nodedup" or args.testmode == "primary":
-        primaryregistry = registries #registries(:,len(registries)-args.numofdedupregistries)
+        primaryregistry = registries[:args.numofdedupregistries] 
+	#registries(:,len(registries)-args.numofdedupregistries)
     elif args.testmode == "sift":
-        dedupregistry = registries[:args.numofdedupregistries]
-        primaryregistry = registries[-(len(registries)-args.numofdedupregistries):]
+        primaryregistry = registries[:args.numofdedupregistries]
+        dedupregistry = registries[-(len(registries)-args.numofdedupregistries):]
+	print dedupregistry
     elif args.testmode == "restore":
         dedupregistry = registries[:args.numofdedupregistries]
 #    elif args.testmode == "primary":
 #        dedupregistry = registries[:args.numofdedupregistries]
 #        primaryregistry = registries[-(len(registries)-args.numofdedupregistries):]
-        
+    print dedupregistry
     testingmode = createtestmode(args.testmode)
     testingsiftmode = createsiftparams(args.siftmode, hotratio, args.nondedupreplicas)
     simulate = createsimulate(wait, args.accelerater, replicalevel)
+    print dedupregistry
     config = {
         "client_info": client_info,
         "trace": testingtrace,

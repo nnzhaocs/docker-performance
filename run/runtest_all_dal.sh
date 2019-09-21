@@ -1,24 +1,30 @@
-# ignore 50mb
+# ignore $1
 
 echo "testing different modes -------->"
 echo "test original registry"
-#./create_run_30min.sh 50mb dal nodedup standard 12 0 8 2 &> resultsdal_original.log
+./create_run_30min.sh $1 $2 nodedup standard 12 9 1 2 &> results$1_$2_original.log
 echo "test b-mode 3"
-#./create_run_30min.sh 50mb dal primary standard 12 0 8 2 &> resultsdal-b-mode-3.log
+./create_run_30min.sh $1 $2 primary standard 12 9 1 2 &> results$1-$2-b-mode-3.log
 echo "test b-mode 0"
-#./create_run_30min.sh 50mb dal restore standard 12 21 8 2 &> resultsdal-b-mode-0.log
-echo "test b-mode 1 (18 primary nodes)"
-./create_run_30min.sh 50mb dal sift standard 12 7 8 1 &> resultsdal-b-mode-1.log
-echo "test b-mode 2 (18 primary nodes)" 
-./create_run_30min.sh 50mb dal sift standard 12 7 8  2 &> resultsdal-b-mode-2.log
-echo "test s-mode"
-./create_run_30min.sh 50mb dal sift selective 12 7 8 2 &> resultsdal-s-mode.log
+./create_run_30min.sh $1 $2 restore standard 12 9 1 2 &> results$1-$2-b-mode-0.log
 
-echo "testing restoring performance--------->"
-echo "test restore with 18"
-#./create_run_30min.sh 50mb dal restore standard 12 18 8 2 &> resultsdal-restore-18.log
-echo "test restore with 7"
-#./create_run_30min.sh 50mb dal restore standard 12 7 8 2 &> resultsdal-restore-7.log
+echo "test b-mode 1 (6 primary nodes)"
+./create_run_30min.sh $1 $2 sift standard 12 6 1 2 &> results$1-$2-b-mode-1-6.log
+echo "test b-mode 2 (6 primary nodes)" 
+./create_run_30min.sh $1 $2 sift standard 12 6 1 2 &> results$1-$2-b-mode-2-6.log
+echo "test s-mode"
+./create_run_30min.sh $1 $2 sift selective 12 6 1 2 &> results$1-$2s-mode-6.log
+
+echo "test b-mode 1 (3 primary nodes)"
+./create_run_30min.sh $1 $2 sift standard 12 3 1 2 &> results$1-$2-b-mode-1-3.log
+echo "test b-mode 2 (3 primary nodes)"
+./create_run_30min.sh $1 $2 sift standard 12 3 1 2 &> results$1-$2-b-mode-2-3.log
+echo "test s-mode"
+./create_run_30min.sh $1 $2 sift selective 12 3 1 2 &> results$1-$2s-mode-3.log
+
+
+
+
 
 
 
