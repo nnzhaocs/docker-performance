@@ -1,7 +1,8 @@
 
 beware of 174 171 and 172
 
-git clone docker-performance
+#git clone docker-performance
+git clone https://github.com/nnzhaocs/docker-performance.git
 
 mkdir -p /home/nannan/testing/realblobtraces
 mkdir -p /home/nannan/testing/results
