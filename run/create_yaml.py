@@ -8,9 +8,9 @@ import time
 # default setting
 traces = {}
 realblobfiles = {}
-limitamount = 2000
+limitamount = 5000
 # 24 32 48 64 
-warmupthreads = 30 # number of total clients
+warmupthreads = 100 # number of total clients
 hotratio = 0.25
 #nondedupreplicas = 2
 replicalevel = 3
